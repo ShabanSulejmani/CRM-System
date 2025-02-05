@@ -3,9 +3,11 @@ function Faq() {
     return (
       <div className="p-4">
         <h1 className="text-2xl font-bold mb-4">Frequently Asked Questions</h1>
-        <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-          Show All FAQs
-        </button>
+
+        <h1>Har du läst vår FAQ?</h1>
+       
+        <button>JA</button>
+        <button>Nej</button>
       </div>
     );
   }
