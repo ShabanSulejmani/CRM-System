@@ -1,7 +1,8 @@
 // App.jsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Layout from './Layout';
 
-// Import page components
+// Import your pages
 import AdminCreateUser from './pages/AdminCreateUser';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
@@ -15,22 +16,28 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Admin routes */}
-        <Route path="/admin/create-user" element={<AdminCreateUser />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/" element={<Layout />}>
+          {/* Nest all routes inside Layout */}
+          <Route index element={<FormPage />} />
+          
+          {/* Admin routes */}
+          <Route path="admin">
+            <Route path="login" element={<AdminLogin />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="create-user" element={<AdminCreateUser />} />
+          </Route>
 
-        {/* Staff routes */}
-        <Route path="/staff/dashboard" element={<StaffDashboard />} />
-        <Route path="/staff/login" element={<StaffLogin />} />
+          {/* Staff routes */}
+          <Route path="staff">
+            <Route path="login" element={<StaffLogin />} />
+            <Route path="dashboard" element={<StaffDashboard />} />
+          </Route>
 
-        {/* General routes */}
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/faq" element={<Faq />} />
-        <Route path="/form" element={<FormPage />} />
-        
-        {/* Default route */}
-        <Route path="/" element={<FormPage />} />
+          {/* Other routes */}
+          <Route path="chat" element={<Chat />} />
+          <Route path="faq" element={<Faq />} />
+          <Route path="form" element={<FormPage />} />
+        </Route>
       </Routes>
     </Router>
   );
