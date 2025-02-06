@@ -8,6 +8,7 @@
     padding: 100px;
     margin-top: 10px;
     border-radius: 10px;
+    box-shadow: 5px 5px 20px #b8b7b7;
   }
   
 
@@ -15,8 +16,8 @@
 .faq-buttons{
     display: flex;
     justify-content: space-evenly;
-    margin-top: 10%;
-    margin-bottom: 10%;
+    margin-top: 20%;
+    margin-bottom: 5%;
 
 }
 
@@ -28,6 +29,8 @@
     border: 2px solid #333;
     border-radius: 25px;
     background-color: white;
+    box-shadow: 5px 5px 20px #a8a8a8;
+
 
     cursor: pointer;
     transition: all 0.3s ease;
@@ -50,5 +53,6 @@
     border-radius: 10px;
     margin-left: 200px;
     margin-right: 200px;
+    box-shadow: 5px 5px 20px #a9a8a8;
   }
   

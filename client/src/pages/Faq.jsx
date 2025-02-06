@@ -7,8 +7,8 @@ function Faq() {
       <h1>Har du läst vår FAQ?</h1>
        <div className="faq-buttons">
 
-        <button className="faq-ja">JA</button>
-        <button className="faq-nej">Nej</button>
+        <button>JA</button>
+        <button>Nej</button>
         </div>
         <div className="faq-extra-section">
           <p>mer information om vi ska ha det!</p>
