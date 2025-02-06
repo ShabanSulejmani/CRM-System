@@ -51,7 +51,7 @@ select{
     margin-bottom: 15px;
     padding: 10px;
     box-sizing: border-box;
-    border: 1px solid whitesmoke;
+    border: 2px solid rgb(0, 0, 0);
     border-radius: 5px;
 }
 
