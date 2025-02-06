@@ -82,14 +82,14 @@ function Layout() {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-grow container mx-auto p-4">
+      <main className="main-content">
         <Outlet />
       </main>
 
       {/* Footer */}
       <footer className="bg-gray-800 text-white p-4 mt-auto">
         <div className="container mx-auto text-center">
-          <p>&copy; 2025 CRM System. All rights reserved.</p>
+          <p>&copy; { new Date().getFullYear()} All rights reversed</p>
         </div>
       </footer>
     </div>

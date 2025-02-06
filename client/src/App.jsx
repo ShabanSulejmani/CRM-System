@@ -1,6 +1,7 @@
 // App.jsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './Layout';
+import Form from "./Form";
 
 // Import your pages
 import AdminCreateUser from './pages/AdminCreateUser';
@@ -18,7 +19,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           {/* Nest all routes inside Layout */}
-          <Route index element={<FormPage />} />
+          <Route index element={<Form />} />
           
           {/* Admin routes */}
           <Route path="admin">
