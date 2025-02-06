@@ -1,6 +1,10 @@
 
 function Form(){
 
+    const handleReset = () => {
+        document.querySelector('form').reset();
+    };
+
     return(
         <div className="container">
             <h1>Form</h1>
@@ -42,7 +46,7 @@ function Form(){
                 <label htmlFor="about">About</label>
                 <br />
                 <textarea name="about" id="about" cols="30" rows="10" placeholder="Enter description"></textarea>
-                <button type="button">Reset</button>
+                <button type="button" onClick={handleReset}>Reset</button>
                 <button type="submit">Submit</button>
             </form>
 
