@@ -47,12 +47,12 @@
 
   
   .faq-extra-section {
+position: relative;
+    top: 100px;
+    left: -6%;
     background-color: #cacaca;
-    padding: 70px;
-    margin-top: 20px;
-    border-radius: 10px;
-    margin-left: 200px;
-    margin-right: 200px;
-    box-shadow: 5px 5px 20px #a9a8a8;
+    padding: 40px;
+    width: 107%;
+    box-shadow: 3px 3px 10px #a9a8a8;
   }
   
