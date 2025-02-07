@@ -1,53 +1,165 @@
 
-function Form(){
+import { useState } from 'react';
 
-    return(
+function Form() {
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        gender: '',
+        subject: 'math',
+        about: ''
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitMessage, setSubmitMessage] = useState('');
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setSubmitMessage('');
+
+        try {
+            const response = await fetch('https://localhost:7777/api/formsubmissions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...formData,
+                    submittedAt: new Date().toISOString(),
+                    isChatActive: true
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                setSubmitMessage('Formuläret har skickats! Kolla din e-post för chattlänken.');
+                setFormData({
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    gender: '',
+                    subject: 'math',
+                    about: ''
+                });
+            } else {
+                setSubmitMessage('Ett fel uppstod. Försök igen.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            setSubmitMessage('Ett fel uppstod vid anslutning till servern.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleReset = () => {
+        setFormData({
+            firstName: '',
+            lastName: '',
+            email: '',
+            gender: '',
+            subject: 'math',
+            about: ''
+        });
+        setSubmitMessage('');
+    };
+
+    return (
         <div className="container">
-            <h1>Form</h1>
-            <form>
-                <label htmlFor="firstname">First Name</label>
-                <input type="text" placeholder="Enter First Name" name="firstname" />
-                <br />
+            <h1>Formulär</h1>
+            <form onSubmit={handleSubmit}>
+                <label htmlFor="firstName">Förnamn</label>
+                <input 
+                    type="text" 
+                    placeholder="Ange förnamn" 
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    required 
+                />
 
-                <label htmlFor="lastname">Last Name</label>
-                <input type="text" placeholder="Enter Last Name" name="lastname" />
-                <br />
+                <label htmlFor="lastName">Efternamn</label>
+                <input 
+                    type="text" 
+                    placeholder="Ange efternamn" 
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    required 
+                />
 
-                <label htmlFor="email">Email</label>
-                <input type="text" placeholder="Enter Email" name="email" />
-                <br />
+                <label htmlFor="email">E-post</label>
+                <input 
+                    type="email" 
+                    placeholder="Ange e-post" 
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required 
+                />
 
+                <label htmlFor="gender">Kön</label>
+                <div>
+                    <input 
+                        type="radio" 
+                        name="gender" 
+                        value="male"
+                        checked={formData.gender === 'male'}
+                        onChange={handleInputChange}
+                    /> Man
+                    <input 
+                        type="radio" 
+                        name="gender" 
+                        value="female"
+                        checked={formData.gender === 'female'}
+                        onChange={handleInputChange}
+                    /> Kvinna
+                </div>
 
-                <label htmlFor="gender">Gender</label>
-                <input type="radio" name="gender" /> Male
-                <input type="radio" name="gender" /> Female 
-                <br />
-                <br />
-
-                <label htmlFor="subject">Subject</label>
-                <select name="subject" id="subject">
-                    <option value="math">Math</option>
-                    <option value="Physic">Physic</option>
-                    <option value="English">English</option>
+                <label htmlFor="subject">Ämne</label>
+                <select 
+                    name="subject" 
+                    value={formData.subject}
+                    onChange={handleInputChange}
+                >
+                    <option value="math">Matematik</option>
+                    <option value="physics">Fysik</option>
+                    <option value="english">Engelska</option>
                 </select>
 
-                <label htmlFor="resume">Resume</label>
-                <input type="file" placeholder="Select Resume" name="resume"/>
-                <br />
+                <label htmlFor="about">Om dig</label>
+                <textarea 
+                    name="about"
+                    value={formData.about}
+                    onChange={handleInputChange}
+                    placeholder="Beskriv dig själv"
+                    required
+                />
 
-                <label htmlFor="url">URL</label>
-                <input type="text" placeholder="Enter Image URL" name="url"/>
-                <br />
+                {submitMessage && (
+                    <div className={submitMessage.includes('fel') ? 'error-message' : 'success-message'}>
+                        {submitMessage}
+                    </div>
+                )}
 
-                <label htmlFor="about">About</label>
-                <br />
-                <textarea name="about" id="about" cols="30" rows="10" placeholder="Enter description"></textarea>
-                <button type="button">Reset</button>
-                <button type="submit">Submit</button>
+                <button type="button" onClick={handleReset} disabled={isSubmitting}>
+                    Återställ
+                </button>
+                <button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? 'Skickar...' : 'Skicka'}
+                </button>
             </form>
-
         </div>
-    )
+    );
 }
 
-export default Form
+export default Form;
