@@ -1,7 +1,9 @@
 
 import { useState } from 'react';
 
-function Form() {
+const API_BASE_URL = 'http://localhost:5000/api';
+
+function Form(){
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -25,12 +27,14 @@ function Form() {
         e.preventDefault();
         setIsSubmitting(true);
         setSubmitMessage('');
-
+    
         try {
-            const response = await fetch('https://localhost:7777/api/formsubmissions', {
+            console.log('Sending data to:', `${API_BASE_URL}/formsubmissions`);
+            const response = await fetch(`${API_BASE_URL}/formsubmissions`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
                     ...formData,
@@ -38,9 +42,10 @@ function Form() {
                     isChatActive: true
                 })
             });
-
+    
             if (response.ok) {
                 const result = await response.json();
+                console.log('Success:', result);
                 setSubmitMessage('Formuläret har skickats! Kolla din e-post för chattlänken.');
                 setFormData({
                     firstName: '',
@@ -51,6 +56,7 @@ function Form() {
                     about: ''
                 });
             } else {
+                console.error('Server error:', response.status);
                 setSubmitMessage('Ett fel uppstod. Försök igen.');
             }
         } catch (error) {
