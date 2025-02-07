@@ -14,13 +14,15 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp",
         builder =>
         {
-            builder.WithOrigins("http://localhost:5173") // Din React app URL (standard Vite port)
+            builder
+                .WithOrigins(
+                    "http://localhost:3001",  // HTTP
+                    "https://localhost:3001"   // HTTPS
+                )
                 .AllowAnyMethod()
                 .AllowAnyHeader();
         });
 });
-
-
 // Lägg till DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -37,8 +39,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Ordningen är viktig här
 app.UseHttpsRedirection();
-app.UseCors("AllowReactApp");
+app.UseCors("AllowReactApp"); // CORS måste komma före Authorization
 app.UseAuthorization();
 app.MapControllers();
 
