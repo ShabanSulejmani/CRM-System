@@ -1,11 +1,14 @@
+import Aside from "./Aside"
+
 function Header(){
 
   return<>
   <header className="header-login">
-      <nav>
+      <nav className="login-nav">
           <a href="">Login</a>
       </nav>
   </header>
+  <Aside />
   </>
 }
 

@@ -79,7 +79,29 @@ button:hover {
     background-color: rgb(38, 6, 38);
 }
 
-.header-login{
+
+
+.staff-aside{
+    background-color: blueviolet;
+    display: flex;
+    width: 25%;
+    height: 100vh;
+    
+}
+
+nav {
+    width: 100%;
+    
+}
+
+
+h3{
+    display: flex;
+    justify-content: center;
+
+}
+
+.login-nav {
     display: flex;
     justify-content: end;
     border: 2px solid;
