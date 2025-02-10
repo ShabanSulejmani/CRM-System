@@ -16,13 +16,13 @@ function Layout() {
               {/* Public Links */}
               <div className="flex flex-col space-y-2">
                 <Link 
-                  to="/form" 
+                  to="/Form" 
                   className="hover:text-blue-300 transition-colors"
                 >
                   Contact Form
                 </Link>
                 <Link 
-                  to="/faq" 
+                  to="/FAQ" 
                   className="hover:text-blue-300 transition-colors"
                 >
                   FAQ

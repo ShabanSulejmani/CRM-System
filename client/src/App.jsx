@@ -37,7 +37,7 @@ function App() {
           {/* Other routes */}
           <Route path="chat" element={<Chat />} />
           <Route path="faq" element={<Faq />} />
-          <Route path="form" element={<FormPage />} />
+          <Route path="form" element={<Form />} />
         </Route>
       </Routes>
     </Router>
