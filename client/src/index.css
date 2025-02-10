@@ -84,12 +84,19 @@ button:hover {
 
 
 
-
-
-
-
-.login-border{
+.login-container{
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgb(18, 18, 84);
+    padding: 10px 20px;
+    transition: transform 0.2s;
+    width: 500px;
+    text-align: center;
+    margin: auto;
+    margin-top: 20px;
 }
+
+
 
 
 .admin-login{
@@ -111,7 +118,8 @@ button:hover {
 .login-knapp {
     display: flex;
     justify-content: center;
-margin-top: 10%;
+
+margin-top: 15%;
 margin-bottom: 5%;
 }
 /*
