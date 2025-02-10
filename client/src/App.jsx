@@ -10,7 +10,7 @@ import AdminLogin from './pages/AdminLogin';
 import Chat from './pages/Chat';
 import Faq from './pages/Faq';
 import FormPage from './pages/FormPage';
-import StaffDashboard from './pages/StaffDashboard';
+import StaffDashboard from './pages/StaffDashboard/Header';
 import StaffLogin from './pages/StaffLogin';
 
 function App() {
