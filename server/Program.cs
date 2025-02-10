@@ -4,44 +4,50 @@ using server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Grundläggande tjänster
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(options =>
+// CORS-konfiguration
+/*builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
         builder =>
         {
-            builder
-                .WithOrigins(
-                    "http://localhost:3001",  // HTTP
-                    "https://localhost:3001"   // HTTPS
-                )
+            builder.WithOrigins("http://localhost:3000", "http://localhost:3001")
                 .AllowAnyMethod()
-                .AllowAnyHeader();
+                .AllowAnyHeader()
+                .AllowCredentials();
         });
 });
-// Lägg till DbContext
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Lägg till Email Service
+// Databaskonfiguration - aktivera när databas behövs
+/*
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlServerOptions => sqlServerOptions.EnableRetryOnFailure()
+    );
+});
+*/
+
+// Email Service
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 
-// Ordningen är viktig här
 app.UseHttpsRedirection();
-app.UseCors("AllowReactApp"); // CORS måste komma före Authorization
+app.UseCors("AllowReactApp");
+app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
 
