@@ -40,9 +40,17 @@ public class EmailService : IEmailService
         try
         {
             using var client = new SmtpClient();
+            
+            // Lägg till null-check här
+            var port = _configuration["Email:Port"];
+            if (string.IsNullOrEmpty(port))
+            {
+                throw new InvalidOperationException("Email port configuration is missing");
+            }
+
             await client.ConnectAsync(
                 _configuration["Email:SmtpServer"],
-                int.Parse(_configuration["Email:Port"]),
+                int.Parse(port),
                 SecureSocketOptions.StartTls);
 
             await client.AuthenticateAsync(

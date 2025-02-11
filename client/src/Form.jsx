@@ -1,9 +1,6 @@
-
 import { useState } from 'react';
 
-const API_BASE_URL = 'http://localhost:5000/api';
-
-function Form(){
+function Form() {
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -29,12 +26,10 @@ function Form(){
         setSubmitMessage('');
     
         try {
-            console.log('Sending data to:', `${API_BASE_URL}/formsubmissions`);
-            const response = await fetch(`${API_BASE_URL}/formsubmissions`, {
+            const response = await fetch('/api/formsubmissions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
                     ...formData,
@@ -45,7 +40,6 @@ function Form(){
     
             if (response.ok) {
                 const result = await response.json();
-                console.log('Success:', result);
                 setSubmitMessage('Formuläret har skickats! Kolla din e-post för chattlänken.');
                 setFormData({
                     firstName: '',
