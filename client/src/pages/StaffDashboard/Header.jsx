@@ -1,4 +1,5 @@
 import Aside from "./Aside"
+import Main from "./Main"
 
 function Header(){
 
@@ -8,7 +9,8 @@ function Header(){
           <a href="">Login</a>
       </nav>
   </header>
-  <Aside />
+    <Aside />
+    <Main />
   </>
 }
 
