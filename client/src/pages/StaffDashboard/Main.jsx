@@ -50,7 +50,7 @@ function Main() {
         onDragOver={handleDragOver} // Tillåter att uppgifter kan dras över denna kolumn.
         onDrop={() => handleDrop(setTasks, tasks)} // Hanterar vad som händer när en uppgift släpps här.
       >
-        <h2 className="tasks-header">Tasks</h2> {/* Titel för kolumnen */}
+        <h2 className="tasks-header">Tasks</h2> 
         <button className="add-task-button" onClick={() => addTask(setTasks)}>+ Lägg till ny</button> {/* Knapp för att lägga till en ny uppgift */}
         {tasks.map((task, index) => ( // Loopar igenom "tasks" och skapar en div för varje uppgift.
           <div
@@ -114,4 +114,4 @@ function Main() {
   );
 }
 
-export default Main; // Exporterar Main-komponenten så att den kan användas i andra filer.
+export default Main;
