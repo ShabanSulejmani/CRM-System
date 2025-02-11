@@ -6,7 +6,9 @@ function Header(){
   return<>
   <header className="header-login">
       <nav className="login-nav">
-          <a href="">Login</a>
+        <a href="">
+        <img src="/img/login.png" alt="Logga in" className="login-img"/>
+          </a>
       </nav>
   </header>
     <Aside />
@@ -14,4 +16,4 @@ function Header(){
   </>
 }
 
-export default Header
+export default Header 

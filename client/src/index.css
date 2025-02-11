@@ -104,12 +104,8 @@ h3{
 .login-nav {
     display: flex;
     justify-content: end;
-    border: 2px solid;
-    border-radius: 5px;
-    padding: 15px;
     margin-top: 10px;
-    width: 96vw; /* WHY????? */
-    
+    width: 99.7%;    
 }
 
 
@@ -124,9 +120,10 @@ h3{
     flex: 1;
     height: 100%;
     margin: 0;
-    background-color: rgb(163, 0, 131);
+    background-color: rgba(0, 0, 0, 0.722);
     margin: 2px;
     border: 2px solid;
+    box-shadow: 0 0 20px rgb(18, 18, 84);
 }
 
 .staff-aside > div {
@@ -140,12 +137,15 @@ h3{
 }
 
 .tasks {
+    font-size: 2rem;
     flex: 1;
     height: 100%;
     margin: 0;
-    background-color: seagreen;
+    background-color: rgba(0, 0, 0, 0.722);
     margin: 2px;
-    border: 2px solid
+    border: 2px solid;
+    box-shadow: 0 0 20px rgb(18, 18, 84);
+    text-align: center;
 }
 
 .tasks > div {
@@ -159,12 +159,15 @@ h3{
 }
 
 .my-tasks {
+    font-size: 2rem;
     flex: 1;
     height: 100%;
     margin: 0;
-    background-color: rgb(96, 46, 139);
+    background-color: rgb(0, 0, 0, 0.722);
     margin: 2px;
-    border: 2px solid
+    border: 2px solid;
+    box-shadow: 0 0 20px rgb(18, 18, 84);
+    text-align: center;
 }
 
 .my-tasks > div {
@@ -178,12 +181,15 @@ h3{
 }
 
 .done {
+    font-size: 2rem;
     flex: 1;
     height: 100%;
     margin: 0;
-    background-color: rgb(139, 105, 46);
+    background-color: rgb(0, 0, 0, 0.722);
     margin: 2px;
-    border: 2px solid
+    border: 2px solid;
+    box-shadow: 0 0 20px rgb(18, 18, 84);
+    text-align: center;
 }
 
 .done > div {
@@ -195,3 +201,11 @@ h3{
     display: flex;
     justify-content: space-evenly;
 }
+
+.login-img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+  }
+
+  
