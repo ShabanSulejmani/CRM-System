@@ -123,7 +123,10 @@ h3{
     background-color: rgba(165, 102, 0, 0.722);
     margin: 2px;
     border: 2px solid;
+    border-radius: 10px;
     box-shadow: 0 0 20px rgb(18, 18, 84);
+    font-size: calc(0.5rem + 2vw);
+    text-align: center;
 }
 
 .staff-aside > div {
@@ -139,13 +142,14 @@ h3{
 }
 
 .tasks {
-    font-size: 2rem;
+    font-size: calc(0.5rem + 2vw);
     flex: 1;
     height: 100%;
     margin: 0;
     background-color: rgba(185, 185, 185, 0.722);
     margin: 2px;
     border: 2px solid;
+    border-radius: 10px;
     box-shadow: 0 0 20px rgb(18, 18, 84);
     text-align: center;
 }
@@ -164,13 +168,14 @@ h3{
 }
 
 .my-tasks {
-    font-size: 2rem;
+    font-size: calc(0.5rem + 2vw);
     flex: 1;
     height: 100%;
     margin: 0;
     background-color: rgba(114, 113, 113, 0.722);
     margin: 2px;
     border: 2px solid;
+    border-radius: 10px;
     box-shadow: 0 0 20px rgb(18, 18, 84);
     text-align: center;
 }
@@ -189,13 +194,14 @@ h3{
 }
 
 .done {
-    font-size: 2rem;
+    font-size: calc(0.5rem + 2vw);
     flex: 1;
     height: 100%;
     margin: 0;
     background-color: rgba(60, 60, 60, 0.722);
     margin: 2px;
     border: 2px solid;
+    border-radius: 10px;
     box-shadow: 0 0 20px rgb(18, 18, 84);
     text-align: center;
 }
@@ -222,7 +228,8 @@ h3{
 h3 {
     color: rgb(0, 0, 0);
     text-decoration: underline;
-    font-size: 2.5rem;
+    font-size: calc(1rem + 2vw);
     margin-top: 10px;
+    text-align: center;
 }
 

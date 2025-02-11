@@ -3,15 +3,14 @@ function Main() {
 
   return <>
     <div className="main-container">
-      <aside className="staff-aside">
-        <h3>Företagsnamn</h3>
+      <aside className="staff-aside">Företagnamn
         <div>Martin</div>
         <div>Ville</div>
         <div>Kevin</div>
         <div>Shaban</div>
         <div>Sigge</div>
         <div>Sebbe</div>
-        <h3>Inloggad support</h3>
+      Inloggad support
       </aside>
     <div className="tasks">Tasks
       <div>Hjälp med batteri</div>
