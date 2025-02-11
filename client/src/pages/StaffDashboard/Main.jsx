@@ -2,6 +2,15 @@
 function Main() {
 
   return <>
+    <div className="main-container">
+      <aside className="staff-aside">
+        <div>Martin</div>
+        <div>Ville</div>
+        <div>Kevin</div>
+        <div>Shaban</div>
+        <div>Sigge</div>
+        <div>Sebbe</div>
+      </aside>
     <div className="tasks">Tasks
       <div>1</div>
       <div>2</div>
@@ -22,7 +31,8 @@ function Main() {
       <div>3</div>
       <div>4</div>
       <div>5</div>
-    </div>
+      </div>
+      </div>
   </>
 }
 

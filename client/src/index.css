@@ -112,25 +112,86 @@ h3{
     
 }
 
-.tasks{
-    display: inline-block;
-    background-color: saddlebrown;
-    width: 25%;
-    margin: 5px;
+
+
+.main-container {
+    display: flex;
     height: 100vh;
+    margin-top: 5px;
+}
+
+.staff-aside {
+    flex: 1;
+    height: 100%;
+    margin: 0;
+    background-color: rgb(163, 0, 131);
+    margin: 2px;
+    border: 2px solid;
+}
+
+.staff-aside > div {
+    margin-top: 50px;
+    padding: 15px;
+    border: 2px solid;
+    border-radius: 5px;
+    background-color: rgb(255, 255, 255);
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.tasks {
+    flex: 1;
+    height: 100%;
+    margin: 0;
+    background-color: seagreen;
+    margin: 2px;
+    border: 2px solid
+}
+
+.tasks > div {
+    margin-top: 50px;
+    padding: 15px;
+    border: 2px solid;
+    border-radius: 5px;
+    background-color: rgb(255, 255, 255);
+    display: flex;
+    justify-content: space-evenly;
 }
 
 .my-tasks {
-    display: inline-block;
-    background-color: blue;
-    width: 25%;
-    margin: 5px 5px;
-    height: 100vh;
+    flex: 1;
+    height: 100%;
+    margin: 0;
+    background-color: rgb(96, 46, 139);
+    margin: 2px;
+    border: 2px solid
+}
+
+.my-tasks > div {
+    margin-top: 50px;
+    padding: 15px;
+    border: 2px solid;
+    border-radius: 5px;
+    background-color: rgb(255, 255, 255);
+    display: flex;
+    justify-content: space-evenly;
 }
 
 .done {
-    display: inline-block;
-    background-color: green;
-    width: 25%;
-    height: 100vh;
+    flex: 1;
+    height: 100%;
+    margin: 0;
+    background-color: rgb(139, 105, 46);
+    margin: 2px;
+    border: 2px solid
+}
+
+.done > div {
+    margin-top: 50px;
+    padding: 15px;
+    border: 2px solid;
+    border-radius: 5px;
+    background-color: rgb(255, 255, 255);
+    display: flex;
+    justify-content: space-evenly;
 }
