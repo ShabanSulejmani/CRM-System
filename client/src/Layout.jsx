@@ -3,18 +3,18 @@ import { Link, Outlet } from 'react-router-dom';
 
 function Layout() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div>
       {/* Navigation Header */}
-      <nav className="bg-gray-800 text-white p-4">
-        <div className="container mx-auto">
-          <div className="flex flex-col">
+      <nav>
+        <div>
+          <div>
             {/* Logo/Brand */}
-            <h1 className="text-2xl font-bold mb-4">Customer</h1>
+            <h1>Customer</h1>
 
             {/* Main Navigation */}
-            <div className="flex flex-col space-y-6">
+            <div>
               {/* Public Links */}
-              <div className="flex flex-col space-y-2">
+              <div>
                 <Link 
                   to="/Form" 
                   className="hover:text-blue-300 transition-colors"
@@ -30,40 +30,35 @@ function Layout() {
               </div>
 
               {/* Admin Links */}
-              <div className="flex flex-col space-y-2">
-                <h2 className="text-xl font-semibold">Admin Pages</h2>
+              <div>
+                <h2>Admin Pages</h2>
                 <Link 
                   to="/admin/login" 
-                  className="hover:text-blue-300 transition-colors pl-4"
                 >
                   Admin Login
                 </Link>
                 <Link 
                   to="/admin/dashboard" 
-                  className="hover:text-blue-300 transition-colors pl-4"
                 >
                   Dashboard
                 </Link>
                 <Link 
                   to="/admin/create-user" 
-                  className="hover:text-blue-300 transition-colors pl-4"
                 >
                   Create User
                 </Link>
               </div>
 
               {/* Staff Links */}
-              <div className="flex flex-col space-y-2">
-                <h2 className="text-xl font-semibold">Staff</h2>
+              <div>
+                <h2>Staff</h2>
                 <Link 
-                  to="/staff/login" 
-                  className="hover:text-blue-300 transition-colors pl-4"
+                  to="/staff/login"
                 >
                   Staff Login
                 </Link>
                 <Link 
-                  to="/staff/dashboard" 
-                  className="hover:text-blue-300 transition-colors pl-4"
+                  to="/staff/dashboard"
                 >
                   Dashboard
                 </Link>
@@ -71,8 +66,7 @@ function Layout() {
 
               {/* Chat */}
               <Link 
-                to="/chat" 
-                className="hover:text-blue-300 transition-colors"
+                to="/chat"
               >
                 Chat
               </Link>
@@ -82,13 +76,13 @@ function Layout() {
       </nav>
 
       {/* Main Content */}
-      <main className="main-content">
+      <main>
         <Outlet />
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white p-4 mt-auto">
-        <div className="container mx-auto text-center">
+      <footer>
+        <div>
           <p>&copy; { new Date().getFullYear()} All rights reversed</p>
         </div>
       </footer>
