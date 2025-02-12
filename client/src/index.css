@@ -6,70 +6,13 @@
     box-sizing: border-box;
   }
   
-  body {
+body {
     background: #f0f2f5;
     font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
     color: #1a1a1a;
   }
 
-
-.faq-container {
-    background-color: white;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgb(18, 18, 84);
-    padding: 10px 20px;
-    transition: transform 0.2s;
-    width: 500px;
-    text-align: center;
-    margin: auto;
-    margin-top: 20px;
-  }
-  
-
-
-.faq-buttons{
-    display: flex;
-    justify-content: space-evenly;
-    margin-top: 20%;
-    margin-bottom: 5%;
-
-}
-
-  .faq-buttons button {
-    padding: 10px 15px;
-    border-radius: 6px;
-    margin: 15px;
-    border: none;
-    color: aliceblue;
-    cursor: pointer;
-    background-color: rgb(62, 40, 83);
-    width: 40%;
-    font-size: 16px;
-
-
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  
-
-
-
-  .faq-buttons button:hover {
-    background-color: rgb(38, 6, 38);
-  }
-  
-  
-
-.faqh1{
-    font-size: x-large;
-    text-align: center;
-    color: rgb(89, 36, 89)
-}
-
-
-
-
-  .header-login {
+.header-login {
     background: #ffffff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 1rem;
@@ -78,7 +21,7 @@
     z-index: 100;
   }
   
-  .login-nav {
+.login-nav {
     max-width: 1400px;
     margin: 0 auto;
     display: flex;
@@ -87,7 +30,7 @@
     padding: 0 2rem;
   }
   
-  .project-name {
+.project-name {
     font-size: 2rem;
     font-weight: bold;
     color: #2c3e50;
@@ -99,19 +42,19 @@
     border: none;
   }
   
-  .login-img {
+.login-img {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     transition: transform 0.2s;
   }
   
-  .login-img:hover {
+.login-img:hover {
     transform: scale(1.1);
   }
   
   
-  .main-container {
+.main-container {
     display: grid;
     grid-template-columns: 250px repeat(3, 1fr);
     gap: 1rem;
@@ -121,7 +64,7 @@
     height: calc(100vh - 80px);
   }
   
-  .staff-aside {
+.staff-aside {
     background: #2c3e50;
     border-radius: 12px;
     padding: 1.5rem;
@@ -129,7 +72,7 @@
     height: 100%;
   }
   
-  .staff-aside > div {
+.staff-aside > div {
     background: rgba(255, 255, 255, 0.1);
     margin: 0.5rem 0;
     padding: 1rem;
@@ -138,13 +81,13 @@
     cursor: pointer;
   }
   
-  .staff-aside > div:hover {
+.staff-aside > div:hover {
     background: rgba(255, 255, 255, 0.2);
     transform: translateX(5px);
   }
   
   
-  .tasks, .my-tasks, .done {
+.tasks, .my-tasks, .done {
     background: #ffffff;
     border-radius: 12px;
     padding: 1rem;
@@ -154,52 +97,6 @@
     height: 100%;
     overflow-y: auto;
   }
-
-button:hover {
-    background-color: rgb(38, 6, 38);
-}
-
-
-.login-container{
-    background-color: white;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgb(18, 18, 84);
-    padding: 10px 20px;
-    transition: transform 0.2s;
-    width: 500px;
-    text-align: center;
-    margin: auto;
-    margin-top: 20px;
-}
-
-
-
-
-.admin-login{
-    padding-bottom: 15px;
-}
-
-.login-bar{
-    background-color: white;
-    border-radius: 2px;
-    padding: 10px 20px;
-    transition: transform 0.2s;
-    width: 500px;
-    text-align: center;
-    margin: auto;
-    margin-top: 20px;
-}
-
-
-.login-knapp {
-    display: flex;
-    justify-content: center;
-
-margin-top: 15%;
-margin-bottom: 5%;
-}
-
-
   
   .tasks-header, .my-tasks-header, .done-header {
     font-size: 1.5rem;
@@ -265,3 +162,94 @@ margin-bottom: 5%;
     padding: 1rem;
     border-bottom: 2px solid rgba(255, 255, 255, 0.1);
   }
+
+  .faq-container {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgb(18, 18, 84);
+    padding: 10px 20px;
+    transition: transform 0.2s;
+    width: 500px;
+    text-align: center;
+    margin: auto;
+    margin-top: 20px;
+  }
+  
+
+
+.faq-buttons{
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 20%;
+    margin-bottom: 5%;
+
+}
+
+  .faq-buttons button {
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin: 15px;
+    border: none;
+    color: aliceblue;
+    cursor: pointer;
+    background-color: rgb(62, 40, 83);
+    width: 40%;
+    font-size: 16px;
+
+
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+.faq-buttons button:hover {
+    background-color: rgb(38, 6, 38);
+  }
+  
+.faqh1{
+    font-size: x-large;
+    text-align: center;
+    color: rgb(89, 36, 89)
+}
+
+button:hover {
+    background-color: rgb(38, 6, 38);
+}
+
+.login-container{
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgb(18, 18, 84);
+    padding: 10px 20px;
+    transition: transform 0.2s;
+    width: 500px;
+    text-align: center;
+    margin: auto;
+    margin-top: 20px;
+}
+
+
+
+
+.admin-login{
+    padding-bottom: 15px;
+}
+
+.login-bar{
+    background-color: white;
+    border-radius: 2px;
+    padding: 10px 20px;
+    transition: transform 0.2s;
+    width: 500px;
+    text-align: center;
+    margin: auto;
+    margin-top: 20px;
+}
+
+
+.login-knapp {
+    display: flex;
+    justify-content: center;
+
+margin-top: 15%;
+margin-bottom: 5%;
+}
