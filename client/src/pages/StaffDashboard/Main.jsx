@@ -34,10 +34,10 @@ function Main() {
 
         // Skapa tickets från nya submissions
         const newTicket = activeSubmissions.map(submission => ({
-          id: submission.Id,
-          chatToken: submission.ChatToken,
-          content: `${submission.FirstName} ${submission.LastName} - ${submission.Subject}`,
-          email: submission.Email
+          id: submission.id,
+          chatToken: submission.chatToken,
+          content: `${submission.firstName} ${submission.lastName} - ${submission.subject}`,
+          email: submission.email
         }));
 
         // Uppdatera tasks med nya tickets som inte redan finns
