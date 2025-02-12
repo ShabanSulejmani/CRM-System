@@ -253,3 +253,36 @@ button:hover {
 margin-top: 15%;
 margin-bottom: 5%;
 }
+
+.ticket-tasks{
+    border: 2px solid;
+}
+
+
+.ticket-task-item {
+    display: block !important;
+    background: red !important;
+    border: 2px solid yellow !important;
+  }
+  
+  .ticket-task-details {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #666;
+  }
+  
+  .ticket-task-email {
+    color: #4a5568;
+  }
+  
+  .ticket-task-time {
+    font-size: 0.75rem;
+    color: #718096;
+    background: red !important;
+  }
+  
+  .ticket-task-token {
+    font-size: 0.75rem;
+    color: #2d3748;
+    font-family: monospace;
+  }
