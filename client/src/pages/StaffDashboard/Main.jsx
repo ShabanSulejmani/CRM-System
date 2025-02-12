@@ -1,39 +1,78 @@
-import { useState } from "react"; 
+// Importerar useState-funktionen från React, som låter oss hantera state (data som kan ändras) i komponenten
+import { useState } from "react";
 
-function Main() { 
-  const [tasks, setTasks] = useState([]); // Skapar en state-variabel "tasks" och en funktion "setTasks" för att uppdatera den. Börjar som en tom array.
+
+function Main() {
+  // Skapar tre olika states för våra olika kolumner av uppgifter. Varje state börjar som en tom array [] ingen jävla hårdkodning här inte
+  const [tasks, setTasks] = useState([]); 
   const [myTasks, setMyTasks] = useState([]); 
   const [done, setDone] = useState([]); 
-  const [draggedTask, setDraggedTask] = useState(null); // Skapar en state-variabel för att hålla den uppgift som dras.
+  
+  // State för att hålla koll på vilken uppgift som dras just nu. Null betyder att ingen uppgift dras
+  const [draggedTask, setDraggedTask] = useState(null);
 
-  const handleDragStart = (task) => { // Funktion som anropas när en uppgift börjar dras.
-    setDraggedTask(task); // Sätter den aktuella uppgiften som "draggedTask".
+  // Funktion som körs när användaren börjar dra en uppgift
+  const handleDragStart = (task) => {
+    setDraggedTask(task); // Sparar den dragna uppgiften i state
   };
 
-  const handleDrop = (setTargetColumn, targetColumn) => { // Funktion som hanterar vad som händer när en uppgift släpps.
-    if (draggedTask) { // Om det finns en uppgift som dras...
-      setTasks((prev) => prev.filter((task) => task !== draggedTask)); // Tar bort uppgiften från "tasks"-kolumnen.
-      setMyTasks((prev) => prev.filter((task) => task !== draggedTask)); // Tar bort uppgiften från "myTasks".
-      setDone((prev) => prev.filter((task) => task !== draggedTask)); // Tar bort uppgiften från "done".
+  // Funktion som körs när en uppgift släpps i en ny kolumn
+  const handleDrop = (setTargetColumn, targetColumn) => {
+    if (draggedTask) { // Kontrollerar om det finns en uppgift som dras
       
-      setTargetColumn([...targetColumn, draggedTask]); // Lägger till uppgiften i målkolumnen.
-      setDraggedTask(null); // Nollställer "draggedTask".
+      // Tar bort uppgiften från alla kolumner genom att filtrera bort den
+      setTasks((prev) => prev.filter((task) => task !== draggedTask));
+      setMyTasks((prev) => prev.filter((task) => task !== draggedTask));
+      setDone((prev) => prev.filter((task) => task !== draggedTask));
+      
+      // Lägger till uppgiften i den nya kolumnen
+      setTargetColumn([...targetColumn, draggedTask]);
+      // Nollställer den dragna uppgiften
+      setDraggedTask(null);
     }
   };
 
-  const handleDragOver = (e) => e.preventDefault(); // Förhindrar standardbeteendet så att drop-eventet fungerar.
+  // Funktion som förhindrar standardbeteendet när något dras över en droppzon
+  const handleDragOver = (e) => e.preventDefault();
 
-  const handleTaskEdit = (index, newValue, setColumn) => { // Funktion som hanterar redigering av en uppgift.
-    setColumn((prev) => prev.map((task, i) => (i === index ? newValue : task))); // Uppdaterar uppgiften i kolumnen.
+  // Funktion som hanterar redigering av en uppgift
+  const handleTaskEdit = (index, newValue, setColumn) => {
+    setColumn((prev) => {
+      const newTasks = [...prev]; // Skapar en kopia av alla uppgifter
+      newTasks[index] = newValue; // Uppdaterar den specifika uppgiften
+      return newTasks; // Returnerar den uppdaterade listan
+    });
   };
 
-  const addTask = (setColumn) => { // Funktion för att lägga till en ny uppgift.
-    setColumn((prev) => [...prev, 'Ny uppgift']); // Lägger till en ny uppgift med texten "Ny uppgift".
+  // Funktion för att lägga till en ny uppgift i en kolumn
+  const addTask = (setColumn) => {
+    setColumn((prev) => [...prev, 'Ny uppgift']); // Lägger till "Ny uppgift" i slutet av listan
   };
 
-  return ( // Returnerar JSX (HTML-liknande kod) som beskriver hur komponenten ska se ut.
-    <div className="main-container"> {/* En container som omsluter hela innehållet */}
-      <aside className="staff-aside"> {/* En sidopanel som visar företagsnamn och personal */}
+  // Hjälpfunktion som skapar HTML-strukturen för en enskild uppgift
+  const renderTask = (task, index, setColumn) => (
+    <div
+      key={index} // Unik nyckel som React behöver för att hålla reda på element i listor
+      draggable // Gör elementet dragbart
+      className="task-item" // CSS-klass för styling
+      onDragStart={() => handleDragStart(task)} // Kör handleDragStart när dragging börjar
+    >
+      <div
+        contentEditable // Gör texten redigerbar
+        suppressContentEditableWarning // Förhindrar React-varningar för contentEditable
+        onBlur={(e) => handleTaskEdit(index, e.target.textContent, setColumn)} // Kör handleTaskEdit när redigering är klar
+        className="task-content" // CSS-klass för styling
+      >
+        {task} 
+      </div>
+    </div>
+  );
+
+  // Här börjar själva renderingen av komponenten (det som syns på skärmen)
+  return (
+    <div className="main-container"> {/* Huvudcontainer för hela appen */}
+      {/* Sidopanel med personal */}
+      <aside className="staff-aside">
         <h2 className="company-name">Företagsnamn</h2>
         <div>Martin</div>
         <div>Ville</div>
@@ -41,74 +80,45 @@ function Main() {
         <div>Shaban</div>
         <div>Sigge</div>
         <div>Sebbe</div>
-        Inloggad support
       </aside>
 
-      {/* Kolumn för Tasks */}
+      {/* Tasks-kolumnen */}
       <div
         className="tasks"
-        onDragOver={handleDragOver} // Tillåter att uppgifter kan dras över denna kolumn.
-        onDrop={() => handleDrop(setTasks, tasks)} // Hanterar vad som händer när en uppgift släpps här.
+        onDragOver={handleDragOver} // Tillåter att saker dras över denna kolumn
+        onDrop={() => handleDrop(setTasks, tasks)} // Hanterar när något släpps i denna kolumn
       >
-        <h2 className="tasks-header">Tasks</h2> 
-        <button className="add-task-button" onClick={() => addTask(setTasks)}>+ Lägg till ny</button> {/* Knapp för att lägga till en ny uppgift */}
-        {tasks.map((task, index) => ( // Loopar igenom "tasks" och skapar en div för varje uppgift.
-          <div
-            key={index} // Unikt nyckelvärde för varje uppgift.
-            draggable // Gör att uppgiften kan dras.
-            contentEditable // Gör att texten i uppgiften kan redigeras direkt.
-            suppressContentEditableWarning={true} // Undertrycker en varning från React om contentEditable.
-            onDragStart={() => handleDragStart(task)} // Anropas när uppgiften börjar dras.
-            onInput={(e) => handleTaskEdit(index, e.currentTarget.textContent, setTasks)} // Anropas när texten i uppgiften ändras.
-            className="task-item" // CSS-klass för styling.
-          >
-            {task} {/* Visar själva uppgiftens text */}
-          </div>
-        ))}
+        <h2 className="tasks-header">Tasks</h2>
+        <button 
+          className="add-task-button" 
+          onClick={() => addTask(setTasks)} // Lägger till ny uppgift när knappen klickas
+        >
+          + Lägg till ny
+        </button>
+        {/* Loopar genom alla tasks och renderar varje uppgift */}
+        {tasks.map((task, index) => renderTask(task, index, setTasks))}
       </div>
 
-      {/* Kolumn för My Tasks */}
+      {/* My Tasks-kolumnen */}
       <div
         className="my-tasks"
         onDragOver={handleDragOver}
         onDrop={() => handleDrop(setMyTasks, myTasks)}
       >
         <h2 className="my-tasks-header">My Tasks</h2>
-        {myTasks.map((task, index) => (
-          <div
-            key={index}
-            draggable
-            contentEditable
-            suppressContentEditableWarning={true}
-            onDragStart={() => handleDragStart(task)}
-            onInput={(e) => handleTaskEdit(index, e.currentTarget.textContent, setMyTasks)}
-            className="task-item"
-          >
-            {task}
-          </div>
-        ))}
+        {/* Loopar genom alla myTasks och renderar varje uppgift */}
+        {myTasks.map((task, index) => renderTask(task, index, setMyTasks))}
       </div>
 
-      {/* Kolumn för Done */}
+      {/* Done-kolumnen */}
       <div
         className="done"
         onDragOver={handleDragOver}
         onDrop={() => handleDrop(setDone, done)}
       >
         <h2 className="done-header">Done</h2>
-        {done.map((task, index) => (
-          <div
-            key={index}
-            draggable
-            contentEditable
-            suppressContentEditableWarning={true}
-            onDragStart={() => handleDragStart(task)}
-            onInput={(e) => handleTaskEdit(index, e.currentTarget.textContent, setDone)}
-            className="task-item"
-          >
-            {task}
-          </div>
-        ))}
+        {/* Loopar genom alla done-uppgifter och renderar varje uppgift */}
+        {done.map((task, index) => renderTask(task, index, setDone))}
       </div>
     </div>
   );
