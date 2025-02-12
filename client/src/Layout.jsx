@@ -16,13 +16,19 @@ function Layout() {
               {/* Public Links */}
               <div>
                 <Link 
-                  to="/Form" 
+                  to="/form" 
                   className="hover:text-blue-300 transition-colors"
                 >
-                  Contact Form
+                  Grundformulär
                 </Link>
                 <Link 
-                  to="/FAQ" 
+                  to="/dynamisk" 
+                  className="hover:text-blue-300 transition-colors"
+                >
+                  Dynamiskt Formulär
+                </Link>
+                <Link 
+                  to="/faq" 
                   className="hover:text-blue-300 transition-colors"
                 >
                   FAQ

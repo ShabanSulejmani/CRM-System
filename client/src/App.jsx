@@ -2,6 +2,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './Layout';
 import Form from "./Form";
+import DynamiskForm from './DynamiskForm';  // Uppdaterad import
 
 // Import your pages
 import AdminCreateUser from './pages/AdminCreateUser';
@@ -9,7 +10,6 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
 import Chat from './pages/Chat';
 import Faq from './pages/Faq';
-import FormPage from './pages/FormPage';
 import StaffDashboard from './pages/StaffDashboard/Header';
 import StaffLogin from './pages/StaffLogin';
 
@@ -18,14 +18,17 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Layout />}>
-          {/* Nest all routes inside Layout */}
+          {/* Grundformulär som startsida */}
           <Route index element={<Form />} />
+          
+          {/* Dynamiskt CRM-formulär på egen route */}
+          <Route path="dynamisk" element={<DynamiskForm />} />
           
           {/* Admin routes */}
           <Route path="admin">
             <Route path="login" element={<AdminLogin />} />
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="create-user" element={<AdminCreateUser />} />
+            <Route path="create-user" element={<AdminCreateUser />} />  
           </Route>
 
           {/* Staff routes */}
