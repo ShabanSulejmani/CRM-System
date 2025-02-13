@@ -40,90 +40,205 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-//app.UseCors("AllowReactApp");
+app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Minimal API Endpoints
-app.MapGet("/api/formsubmissions", async (AppDbContext db) =>
+// User Endpoints
+app.MapPost("/api/users", async (UserForm user, AppDbContext db) =>
 {
-    var submissions = await db.FormSubmissions.ToListAsync();
-    return Results.Ok(submissions);
+   try 
+   {
+       user.CreatedAt = DateTime.UtcNow;
+       
+       
+       db.Users.Add(user);
+       await db.SaveChangesAsync();
+       
+       return Results.Ok(new { message = "User created successfully", user });
+   }
+   catch (Exception ex)
+   {
+       return Results.BadRequest(new { message = "Failed to create user", error = ex.Message });
+   }
 });
 
-app.MapGet("/api/formsubmissions/{id}", async (int id, AppDbContext db) =>
+app.MapGet("/api/users", async (AppDbContext db) =>
 {
-    var submission = await db.FormSubmissions.FindAsync(id);
-    return submission is null ? Results.NotFound() : Results.Ok(submission);
+   var users = await db.Users.ToListAsync();
+   return Results.Ok(users);
 });
 
-app.MapPost("/api/formsubmissions", async (FormSubmission submission, AppDbContext db, IEmailService emailService, IConfiguration config) =>
+app.MapGet("/api/users/{id}", async (int id, AppDbContext db) =>
 {
-    // Sätt värden för nya submissions
-    submission.ChatToken = Guid.NewGuid().ToString();
-    submission.SubmittedAt = DateTime.UtcNow;
-    submission.IsChatActive = true;
-
-    // Spara till databasen
-    db.FormSubmissions.Add(submission);
-    await db.SaveChangesAsync();
-
-    // Skapa chat-länk
-    var baseUrl = config["BaseUrl"] ?? "http://localhost:3001";
-    var chatLink = $"{baseUrl}/chat/{submission.ChatToken}";
-
-    try
-    {
-        // Skicka e-post
-        await emailService.SendChatInvitation(
-            submission.Email,
-            chatLink,
-            submission.FirstName
-        );
-    }
-    catch (Exception ex)
-    {
-        // Logga felet men returnera ändå success eftersom data är sparad
-        return Results.Ok(new
-        {
-            message = "Form submitted successfully but email delivery failed",
-            submission
-        });
-    }
-
-    return Results.Ok(new
-    {
-        message = "Form submitted successfully",
-        submission
-    });
+   var user = await db.Users.FindAsync(id);
+   return user is null ? Results.NotFound() : Results.Ok(user);
 });
 
-app.MapPut("/api/formsubmissions/{id}", async (int id, FormSubmission submission, AppDbContext db) =>
+// Fordon Endpoints
+app.MapGet("/api/fordon", async (AppDbContext db) =>
 {
-    var existingSubmission = await db.FormSubmissions.FindAsync(id);
-    if (existingSubmission is null) return Results.NotFound();
-
-    // Uppdatera fält
-    existingSubmission.FirstName = submission.FirstName;
-    existingSubmission.LastName = submission.LastName;
-    existingSubmission.Email = submission.Email;
-    existingSubmission.Gender = submission.Gender;
-    existingSubmission.Subject = submission.Subject;
-    existingSubmission.About = submission.About;
-    existingSubmission.IsChatActive = submission.IsChatActive;
-
-    await db.SaveChangesAsync();
-    return Results.Ok(existingSubmission);
+   var submissions = await db.FordonForms.ToListAsync();
+   return Results.Ok(submissions);
 });
 
-app.MapDelete("/api/formsubmissions/{id}", async (int id, AppDbContext db) =>
+app.MapGet("/api/fordon/{id}", async (int id, AppDbContext db) =>
 {
-    var submission = await db.FormSubmissions.FindAsync(id);
-    if (submission is null) return Results.NotFound();
+   var submission = await db.FordonForms.FindAsync(id);
+   return submission is null ? Results.NotFound() : Results.Ok(submission);
+});
 
-    db.FormSubmissions.Remove(submission);
-    await db.SaveChangesAsync();
-    return Results.Ok();
+app.MapPost("/api/fordon", async (FordonForm submission, AppDbContext db, IEmailService emailService, IConfiguration config) =>
+{
+   submission.ChatToken = Guid.NewGuid().ToString();
+   submission.SubmittedAt = DateTime.UtcNow;
+   submission.IsChatActive = true;
+
+   db.FordonForms.Add(submission);
+   await db.SaveChangesAsync();
+
+   var baseUrl = config["BaseUrl"] ?? "http://localhost:3001";
+   var chatLink = $"{baseUrl}/chat/{submission.ChatToken}";
+
+   try
+   {
+       await emailService.SendChatInvitation(
+           submission.Email,
+           chatLink,
+           submission.FirstName
+       );
+   }
+   catch (Exception ex)
+   {
+       return Results.Ok(new
+       {
+           message = "Form submitted successfully but email delivery failed",
+           submission
+       });
+   }
+
+   return Results.Ok(new
+   {
+       message = "Form submitted successfully",
+       submission
+   });
+});
+
+// Tele Endpoints
+app.MapGet("/api/tele", async (AppDbContext db) =>
+{
+   var submissions = await db.TeleForms.ToListAsync();
+   return Results.Ok(submissions);
+});
+
+app.MapGet("/api/tele/{id}", async (int id, AppDbContext db) =>
+{
+   var submission = await db.TeleForms.FindAsync(id);
+   return submission is null ? Results.NotFound() : Results.Ok(submission);
+});
+
+app.MapPost("/api/tele", async (TeleForm submission, AppDbContext db, IEmailService emailService, IConfiguration config) =>
+{
+   submission.ChatToken = Guid.NewGuid().ToString();
+   submission.SubmittedAt = DateTime.UtcNow;
+   submission.IsChatActive = true;
+
+   db.TeleForms.Add(submission);
+   await db.SaveChangesAsync();
+
+   var baseUrl = config["BaseUrl"] ?? "http://localhost:3001";
+   var chatLink = $"{baseUrl}/chat/{submission.ChatToken}";
+
+   try
+   {
+       await emailService.SendChatInvitation(
+           submission.Email,
+           chatLink,
+           submission.FirstName
+       );
+   }
+   catch (Exception ex)
+   {
+       return Results.Ok(new
+       {
+           message = "Form submitted successfully but email delivery failed",
+           submission
+       });
+   }
+
+   return Results.Ok(new
+   {
+       message = "Form submitted successfully",
+       submission
+   });
+});
+
+// Forsakring Endpoints
+app.MapGet("/api/forsakring", async (AppDbContext db) =>
+{
+   var submissions = await db.ForsakringsForms.ToListAsync();
+   return Results.Ok(submissions);
+});
+
+app.MapGet("/api/forsakring/{id}", async (int id, AppDbContext db) =>
+{
+   var submission = await db.ForsakringsForms.FindAsync(id);
+   return submission is null ? Results.NotFound() : Results.Ok(submission);
+});
+
+app.MapPost("/api/forsakring", async (ForsakringsForm submission, AppDbContext db, IEmailService emailService, IConfiguration config) =>
+{
+   submission.ChatToken = Guid.NewGuid().ToString();
+   submission.SubmittedAt = DateTime.UtcNow;
+   submission.IsChatActive = true;
+
+   db.ForsakringsForms.Add(submission);
+   await db.SaveChangesAsync();
+
+   var baseUrl = config["BaseUrl"] ?? "http://localhost:3001";
+   var chatLink = $"{baseUrl}/chat/{submission.ChatToken}";
+
+   try
+   {
+       await emailService.SendChatInvitation(
+           submission.Email,
+           chatLink,
+           submission.FirstName
+       );
+   }
+   catch (Exception ex)
+   {
+       return Results.Ok(new
+       {
+           message = "Form submitted successfully but email delivery failed",
+           submission
+       });
+   }
+
+   return Results.Ok(new
+   {
+       message = "Form submitted successfully",
+       submission
+   });
+});
+
+// Common endpoint för att kolla chat token
+app.MapGet("/api/chat/{chatToken}", async (string chatToken, AppDbContext db) =>
+{
+   // Kolla i alla tabeller efter chatToken
+   var fordonSubmission = await db.FordonForms
+       .FirstOrDefaultAsync(s => s.ChatToken == chatToken);
+   if (fordonSubmission != null) return Results.Ok(fordonSubmission);
+
+   var teleSubmission = await db.TeleForms
+       .FirstOrDefaultAsync(s => s.ChatToken == chatToken);
+   if (teleSubmission != null) return Results.Ok(teleSubmission);
+
+   var forsakringSubmission = await db.ForsakringsForms
+       .FirstOrDefaultAsync(s => s.ChatToken == chatToken);
+   if (forsakringSubmission != null) return Results.Ok(forsakringSubmission);
+
+   return Results.NotFound();
 });
 
 app.Run();
