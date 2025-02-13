@@ -39,8 +39,26 @@ function DynamiskForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Bestäm endpoint baserat på companyType
+    let endpoint;
+    switch(companyType) {
+      case 'telecom':
+        endpoint = '/api/tele';
+        break;
+      case 'insurance':
+        endpoint = '/api/forsakring';
+        break;
+      case 'autorepair':
+        endpoint = '/api/fordon';
+        break;
+      default:
+        console.error('Invalid company type');
+        return;
+    }
+  
     try {
-      const response = await fetch('/api/support-tickets', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -70,12 +88,14 @@ function DynamiskForm() {
           description: ''
         });
         setCompanyType('');
+      } else {
+        throw new Error('Server responded with non-OK status');
       }
     } catch (error) {
       console.error('Error:', error);
       alert('Ett fel uppstod. Vänligen försök igen eller kontakta oss via telefon.');
     }
-  };
+};
 
   const renderMobileFields = () => (
     <div>

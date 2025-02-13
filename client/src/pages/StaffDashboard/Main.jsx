@@ -16,14 +16,14 @@ function Main() {
 
   // Hämta form submissions när komponent laddas
   useEffect(() => {
-    fetchFormSubmissions();
+    fetchFordonForms(), fetchForsakringsForms(), fetchTeleForms();
   }, []);
 
 
   // Hämta submissions från API
-  const fetchFormSubmissions = async () => {
+  const fetchFordonForms = async () => {
     try {
-      const response = await fetch('/api/formsubmissions');
+      const response = await fetch('/api/fordon');
       if (response.ok) {
         const data = await response.json();
         
@@ -37,8 +37,93 @@ function Main() {
         const newTicket = activeSubmissions.map(submission => ({
           id: submission.id,
           chatToken: submission.chatToken,
-          content: `${submission.firstName} ${submission.lastName} - ${submission.subject}`,
+          issueType: `${submission.firstName}  - ${submission.issueType}`,
           email: submission.email,
+          message: submission.message,
+          submittedAt: submission.submittedAt || submission.createdAt,
+          chatLink: `${baseUrl}/chat/${submission.chatToken}`
+        }));
+
+        // Uppdatera tasks med nya tickets som inte redan finns
+        setTasks(prevTasks => {
+          const existingIds = prevTasks.map(task => task.id);
+          const uniqueNewTickets = newTicket.filter(ticket => !existingIds.includes(ticket.id));
+          const updatedTasks = [...prevTasks, ...uniqueNewTickets];
+
+          
+          return updatedTasks/*[...prevTasks, ...uniqueNewTickets]*/;
+        });
+
+        setSubmissions(data);
+      }
+    } catch (error) {
+      console.error('Error fetching submission:', error);
+    }
+  };
+
+    // Hämta submissions från API
+    const fetchForsakringsForms = async () => {
+      try {
+        const response = await fetch('/api/forsakring');
+        if (response.ok) {
+          const data = await response.json();
+          
+  
+          // Filtrera för att bara få fram aktiva submissions som inte redann är tickets
+          const activeSubmissions = data.filter(sub => sub.email);
+          
+  
+          // Skapa tickets från nya submissions
+          const baseUrl = "http://localhost:3001";
+          const newTicket = activeSubmissions.map(submission => ({
+            id: submission.id,
+            chatToken: submission.chatToken,
+            insuranceType: submission.insuranceType,
+            issueType: `${submission.firstName}  - ${submission.issueType}`,
+            email: submission.email,
+            message: submission.message,
+            submittedAt: submission.submittedAt || submission.createdAt,
+            chatLink: `${baseUrl}/chat/${submission.chatToken}`
+          }));
+  
+          // Uppdatera tasks med nya tickets som inte redan finns
+          setTasks(prevTasks => {
+            const existingIds = prevTasks.map(task => task.id);
+            const uniqueNewTickets = newTicket.filter(ticket => !existingIds.includes(ticket.id));
+            const updatedTasks = [...prevTasks, ...uniqueNewTickets];
+  
+            
+            return updatedTasks/*[...prevTasks, ...uniqueNewTickets]*/;
+          });
+  
+          setSubmissions(data);
+        }
+      } catch (error) {
+        console.error('Error fetching submission:', error);
+      }
+    };
+
+      // Hämta submissions från API
+  const fetchTeleForms = async () => {
+    try {
+      const response = await fetch('/api/tele');
+      if (response.ok) {
+        const data = await response.json();
+        
+
+        // Filtrera för att bara få fram aktiva submissions som inte redann är tickets
+        const activeSubmissions = data.filter(sub => sub.email);
+        
+
+        // Skapa tickets från nya submissions
+        const baseUrl = "http://localhost:3001";
+        const newTicket = activeSubmissions.map(submission => ({
+          id: submission.id,
+          chatToken: submission.chatToken,
+          issueType: `${submission.firstName}  - ${submission.issueType}`,
+          email: submission.email,
+          message: submission.message,
+          serviceType: submission.serviceType,
           submittedAt: submission.submittedAt || submission.createdAt,
           chatLink: `${baseUrl}/chat/${submission.chatToken}`
         }));
@@ -138,7 +223,7 @@ function Main() {
                  suppressContentEditableWarning={true}
                  onBlur={(e) => handleTaskEdit(task.id, e.currentTarget.textContent, setTasks)}
             >
-              {task.content}
+              {task.issueType}
             </div>
             <div className="ticket-task-details">
               <div className="ticket-task-email">{task.email}</div>
@@ -169,7 +254,7 @@ function Main() {
                  suppressContentEditableWarning={true}
                  onBlur={(e) => handleTaskEdit(task.id, e.currentTarget.textContent, setMyTasks)}
             >
-              {task.content}
+              {task.issueType}
             </div>
             <div className="ticket-task-details">
               <div className="ticket-task-email">{task.email}</div>
@@ -200,7 +285,7 @@ function Main() {
                  suppressContentEditableWarning={true}
                  onBlur={(e) => handleTaskEdit(task.id, e.currentTarget.textContent, setDone)}
             >
-              {task.content}
+              {task.issueType}
             </div>
             <div className="ticket-task-details">
               <div className="ticket-task-email">{task.email}</div>
