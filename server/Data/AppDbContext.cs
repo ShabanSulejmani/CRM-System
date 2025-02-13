@@ -11,6 +11,7 @@ namespace server.Data
         }
 
         public DbSet<FormSubmission> FormSubmissions { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -28,6 +29,33 @@ namespace server.Data
                 entity.Property(e => e.ChatToken).IsRequired();
                 entity.Property(e => e.SubmittedAt).IsRequired();
                 entity.Property(e => e.IsChatActive).IsRequired();
+            });
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                
+                entity.Property(e => e.FirstName)
+                    .IsRequired()
+                    .HasMaxLength(50);
+                
+                entity.Property(e => e.Password)
+                    .IsRequired()
+                    .HasMaxLength(100);
+                    
+                entity.Property(e => e.Role)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasDefaultValue("user");
+
+                entity.Property(e => e.CreatedAt)
+                    .IsRequired()
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                    
+                entity.Property(e => e.IsActive)
+                    .IsRequired()
+                    .HasDefaultValue(true);
+                
             });
         }
     }
