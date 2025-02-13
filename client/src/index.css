@@ -295,3 +295,9 @@ margin-bottom: 5%;
     color: #2d3748;
     font-family: monospace;
   }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
