@@ -10,6 +10,8 @@ function DynamiskForm() {
     serviceType: '',
     issueType: '',
     message: '',
+    registrationNumber: '',
+    insuranceType: ''
   });
 
   const handleInputChange = (e) => {
@@ -30,6 +32,8 @@ function DynamiskForm() {
       firstName: formData.firstName,
       email: formData.email,
       message: formData.message,
+      isChatActive: true,
+      submittedAt: new Date().toISOString()
     };
 
     switch (companyType) {
@@ -74,7 +78,10 @@ function DynamiskForm() {
 
       if (response.ok) {
         const result = await response.json();
-        setMessage({ text: result.message, isError: false });
+        setMessage({ 
+          text: 'Formuläret har skickats! Kolla din e-post för chattlänken.', 
+          isError: false 
+        });
         setFormData({
           firstName: '',
           email: '',
@@ -82,7 +89,7 @@ function DynamiskForm() {
           issueType: '',
           message: '',
           registrationNumber: '',
-          insuranceType: '',
+          insuranceType: ''
         });
         setCompanyType('');
       } else {
@@ -152,12 +159,12 @@ function DynamiskForm() {
         required
       >
         <option value="">Välj typ av ärende</option>
-        <option value="repair">Problem efter reparation</option>
-        <option value="warranty">Garantiärende</option>
-        <option value="complaint">Reklamation</option>
-        <option value="cost">Kostnadsförfrågan</option>
-        <option value="parts">Reservdelsfrågor</option>
-        <option value="other">Övrigt</option>
+        <option value="Problem efter reparation">Problem efter reparation</option>
+        <option value="Garantiärende">Garantiärende</option>
+        <option value="Reklamation">Reklamation</option>
+        <option value="Kostnadsförfrågan">Kostnadsförfrågan</option>
+        <option value="Reservdelsfrågor">Reservdelsfrågor</option>
+        <option value="Övrigt">Övrigt</option>
       </select>
     </div>
   );
