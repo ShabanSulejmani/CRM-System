@@ -4,7 +4,6 @@ public class TeleForm
 {
     public int Id { get; set; }
     public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string ServiceType { get; set; } = string.Empty;  // typ av tjänst
     public string IssueType { get; set; } = string.Empty;
