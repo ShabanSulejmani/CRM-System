@@ -1,21 +1,31 @@
 import { useState } from 'react';
 
-function DynamicCRMForm() {
+function DynamiskForm() {
   const [companyType, setCompanyType] = useState('');
   const [formData, setFormData] = useState({
-    companyName: '',
-    contactPerson: '',
+    // Grundläggande fält
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
+    
+    // Telecom-specifika fält
     serviceType: '',
-    bandwidth: '',
-    coverage: '',
-    carBrand: '',
-    bookingDate: '',
+    problemType: '',
+    
+    // Mobiltelefoni-specifika fält
+    phoneNumber: '',
+    mobileIssue: '',
+    
+    // Bilverkstad-specifika fält
+    carRegistration: '',
+    issueType: '',
+    
+    // Försäkring-specifika fält
     insuranceType: '',
-    policyNumber: '',
-    claimType: '',
-    ticketPriority: '',
+    caseType: '',
+    
+    // Gemensamt
     description: ''
   });
 
@@ -30,7 +40,7 @@ function DynamicCRMForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/formsubmissions', {
+      const response = await fetch('/api/support-tickets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,103 +53,115 @@ function DynamicCRMForm() {
       });
 
       if (response.ok) {
-        alert('Formuläret har skickats!');
+        alert('Ditt ärende har registrerats! Vi återkommer så snart som möjligt.');
         setFormData({
-          companyName: '',
-          contactPerson: '',
+          firstName: '',
+          lastName: '',
           email: '',
           phone: '',
           serviceType: '',
-          bandwidth: '',
-          coverage: '',
-          carBrand: '',
-          bookingDate: '',
+          problemType: '',
+          phoneNumber: '',
+          mobileIssue: '',
+          carRegistration: '',
+          issueType: '',
           insuranceType: '',
-          policyNumber: '',
-          claimType: '',
-          ticketPriority: '',
+          caseType: '',
           description: ''
         });
         setCompanyType('');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Ett fel uppstod vid skickande av formuläret.');
+      alert('Ett fel uppstod. Vänligen försök igen eller kontakta oss via telefon.');
     }
   };
 
-  const renderTelecomFields = () => (
+  const renderMobileFields = () => (
     <div>
-      <label htmlFor="serviceType">Tjänstetyp</label>
-      <select
-        name="serviceType"
-        value={formData.serviceType}
-        onChange={handleInputChange}
-      >
-        <option value="">Välj tjänstetyp</option>
-        <option value="broadband">Bredband</option>
-        <option value="mobile">Mobiltelefoni</option>
-        <option value="landline">Fast telefoni</option>
-        <option value="invoice">Fakturafrågor</option>
-      </select>
-
-      <label htmlFor="bandwidth">Bandbredd</label>
+      <label htmlFor="phoneNumber">Mobilnummer</label>
       <input
-        type="text"
-        name="bandwidth"
-        placeholder="t.ex. 100/100 Mbit"
-        value={formData.bandwidth}
+        type="tel"
+        name="phoneNumber"
+        placeholder="Ange mobilnummer"
+        value={formData.phoneNumber}
         onChange={handleInputChange}
       />
 
-      <label htmlFor="coverage">Täckningsområde</label>
-      <input
-        type="text"
-        name="coverage"
-        placeholder="t.ex. Stockholm, Göteborg"
-        value={formData.coverage}
-        onChange={handleInputChange}
-      />
+      {/* Ta bort den extra ärendetyp-väljaren här eftersom vi redan valt typ */}
     </div>
   );
 
-  const renderAutoRepairFields = () => (
+  const renderTelecomFields = () => (
     <div>
-      <label htmlFor="carBrand">Bilmärke & Modell</label>
-      <input
-        type="text"
-        name="carBrand"
-        placeholder="t.ex. Volvo XC60"
-        value={formData.carBrand}
-        onChange={handleInputChange}
-      />
-
-      <label htmlFor="serviceType">Typ av service</label>
+      <label htmlFor="serviceType">Typ av tjänst</label>
       <select
         name="serviceType"
         value={formData.serviceType}
         onChange={handleInputChange}
       >
-        <option value="">Välj servicetyp</option>
-        <option value="maintenance">Vanlig service</option>
-        <option value="repair">Reparation</option>
-        <option value="inspection">Besiktning</option>
-        <option value="tire">Däckbyte</option>
+        <option value="">Välj tjänst</option>
+        <option value="broadband">Bredband</option>
+        <option value="mobile">Mobiltelefoni</option>
+        <option value="landline">Fast telefoni</option>
+        <option value="tv">TV-tjänster</option>
       </select>
 
-      <label htmlFor="bookingDate">Önskat servicedatum</label>
+      {formData.serviceType && (
+        <label htmlFor="problemType">Vad gäller ditt ärende?</label>
+      )}
+      {formData.serviceType && (
+        <select
+          name="problemType"
+          value={formData.problemType}
+          onChange={handleInputChange}
+        >
+          <option value="">Välj typ av ärende</option>
+          <option value="technical">Tekniskt problem</option>
+          <option value="billing">Fakturafrågor</option>
+          <option value="change">Ändring av tjänst</option>
+          <option value="cancel">Uppsägning</option>
+          <option value="other">Övrigt</option>
+        </select>
+      )}
+
+      {/* Om mobiltelefoni är vald OCH det inte är fakturafrågor, visa mobilfält */}
+      {formData.serviceType === 'mobile' && formData.problemType !== 'billing' && renderMobileFields()}
+    </div>
+  );
+
+
+  const renderCarRepairFields = () => (
+    <div>
+      <label htmlFor="carRegistration">Registreringsnummer</label>
       <input
-        type="date"
-        name="bookingDate"
-        value={formData.bookingDate}
+        type="text"
+        name="carRegistration"
+        placeholder="ABC123"
+        value={formData.carRegistration}
         onChange={handleInputChange}
       />
+
+      <label htmlFor="issueType">Vad gäller ditt ärende?</label>
+      <select
+        name="issueType"
+        value={formData.issueType}
+        onChange={handleInputChange}
+      >
+        <option value="">Välj typ av ärende</option>
+        <option value="repair">Problem efter reparation</option>
+        <option value="warranty">Garantiärende</option>
+        <option value="complaint">Reklamation</option>
+        <option value="cost">Kostnadsförfrågan</option>
+        <option value="parts">Reservdelsfrågor</option>
+        <option value="other">Övrigt</option>
+      </select>
     </div>
   );
 
   const renderInsuranceFields = () => (
     <div>
-      <label htmlFor="insuranceType">Försäkringstyp</label>
+      <label htmlFor="insuranceType">Typ av försäkring</label>
       <select
         name="insuranceType"
         value={formData.insuranceType}
@@ -152,83 +174,51 @@ function DynamicCRMForm() {
         <option value="accident">Olycksfallsförsäkring</option>
       </select>
 
-      <label htmlFor="policyNumber">Försäkringsnummer</label>
-      <input
-        type="text"
-        name="policyNumber"
-        placeholder="Ange försäkringsnummer"
-        value={formData.policyNumber}
-        onChange={handleInputChange}
-      />
-
-      <label htmlFor="claimType">Typ av ärende</label>
+      <label htmlFor="caseType">Vad gäller ditt ärende?</label>
       <select
-        name="claimType"
-        value={formData.claimType}
+        name="caseType"
+        value={formData.caseType}
         onChange={handleInputChange}
       >
-        <option value="">Välj ärendetyp</option>
-        <option value="new">Nyteckning</option>
-        <option value="claim">Skadeanmälan</option>
-        <option value="change">Ändring av försäkring</option>
-        <option value="question">Allmän fråga</option>
+        <option value="">Välj typ av ärende</option>
+        <option value="claim">Pågående skadeärende</option>
+        <option value="coverage">Frågor om försäkringsskydd</option>
+        <option value="billing">Fakturafrågor</option>
+        <option value="changes">Ändring av försäkring</option>
+        <option value="documents">Begäran om försäkringshandlingar</option>
       </select>
-    </div>
-  );
-
-  const renderCustomerServiceFields = () => (
-    <div>
-      <label htmlFor="ticketPriority">Prioritet</label>
-      <select
-        name="ticketPriority"
-        value={formData.ticketPriority}
-        onChange={handleInputChange}
-      >
-        <option value="">Välj prioritet</option>
-        <option value="low">Låg</option>
-        <option value="medium">Medium</option>
-        <option value="high">Hög</option>
-      </select>
-
-      <label htmlFor="description">Beskrivning av ärende</label>
-      <textarea
-        name="description"
-        value={formData.description}
-        onChange={handleInputChange}
-        placeholder="Beskriv ärendet..."
-      />
     </div>
   );
 
   return (
     <div className="container">
-      <h1>CRM - Kundtjänstformulär</h1>
+      <h1>Kontakta kundtjänst</h1>
       <form onSubmit={handleSubmit}>
-        <label htmlFor="companyType">Företagstyp</label>
+        <label htmlFor="companyType">Välj område</label>
         <select
           value={companyType}
           onChange={(e) => setCompanyType(e.target.value)}
         >
-          <option value="">Välj företagstyp</option>
+          <option value="">Välj område</option>
           <option value="telecom">Tele/Bredband</option>
-          <option value="autorepair">Bilverkstad</option>
-          <option value="insurance">Försäkring</option>
+          <option value="autorepair">Fordonsservice</option>
+          <option value="insurance">Försäkringsärenden</option>
         </select>
 
-        <label htmlFor="companyName">Företagsnamn</label>
+        <label htmlFor="firstName">Förnamn</label>
         <input
           type="text"
-          name="companyName"
-          value={formData.companyName}
+          name="firstName"
+          value={formData.firstName}
           onChange={handleInputChange}
           required
         />
 
-        <label htmlFor="contactPerson">Kontaktperson</label>
+        <label htmlFor="lastName">Efternamn</label>
         <input
           type="text"
-          name="contactPerson"
-          value={formData.contactPerson}
+          name="lastName"
+          value={formData.lastName}
           onChange={handleInputChange}
           required
         />
@@ -252,9 +242,17 @@ function DynamicCRMForm() {
         />
 
         {companyType === 'telecom' && renderTelecomFields()}
-        {companyType === 'autorepair' && renderAutoRepairFields()}
+        {companyType === 'autorepair' && renderCarRepairFields()}
         {companyType === 'insurance' && renderInsuranceFields()}
-        {companyType && renderCustomerServiceFields()}
+
+        <label htmlFor="description">Beskriv ditt ärende</label>
+        <textarea
+          name="description"
+          value={formData.description}
+          onChange={handleInputChange}
+          placeholder="Beskriv ditt ärende i detalj..."
+          required
+        />
 
         <button type="submit">Skicka ärende</button>
       </form>
@@ -262,4 +260,4 @@ function DynamicCRMForm() {
   );
 }
 
-export default DynamicCRMForm;
+export default DynamiskForm;

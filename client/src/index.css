@@ -1,7 +1,171 @@
 
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+body {
+    background: #f0f2f5;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    color: #1a1a1a;
+  }
 
-.faq-container {
+.header-login {
+    background: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+.login-nav {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+  }
+  
+.project-name {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2c3e50;
+    text-decoration: none;
+    background: linear-gradient(45deg, #3498db, #2ecc71);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding: 0.5rem 1rem;
+    border: none;
+  }
+  
+.login-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  
+.login-img:hover {
+    transform: scale(1.1);
+  }
+  
+  
+  .main-container {
+    display: grid;
+    grid-template-columns: 250px repeat(3, 1fr);
+    gap: 1rem;
+    padding: 1rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    height: calc(100vh - 80px);
+  }
+  
+  .staff-aside {
+    background: #2c3e50;
+    border-radius: 12px;
+    padding: 1.5rem;
+    color: white;
+    height: 100vh; /* Se till att den täcker hela skärmen */
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+.staff-aside > div {
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0.5rem 0;
+    padding: 1rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  
+.staff-aside > div:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(5px);
+  }
+  
+  
+.ticket-tasks, .ticket-my-tasks, .ticket-done {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+  }
+  
+  .ticket-tasks-header, .ticket-my-tasks-header, .ticket-done-header {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid;
+  }
+  
+  .ticket-tasks-header { color: #e74c3c; border-color: #e74c3c; }
+  .ticket-my-tasks-header { color: #f39c12; border-color: #f39c12; }
+  .ticket-done-header { color: #27ae60; border-color: #27ae60; }
+  
+  
+  .ticket-task-item {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+    cursor: grab;
+    border: 2px solid transparent;
+  }
+  
+  .ticket-tasks .ticket-task-item { border-color: #e74c3c; }
+  .ticket-my-tasks .ticket-task-item { border-color: #f39c12; }
+  .ticket-done .ticket-task-item { border-color: #27ae60; }
+  
+  .ticket-task-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .ticket-task-item:active {
+    cursor: grabbing;
+  }
+
+ 
+  .ticket-company-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+    cursor: grab;
+    margin-bottom: 0.5rem;
+  }
+  
+  .ticket-company-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(5px);
+  }
+  
+  .ticket-company-item:active {
+    cursor: grabbing;
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  .ticket-company-name {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    padding: 1rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .faq-container {
     background-color: white;
     border-radius: 15px;
     box-shadow: 0 0 20px rgb(18, 18, 84);
@@ -39,113 +203,19 @@
     transition: all 0.3s ease;
   }
   
-
-
-
-  .faq-buttons button:hover {
+.faq-buttons button:hover {
     background-color: rgb(38, 6, 38);
   }
   
-
-
-  
-  .faq-extra-section {
-
-  }
-  
-
 .faqh1{
     font-size: x-large;
     text-align: center;
     color: rgb(89, 36, 89)
 }
 
-
-
-.body{
-    background: rgb(255, 255, 255);
-    text-align: center;
-}
-
-.container{
-    background-color: white;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgb(18, 18, 84);
-    padding: 10px 20px;
-    transition: transform 0.2s;
-    width: 500px;
-    text-align: center;
-    margin: auto;
-    margin-top: 20px;
-}
-
-h1{
-    font-size: x-large;
-    text-align: center;
-    color: rgb(89, 36, 89)
-}
-
-label{
-    margin-bottom: 5px;
-    text-align: left;
-    color: rgb(74, 60, 60);
-    font-weight: bold;
-}
-
-input{
-    display: block;
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-    border: 2px solid rgb(0, 0, 0);
-    border-radius: 5px;
-    font-size: 12px;
-}
-
-input[type="radio"] {
-    display: inline;
-    width: 10%;
-    
-}
-
-select{
-    display: block;
-    width: 100%;
-    margin-bottom: 15px;
-    padding: 10px;
-    box-sizing: border-box;
-    border: 2px solid rgb(0, 0, 0);
-    border-radius: 5px;
-}
-
-textarea {
-    resize: none;
-    width: 98%;
-    min-height: 100px;
-    max-height: 150px;
-    border: 2px solid;
-}
-
-button {
-    padding: 10px 15px;
-    border-radius: 6px;
-    margin: 15px;
-    border: none;
-    color: aliceblue;
-    cursor: pointer;
-    background-color: rgb(62, 40, 83);
-    width: 40%;
-    font-size: 16px;
-}
-
 button:hover {
     background-color: rgb(38, 6, 38);
 }
-
-
-
-
-
 
 .login-container{
     background-color: white;
@@ -159,6 +229,17 @@ button:hover {
     margin-top: 20px;
 }
 
+.container{
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgb(18, 18, 84);
+  padding: 10px 20px;
+  transition: transform 0.2s;
+  width: 500px;
+  text-align: center;
+  margin: auto;
+  margin-top: 20px;
+}
 
 
 
@@ -187,130 +268,10 @@ margin-bottom: 5%;
 }
 
 
-.staff-aside{
-    background-color: blueviolet;
-    display: inline-block;
-    width: 20%;
-    height: 100vh;
-    
-}
-
-nav {
-    width: 100%;
-    
-}
-
-
-h3{
-    display: flex;
-    justify-content: center;
-
-}
-
-.login-nav {
-    display: flex;
-    justify-content: end;
-    border: 2px solid;
-    border-radius: 5px;
-    padding: 15px;
-    margin-top: 10px;
-    width: 96vw; /* WHY????? */
-    
-}
-
-
-
-.main-container {
-    display: flex;
-    height: 100vh;
-    margin-top: 5px;
-}
-
-.staff-aside {
-    flex: 1;
-    height: 100%;
-    margin: 0;
-    background-color: rgb(163, 0, 131);
-    margin: 2px;
-    border: 2px solid;
-}
-
-.staff-aside > div {
-    margin-top: 50px;
-    padding: 15px;
-    border: 2px solid;
-    border-radius: 5px;
-    background-color: rgb(255, 255, 255);
-    display: flex;
-    justify-content: space-evenly;
-}
-
-.tasks {
-    flex: 1;
-    height: 100%;
-    margin: 0;
-    background-color: seagreen;
-    margin: 2px;
-    border: 2px solid
-}
-
-.tasks > div {
-    margin-top: 50px;
-    padding: 15px;
-    border: 2px solid;
-    border-radius: 5px;
-    background-color: rgb(255, 255, 255);
-    display: flex;
-    justify-content: space-evenly;
-}
-
-.my-tasks {
-    flex: 1;
-    height: 100%;
-    margin: 0;
-    background-color: rgb(96, 46, 139);
-    margin: 2px;
-    border: 2px solid
-}
-
-.my-tasks > div {
-    margin-top: 50px;
-    padding: 15px;
-    border: 2px solid;
-    border-radius: 5px;
-    background-color: rgb(255, 255, 255);
-    display: flex;
-    justify-content: space-evenly;
-}
-
-.done {
-    flex: 1;
-    height: 100%;
-    margin: 0;
-    background-color: rgb(139, 105, 46);
-    margin: 2px;
-    border: 2px solid
-}
-
-.done > div {
-    margin-top: 50px;
-    padding: 15px;
-    border: 2px solid;
-    border-radius: 5px;
-    background-color: rgb(255, 255, 255);
-    display: flex;
-    justify-content: space-evenly;
-}
-
-.ticket-tasks{
-    border: 2px solid;
-}
-
 
 .ticket-task-item {
-    display: block !important;
-    background: red !important;
-    border: 2px solid yellow !important;
+    display: block;
+    border: 2px solid yellow 
   }
   
   .ticket-task-details {
@@ -334,3 +295,9 @@ h3{
     color: #2d3748;
     font-family: monospace;
   }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}

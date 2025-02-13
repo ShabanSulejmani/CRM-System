@@ -26,11 +26,11 @@ function Main() {
       const response = await fetch('http://localhost:3001/api/formsubmissions');
       if (response.ok) {
         const data = await response.json();
-        console.log("Fetched submissions from API:", data);
+        
 
         // Filtrera för att bara få fram aktiva submissions som inte redann är tickets
         const activeSubmissions = data.filter(sub => sub.email);
-        console.log("Active submissions:", activeSubmissions);
+        
 
         // Skapa tickets från nya submissions
         const baseUrl = "http://localhost:3001";
@@ -49,7 +49,7 @@ function Main() {
           const uniqueNewTickets = newTicket.filter(ticket => !existingIds.includes(ticket.id));
           const updatedTasks = [...prevTasks, ...uniqueNewTickets];
 
-          console.log("Updated tasks:", updatedTasks); // Debug
+          
           return updatedTasks/*[...prevTasks, ...uniqueNewTickets]*/;
         });
 
