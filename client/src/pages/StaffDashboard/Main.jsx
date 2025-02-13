@@ -23,7 +23,7 @@ function Main() {
   // Hämta submissions från API
   const fetchFormSubmissions = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/formsubmissions');
+      const response = await fetch('/api/formsubmissions');
       if (response.ok) {
         const data = await response.json();
         
