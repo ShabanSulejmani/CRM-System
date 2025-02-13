@@ -2,31 +2,14 @@ import { useState } from 'react';
 
 function DynamiskForm() {
   const [companyType, setCompanyType] = useState('');
+  const [message, setMessage] = useState({ text: '', isError: false });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    // Grundläggande fält
     firstName: '',
-    lastName: '',
     email: '',
-    phone: '',
-    
-    // Telecom-specifika fält
     serviceType: '',
-    problemType: '',
-    
-    // Mobiltelefoni-specifika fält
-    phoneNumber: '',
-    mobileIssue: '',
-    
-    // Bilverkstad-specifika fält
-    carRegistration: '',
     issueType: '',
-    
-    // Försäkring-specifika fält
-    insuranceType: '',
-    caseType: '',
-    
-    // Gemensamt
-    description: ''
+    message: '',
   });
 
   const handleInputChange = (e) => {
@@ -39,58 +22,82 @@ function DynamiskForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage({ text: '', isError: false });
+    setIsSubmitting(true);
+    
+    let endpoint = '';
+    let submitData = {
+      firstName: formData.firstName,
+      email: formData.email,
+      message: formData.message,
+    };
+
+    switch (companyType) {
+      case 'telecom':
+        endpoint = '/api/tele';
+        submitData = {
+          ...submitData,
+          serviceType: formData.serviceType,
+          issueType: formData.issueType,
+        };
+        break;
+      case 'autorepair':
+        endpoint = '/api/fordon';
+        submitData = {
+          ...submitData,
+          registrationNumber: formData.registrationNumber,
+          issueType: formData.issueType,
+        };
+        break;
+      case 'insurance':
+        endpoint = '/api/forsakring';
+        submitData = {
+          ...submitData,
+          insuranceType: formData.insuranceType,
+          issueType: formData.issueType,
+        };
+        break;
+      default:
+        setMessage({ text: 'Välj ett område', isError: true });
+        setIsSubmitting(false);
+        return;
+    }
+
     try {
-      const response = await fetch('/api/support-tickets', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          companyType,
-          ...formData,
-          submittedAt: new Date().toISOString()
-        })
+        body: JSON.stringify(submitData)
       });
 
       if (response.ok) {
-        alert('Ditt ärende har registrerats! Vi återkommer så snart som möjligt.');
+        const result = await response.json();
+        setMessage({ text: result.message, isError: false });
         setFormData({
           firstName: '',
-          lastName: '',
           email: '',
-          phone: '',
           serviceType: '',
-          problemType: '',
-          phoneNumber: '',
-          mobileIssue: '',
-          carRegistration: '',
           issueType: '',
+          message: '',
+          registrationNumber: '',
           insuranceType: '',
-          caseType: '',
-          description: ''
         });
         setCompanyType('');
+      } else {
+        setMessage({ text: 'Ett fel uppstod vid skickandet av formuläret', isError: true });
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Ett fel uppstod. Vänligen försök igen eller kontakta oss via telefon.');
+      setMessage({ 
+        text: 'Ett fel uppstod. Vänligen försök igen eller kontakta oss via telefon.', 
+        isError: true 
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
-  const renderMobileFields = () => (
-    <div>
-      <label htmlFor="phoneNumber">Mobilnummer</label>
-      <input
-        type="tel"
-        name="phoneNumber"
-        placeholder="Ange mobilnummer"
-        value={formData.phoneNumber}
-        onChange={handleInputChange}
-      />
-
-      {/* Ta bort den extra ärendetyp-väljaren här eftersom vi redan valt typ */}
-    </div>
-  );
 
   const renderTelecomFields = () => (
     <div>
@@ -99,6 +106,7 @@ function DynamiskForm() {
         name="serviceType"
         value={formData.serviceType}
         onChange={handleInputChange}
+        required
       >
         <option value="">Välj tjänst</option>
         <option value="broadband">Bredband</option>
@@ -107,39 +115,33 @@ function DynamiskForm() {
         <option value="tv">TV-tjänster</option>
       </select>
 
-      {formData.serviceType && (
-        <label htmlFor="problemType">Vad gäller ditt ärende?</label>
-      )}
-      {formData.serviceType && (
-        <select
-          name="problemType"
-          value={formData.problemType}
-          onChange={handleInputChange}
-        >
-          <option value="">Välj typ av ärende</option>
-          <option value="technical">Tekniskt problem</option>
-          <option value="billing">Fakturafrågor</option>
-          <option value="change">Ändring av tjänst</option>
-          <option value="cancel">Uppsägning</option>
-          <option value="other">Övrigt</option>
-        </select>
-      )}
-
-      {/* Om mobiltelefoni är vald OCH det inte är fakturafrågor, visa mobilfält */}
-      {formData.serviceType === 'mobile' && formData.problemType !== 'billing' && renderMobileFields()}
+      <label htmlFor="issueType">Vad gäller ditt ärende?</label>
+      <select
+        name="issueType"
+        value={formData.issueType}
+        onChange={handleInputChange}
+        required
+      >
+        <option value="">Välj typ av ärende</option>
+        <option value="technical">Tekniskt problem</option>
+        <option value="billing">Fakturafrågor</option>
+        <option value="change">Ändring av tjänst</option>
+        <option value="cancel">Uppsägning</option>
+        <option value="other">Övrigt</option>
+      </select>
     </div>
   );
 
-
   const renderCarRepairFields = () => (
     <div>
-      <label htmlFor="carRegistration">Registreringsnummer</label>
+      <label htmlFor="registrationNumber">Registreringsnummer</label>
       <input
         type="text"
-        name="carRegistration"
+        name="registrationNumber"
         placeholder="ABC123"
-        value={formData.carRegistration}
+        value={formData.registrationNumber || ''}
         onChange={handleInputChange}
+        required
       />
 
       <label htmlFor="issueType">Vad gäller ditt ärende?</label>
@@ -147,6 +149,7 @@ function DynamiskForm() {
         name="issueType"
         value={formData.issueType}
         onChange={handleInputChange}
+        required
       >
         <option value="">Välj typ av ärende</option>
         <option value="repair">Problem efter reparation</option>
@@ -164,8 +167,9 @@ function DynamiskForm() {
       <label htmlFor="insuranceType">Typ av försäkring</label>
       <select
         name="insuranceType"
-        value={formData.insuranceType}
+        value={formData.insuranceType || ''}
         onChange={handleInputChange}
+        required
       >
         <option value="">Välj försäkringstyp</option>
         <option value="home">Hemförsäkring</option>
@@ -174,11 +178,12 @@ function DynamiskForm() {
         <option value="accident">Olycksfallsförsäkring</option>
       </select>
 
-      <label htmlFor="caseType">Vad gäller ditt ärende?</label>
+      <label htmlFor="issueType">Vad gäller ditt ärende?</label>
       <select
-        name="caseType"
-        value={formData.caseType}
+        name="issueType"
+        value={formData.issueType}
         onChange={handleInputChange}
+        required
       >
         <option value="">Välj typ av ärende</option>
         <option value="claim">Pågående skadeärende</option>
@@ -198,6 +203,8 @@ function DynamiskForm() {
         <select
           value={companyType}
           onChange={(e) => setCompanyType(e.target.value)}
+          required
+          disabled={isSubmitting}
         >
           <option value="">Välj område</option>
           <option value="telecom">Tele/Bredband</option>
@@ -205,22 +212,14 @@ function DynamiskForm() {
           <option value="insurance">Försäkringsärenden</option>
         </select>
 
-        <label htmlFor="firstName">Förnamn</label>
+        <label htmlFor="firstName">Namn</label>
         <input
           type="text"
           name="firstName"
           value={formData.firstName}
           onChange={handleInputChange}
           required
-        />
-
-        <label htmlFor="lastName">Efternamn</label>
-        <input
-          type="text"
-          name="lastName"
-          value={formData.lastName}
-          onChange={handleInputChange}
-          required
+          disabled={isSubmitting}
         />
 
         <label htmlFor="email">E-post</label>
@@ -230,31 +229,49 @@ function DynamiskForm() {
           value={formData.email}
           onChange={handleInputChange}
           required
-        />
-
-        <label htmlFor="phone">Telefon</label>
-        <input
-          type="tel"
-          name="phone"
-          value={formData.phone}
-          onChange={handleInputChange}
-          required
+          disabled={isSubmitting}
         />
 
         {companyType === 'telecom' && renderTelecomFields()}
         {companyType === 'autorepair' && renderCarRepairFields()}
         {companyType === 'insurance' && renderInsuranceFields()}
 
-        <label htmlFor="description">Beskriv ditt ärende</label>
+        <label htmlFor="message">Beskriv ditt ärende</label>
         <textarea
-          name="description"
-          value={formData.description}
+          name="message"
+          value={formData.message}
           onChange={handleInputChange}
           placeholder="Beskriv ditt ärende i detalj..."
           required
+          disabled={isSubmitting}
         />
 
-        <button type="submit">Skicka ärende</button>
+        <button 
+          type="submit" 
+          disabled={isSubmitting}
+          style={{
+            cursor: isSubmitting ? 'not-allowed' : 'pointer',
+            opacity: isSubmitting ? 0.7 : 1
+          }}
+        >
+          {isSubmitting ? 'Skickar...' : 'Skicka ärende'}
+        </button>
+        
+        {message.text && (
+          <div 
+            className={`message ${message.isError ? 'error' : 'success'}`}
+            style={{
+              marginTop: '1rem',
+              padding: '1rem',
+              borderRadius: '4px',
+              backgroundColor: message.isError ? '#fee2e2' : '#dcfce7',
+              color: message.isError ? '#dc2626' : '#16a34a',
+              border: `1px solid ${message.isError ? '#fca5a5' : '#86efac'}`
+            }}
+          >
+            {message.text}
+          </div>
+        )}
       </form>
     </div>
   );
