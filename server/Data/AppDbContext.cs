@@ -77,11 +77,15 @@ namespace server.Data
                 entity.Property(e => e.Password)
                     .IsRequired()
                     .HasMaxLength(100);
+                
+                entity.Property(e => e.Company)     // Ny property
+                    .IsRequired()
+                    .HasMaxLength(50);
                     
                 entity.Property(e => e.Role)
                     .IsRequired()
                     .HasMaxLength(20)
-                    .HasDefaultValue("user");
+                    .HasDefaultValue("staff");
 
                 entity.Property(e => e.CreatedAt)
                     .IsRequired()

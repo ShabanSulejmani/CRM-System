@@ -44,6 +44,37 @@ app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
 
+// User Endpoints
+app.MapPost("/api/users", async (UserForm user, AppDbContext db) =>
+{
+   try 
+   {
+       user.CreatedAt = DateTime.UtcNow;
+       
+       
+       db.Users.Add(user);
+       await db.SaveChangesAsync();
+       
+       return Results.Ok(new { message = "User created successfully", user });
+   }
+   catch (Exception ex)
+   {
+       return Results.BadRequest(new { message = "Failed to create user", error = ex.Message });
+   }
+});
+
+app.MapGet("/api/users", async (AppDbContext db) =>
+{
+   var users = await db.Users.ToListAsync();
+   return Results.Ok(users);
+});
+
+app.MapGet("/api/users/{id}", async (int id, AppDbContext db) =>
+{
+   var user = await db.Users.FindAsync(id);
+   return user is null ? Results.NotFound() : Results.Ok(user);
+});
+
 // Fordon Endpoints
 app.MapGet("/api/fordon", async (AppDbContext db) =>
 {
