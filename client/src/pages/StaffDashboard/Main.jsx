@@ -174,7 +174,9 @@ function Main() {
             <div className="ticket-task-details">
               <div className="ticket-task-email">{task.email}</div>
               <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
-              <div className="ticket-task-token">Token: {task.chatToken}</div>
+              <div className="ticket-task-token">
+                Token: <a href={task.chatLink} target="_blank" rel="noopener noreferrer">Link to Chat</a>
+              </div>
             </div>
           </div>
         ))}
@@ -203,7 +205,9 @@ function Main() {
             <div className="ticket-task-details">
               <div className="ticket-task-email">{task.email}</div>
               <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
-              <div className="ticket-task-token">Token: {task.chatToken}</div>
+              <div className="ticket-task-token">
+                Token: <a href={task.chatLink} target="_blank" rel="noopener noreferrer">Link to Chat</a>
+              </div>
             </div>
           </div>
         ))}

@@ -287,7 +287,7 @@ margin-bottom: 5%;
   .ticket-task-time {
     font-size: 0.75rem;
     color: #718096;
-    background: red !important;
+    text-decoration:#27ae60;
   }
   
   .ticket-task-token {
