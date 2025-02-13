@@ -9,6 +9,8 @@ namespace server.Data
             : base(options)
         {
         }
+        
+        public DbSet<UserForm> Users { get; set; }
 
         public DbSet<FordonForm> FordonForms { get; set; }
         public DbSet<ForsakringsForm> ForsakringsForms { get; set; }
@@ -17,6 +19,8 @@ namespace server.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+
 
             modelBuilder.Entity<FordonForm>(entity =>
             {
@@ -61,6 +65,29 @@ namespace server.Data
                 entity.Property(e => e.IsChatActive).IsRequired();
 
                 entity.HasIndex(e => e.ChatToken).IsUnique();
+            });
+            modelBuilder.Entity<UserForm>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                
+                entity.Property(e => e.FirstName)
+                    .IsRequired()
+                    .HasMaxLength(50);
+                
+                entity.Property(e => e.Password)
+                    .IsRequired()
+                    .HasMaxLength(100);
+                    
+                entity.Property(e => e.Role)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasDefaultValue("user");
+
+                entity.Property(e => e.CreatedAt)
+                    .IsRequired()
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                    
+
             });
         }
     }
