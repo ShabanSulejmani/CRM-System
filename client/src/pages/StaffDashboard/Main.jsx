@@ -33,11 +33,14 @@ function Main() {
         console.log("Active submissions:", activeSubmissions);
 
         // Skapa tickets från nya submissions
+        const baseUrl = "http://localhost:3001";
         const newTicket = activeSubmissions.map(submission => ({
           id: submission.id,
           chatToken: submission.chatToken,
           content: `${submission.firstName} ${submission.lastName} - ${submission.subject}`,
-          email: submission.email
+          email: submission.email,
+          submittedAt: submission.submittedAt || submission.createdAt,
+          chatLink: `${baseUrl}/chat/${submission.chatToken}`
         }));
 
         // Uppdatera tasks med nya tickets som inte redan finns
@@ -85,7 +88,13 @@ function Main() {
 
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('sv-SE', {
+    if (!dateString) return "No date";
+
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Invalid date";
+
+    return date.toLocaleString('sv-SE', {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric',
@@ -93,6 +102,8 @@ function Main() {
       minute: '2-digit'
     });
   };
+  
+  
 
 
   return (
@@ -132,7 +143,9 @@ function Main() {
             <div className="ticket-task-details">
               <div className="ticket-task-email">{task.email}</div>
               <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
-              <div className="ticket-task-token">Token: {task.chatToken}</div>
+              <div className="ticket-task-token">
+                Token: <a href={task.chatLink} target="_blank" rel="noopener noreferrer">Link to Chat</a>
+              </div>
             </div>
           </div>
         ))}
@@ -160,7 +173,7 @@ function Main() {
             </div>
             <div className="ticket-task-details">
               <div className="ticket-task-email">{task.email}</div>
-              <div className="ticket-task-time">{formatDate(task.email)}</div>
+              <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
               <div className="ticket-task-token">Token: {task.chatToken}</div>
             </div>
           </div>
