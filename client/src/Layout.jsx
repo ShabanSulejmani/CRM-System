@@ -67,7 +67,7 @@ function Layout() {
 
               {/* Chat */}
               <Link 
-                to="chat/:token"
+                to="chat"
               >
                 Chat
               </Link>
