@@ -15,12 +15,7 @@ function Layout() {
             <div>
               {/* Public Links */}
               <div>
-                <Link 
-                  to="/form" 
-                  className="hover:text-blue-300 transition-colors"
-                >
-                  Grundformulär
-                </Link>
+             
                 <Link 
                   to="/dynamisk" 
                   className="hover:text-blue-300 transition-colors"
@@ -72,7 +67,7 @@ function Layout() {
 
               {/* Chat */}
               <Link 
-                to="/chat"
+                to="chat"
               >
                 Chat
               </Link>

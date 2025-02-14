@@ -51,7 +51,6 @@ app.MapPost("/api/users", async (UserForm user, AppDbContext db) =>
    {
        user.CreatedAt = DateTime.UtcNow;
        
-       
        db.Users.Add(user);
        await db.SaveChangesAsync();
        
