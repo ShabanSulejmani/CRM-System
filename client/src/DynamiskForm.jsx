@@ -31,6 +31,7 @@ function DynamiskForm() {
     let submitData = {
       firstName: formData.firstName,
       email: formData.email,
+      companyType: companyType,  // Lägg till companyType
       message: formData.message,
       isChatActive: true,
       submittedAt: new Date().toISOString()
@@ -206,7 +207,7 @@ function DynamiskForm() {
     <div className="container">
       <h1>Kontakta kundtjänst</h1>
       <form onSubmit={handleSubmit}>
-        <label htmlFor="companyType">Välj område</label>
+        <label htmlFor="companyType">Välj Företag</label>
         <select
           value={companyType}
           onChange={(e) => setCompanyType(e.target.value)}
@@ -214,9 +215,9 @@ function DynamiskForm() {
           disabled={isSubmitting}
         >
           <option value="">Välj område</option>
-          <option value="telecom">Tele/Bredband</option>
-          <option value="autorepair">Fordonsservice</option>
-          <option value="insurance">Försäkringsärenden</option>
+          <option value="Tele/Bredband">Tele/Bredband</option>
+          <option value="Fordonsservice">Fordonsservice</option>
+          <option value="Försäkringsärenden">Försäkringsärenden</option>
         </select>
 
         <label htmlFor="firstName">Namn</label>
