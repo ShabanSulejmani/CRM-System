@@ -37,7 +37,8 @@ function Main() {
         const newTicket = activeSubmissions.map(submission => ({
           id: submission.id,
           chatToken: submission.chatToken,
-          issueType: `${submission.firstName}  - ${submission.issueType}`,
+          issueType: `${submission.firstName}  - ${submission.companyType}`,
+          wtp: submission.issueType,
           email: submission.email,
           message: submission.message,
           submittedAt: submission.submittedAt || submission.createdAt,
@@ -79,7 +80,8 @@ function Main() {
             id: submission.id,
             chatToken: submission.chatToken,
             insuranceType: submission.insuranceType,
-            issueType: `${submission.firstName}  - ${submission.issueType}`,
+            issueType: `${submission.firstName}  - ${submission.companyType}`,
+            wtp: submission.issueType,
             email: submission.email,
             message: submission.message,
             submittedAt: submission.submittedAt || submission.createdAt,
@@ -120,7 +122,8 @@ function Main() {
         const newTicket = activeSubmissions.map(submission => ({
           id: submission.id,
           chatToken: submission.chatToken,
-          issueType: `${submission.firstName}  - ${submission.issueType}`,
+          issueType: `${submission.firstName}  - ${submission.companyType}`,
+          wtp: submission.issueType,
           email: submission.email,
           message: submission.message,
           serviceType: submission.serviceType,
@@ -226,6 +229,7 @@ function Main() {
               {task.issueType}
             </div>
             <div className="ticket-task-details">
+              <div className="ticket-wtp">{task.wtp}</div>
               <div className="ticket-task-email">{task.email}</div>
               <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
               <div className="ticket-task-token">
@@ -257,6 +261,7 @@ function Main() {
               {task.issueType}
             </div>
             <div className="ticket-task-details">
+              <div className="ticket-wtp">{task.wtp}</div>
               <div className="ticket-task-email">{task.email}</div>
               <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
               <div className="ticket-task-token">
@@ -288,6 +293,7 @@ function Main() {
               {task.issueType}
             </div>
             <div className="ticket-task-details">
+              <div className="ticket-wtp">{task.wtp}</div>
               <div className="ticket-task-email">{task.email}</div>
               <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
               <div className="ticket-task-token">
