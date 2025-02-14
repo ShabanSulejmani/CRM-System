@@ -27,7 +27,7 @@ namespace server.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.FirstName).IsRequired();
                 entity.Property(e => e.Email).IsRequired();
-                entity.Property(e => e.CompanyName).IsRequired();
+                entity.Property(e => e.CompanyType).IsRequired();
                 entity.Property(e => e.RegistrationNumber).IsRequired();
                 entity.Property(e => e.IssueType).IsRequired();
                 entity.Property(e => e.Message).IsRequired();
@@ -42,7 +42,7 @@ namespace server.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.FirstName).IsRequired();
-                entity.Property(e => e.CompanyName).IsRequired();
+                entity.Property(e => e.CompanyType).IsRequired();
                 entity.Property(e => e.Email).IsRequired();
                 entity.Property(e => e.InsuranceType).IsRequired();
                 entity.Property(e => e.IssueType).IsRequired();
@@ -58,7 +58,7 @@ namespace server.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.FirstName).IsRequired();
-                entity.Property(e => e.CompanyName).IsRequired();
+                entity.Property(e => e.CompanyType).IsRequired();
                 entity.Property(e => e.Email).IsRequired();
                 entity.Property(e => e.ServiceType).IsRequired();
                 entity.Property(e => e.IssueType).IsRequired();

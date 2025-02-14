@@ -5,7 +5,7 @@ public class FordonForm
     public int Id { get; set; }
     public string FirstName { get; set; } = string.Empty;
     
-    public string CompanyName { get; set; } = string.Empty;
+    public string CompanyType { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string RegistrationNumber { get; set; } = string.Empty;
     public string IssueType  { get; set; } = string.Empty;
