@@ -31,14 +31,14 @@ function DynamiskForm() {
     let submitData = {
       firstName: formData.firstName,
       email: formData.email,
-      companyType: companyType,  // Lägg till companyType
+      companyType: companyType,
       message: formData.message,
       isChatActive: true,
       submittedAt: new Date().toISOString()
     };
 
     switch (companyType) {
-      case 'telecom':
+      case 'Tele/Bredband':
         endpoint = '/api/tele';
         submitData = {
           ...submitData,
@@ -46,7 +46,7 @@ function DynamiskForm() {
           issueType: formData.issueType,
         };
         break;
-      case 'autorepair':
+      case 'Fordonsservice':
         endpoint = '/api/fordon';
         submitData = {
           ...submitData,
@@ -54,7 +54,7 @@ function DynamiskForm() {
           issueType: formData.issueType,
         };
         break;
-      case 'insurance':
+      case 'Försäkringsärenden':
         endpoint = '/api/forsakring';
         submitData = {
           ...submitData,
@@ -209,6 +209,7 @@ function DynamiskForm() {
       <form onSubmit={handleSubmit}>
         <label htmlFor="companyType">Välj Företag</label>
         <select
+          name="companyType"
           value={companyType}
           onChange={(e) => setCompanyType(e.target.value)}
           required
@@ -240,9 +241,9 @@ function DynamiskForm() {
           disabled={isSubmitting}
         />
 
-        {companyType === 'telecom' && renderTelecomFields()}
-        {companyType === 'autorepair' && renderCarRepairFields()}
-        {companyType === 'insurance' && renderInsuranceFields()}
+        {companyType === 'Tele/Bredband' && renderTelecomFields()}
+        {companyType === 'Fordonsservice' && renderCarRepairFields()}
+        {companyType === 'Försäkringsärenden' && renderInsuranceFields()}
 
         <label htmlFor="message">Beskriv ditt ärende</label>
         <textarea
