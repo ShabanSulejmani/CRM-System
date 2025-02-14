@@ -11,7 +11,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 
-/*builder.Services.AddCors(options =>
+builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
         builder =>
@@ -24,7 +24,7 @@ builder.Services.AddAuthorization();
                 .AllowAnyMethod()
                 .AllowAnyHeader();
         });
-});*/
+});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
