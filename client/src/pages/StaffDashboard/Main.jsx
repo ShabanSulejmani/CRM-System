@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 
 function Main() {
     const [tasks, setTasks] = useState([]);
     const [myTasks, setMyTasks] = useState([]);
     const [done, setDone] = useState([]);
     const [draggedTask, setDraggedTask] = useState(null);
-    const [submissions, setSubmissions] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -33,22 +31,22 @@ function Main() {
             if (response.ok) {
                 const data = await response.json();
                 const activeSubmissions = data.filter(sub => sub.email);
+                const baseUrl = "http://localhost:3001";
                 const newTickets = activeSubmissions.map(submission => ({
                     id: submission.id,
                     chatToken: submission.chatToken,
-                    issueType: `${submission.firstName} - ${submission.companyType}`,
+                    issueType: `${submission.firstName} - Fordonsservice`,
                     wtp: submission.issueType,
                     email: submission.email,
                     message: submission.message,
                     submittedAt: submission.submittedAt || submission.createdAt,
-                    registrationNumber: submission.registrationNumber
+                    chatLink: `${baseUrl}/chat/${submission.chatToken}`
                 }));
 
                 updateTasks(newTickets);
-                setSubmissions(data);
             }
         } catch (error) {
-            console.error('Error fetching fordon submissions:', error);
+            console.error('Fel vid hämtning av fordonsärenden:', error);
         }
     };
 
@@ -63,22 +61,22 @@ function Main() {
             if (response.ok) {
                 const data = await response.json();
                 const activeSubmissions = data.filter(sub => sub.email);
+                const baseUrl = "http://localhost:3001";
                 const newTickets = activeSubmissions.map(submission => ({
                     id: submission.id,
                     chatToken: submission.chatToken,
-                    issueType: `${submission.firstName} - ${submission.companyType}`,
+                    issueType: `${submission.firstName} - Tele/Bredband`,
                     wtp: submission.issueType,
                     email: submission.email,
                     message: submission.message,
                     submittedAt: submission.submittedAt || submission.createdAt,
-                    serviceType: submission.serviceType
+                    chatLink: `${baseUrl}/chat/${submission.chatToken}`
                 }));
 
                 updateTasks(newTickets);
-                setSubmissions(data);
             }
         } catch (error) {
-            console.error('Error fetching tele submissions:', error);
+            console.error('Fel vid hämtning av teleärenden:', error);
         }
     };
 
@@ -93,22 +91,22 @@ function Main() {
             if (response.ok) {
                 const data = await response.json();
                 const activeSubmissions = data.filter(sub => sub.email);
+                const baseUrl = "http://localhost:3001";
                 const newTickets = activeSubmissions.map(submission => ({
                     id: submission.id,
                     chatToken: submission.chatToken,
-                    issueType: `${submission.firstName} - ${submission.companyType}`,
+                    issueType: `${submission.firstName} - Försäkringsärenden`,
                     wtp: submission.issueType,
                     email: submission.email,
                     message: submission.message,
                     submittedAt: submission.submittedAt || submission.createdAt,
-                    insuranceType: submission.insuranceType
+                    chatLink: `${baseUrl}/chat/${submission.chatToken}`
                 }));
 
                 updateTasks(newTickets);
-                setSubmissions(data);
             }
         } catch (error) {
-            console.error('Error fetching forsakring submissions:', error);
+            console.error('Fel vid hämtning av försäkringsärenden:', error);
         }
     };
 
@@ -116,15 +114,12 @@ function Main() {
         setTasks(prevTasks => {
             const existingIds = new Set(prevTasks.map(task => task.id));
             const uniqueNewTickets = newTickets.filter(ticket => !existingIds.has(ticket.id));
-            
-            if (uniqueNewTickets.length === 0) {
-                return prevTasks;
+            if (uniqueNewTickets.length > 0) {
+                const allTasks = [...uniqueNewTickets, ...prevTasks]
+                    .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+                return allTasks;
             }
-
-            const allTasks = [...uniqueNewTickets, ...prevTasks]
-                .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-            
-            return allTasks;
+            return prevTasks;
         });
     };
 
@@ -204,13 +199,13 @@ function Main() {
                             <div className="ticket-task-email">{task.email}</div>
                             <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
                             <div className="ticket-task-token">
-                                <Link 
-                                    to={`/chat/${task.chatToken}`}
-                                    target="_blank"
+                                <a 
+                                    href={task.chatLink} 
+                                    target="_blank" 
                                     rel="noopener noreferrer"
                                 >
                                     Öppna chatt
-                                </Link>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -242,13 +237,13 @@ function Main() {
                             <div className="ticket-task-email">{task.email}</div>
                             <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
                             <div className="ticket-task-token">
-                                <Link 
-                                    to={`/chat/${task.chatToken}`}
-                                    target="_blank"
+                                <a 
+                                    href={task.chatLink} 
+                                    target="_blank" 
                                     rel="noopener noreferrer"
                                 >
                                     Öppna chatt
-                                </Link>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -280,13 +275,13 @@ function Main() {
                             <div className="ticket-task-email">{task.email}</div>
                             <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
                             <div className="ticket-task-token">
-                                <Link 
-                                    to={`/chat/${task.chatToken}`}
-                                    target="_blank"
+                                <a 
+                                    href={task.chatLink} 
+                                    target="_blank" 
                                     rel="noopener noreferrer"
                                 >
                                     Öppna chatt
-                                </Link>
+                                </a>
                             </div>
                         </div>
                     </div>

@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import EmojiPicker from "emoji-picker-react";
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 export default function Chat() {
     const { token } = useParams();
-    const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const [message, setMessage] = useState(""); 
     const [messages, setMessages] = useState([]);
@@ -13,59 +12,34 @@ export default function Chat() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        let isMounted = true;
-        
         const fetchChatData = async () => {
-            if (!token) {
-                setLoading(false);
-                return;
-            }
+            if (!token) return;
             
             try {
-                console.log('Försöker hämta chatdata för token:', token);
-                
-                const response = await fetch(`/api/chat/${encodeURIComponent(token)}`, {
+                const response = await fetch(`/api/chat/${token}`, {
                     headers: {
                         'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache',
-                        'Expires': '0'
+                        'Pragma': 'no-cache'
                     }
                 });
                 
-                console.log('Chat response status:', response.status);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Fel vid hämtning:', errorText);
-                    throw new Error('Kunde inte hämta chattdata');
-                }
-
-                const data = await response.json();
-                console.log('Hämtad chattdata:', data);
-
-                if (isMounted) {
-                    if (data) {
-                        setChatData(data);
-                        setLoading(false);
-                    } else {
-                        throw new Error('Ingen chattdata hittades');
-                    }
-                }
-            } catch (error) {
-                console.error('Fel vid hämtning av chattdata:', error);
-                if (isMounted) {
+                if (response.ok) {
+                    const data = await response.json();
+                    setChatData(data);
+                    setLoading(false);
+                } else {
+                    console.error('Fel vid hämtning av chatt:', response.status);
                     setLoading(false);
                 }
+            } catch (error) {
+                console.error('Fel vid hämtning av chatt:', error);
+                setLoading(false);
             }
         };
 
         fetchChatData();
         const interval = setInterval(fetchChatData, 5000);
-
-        return () => {
-            isMounted = false;
-            clearInterval(interval);
-        };
+        return () => clearInterval(interval);
     }, [token]);
 
     const handleEmojiClick = (emojiObject) => {
@@ -105,7 +79,7 @@ export default function Chat() {
         return (
             <div className="p-4">
                 <div className="chat-container">
-                    <p className="error-message">Kunde inte hitta chatten. Kontrollera länken och försök igen.</p>
+                    <p>Ingen chat data hittades</p>
                 </div>
             </div>
         );
@@ -117,17 +91,8 @@ export default function Chat() {
                 <h2 className="chat-namn">{chatData.firstName}</h2>
                 <div className="messages-container">
                     <div className="chat-info">
-                        <p><strong>Ärende:</strong> {chatData.issueType}</p>
-                        {chatData.serviceType && (
-                            <p><strong>Tjänsttyp:</strong> {chatData.serviceType}</p>
-                        )}
-                        {chatData.registrationNumber && (
-                            <p><strong>Registreringsnummer:</strong> {chatData.registrationNumber}</p>
-                        )}
-                        {chatData.insuranceType && (
-                            <p><strong>Försäkringstyp:</strong> {chatData.insuranceType}</p>
-                        )}
-                        <p><strong>Meddelande:</strong></p>
+                        <p className="issue-type">Ärende: {chatData.issueType}</p>
+                        <p className="message-time">Skickat: {new Date(chatData.submittedAt).toLocaleString('sv-SE')}</p>
                         <p className="message-content">{chatData.message}</p>
                     </div>
                     {messages.map((msg, index) => (
