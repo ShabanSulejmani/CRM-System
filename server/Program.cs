@@ -29,6 +29,7 @@ public class Program
                         )
                         .AllowAnyMethod()
                         .AllowAnyHeader();
+                       
                 });
         });
 
@@ -49,6 +50,7 @@ public class Program
         app.UseCors("AllowReactApp");
         app.UseAuthentication();
         app.UseAuthorization();
+      
 
         // User Endpoints
         app.MapPost("/api/users", async (UserForm user, AppDbContext db) =>
@@ -165,8 +167,7 @@ public class Program
                 return Results.BadRequest(new { message = "Ett fel uppstod", error = ex.Message });
             }
         });
-
-        // Forsakring Endpoints
+ // Forsakring Endpoints
         app.MapPost("/api/forsakring", async (ForsakringsForm submission, AppDbContext db, IEmailService emailService, IConfiguration config) =>
         {
             using var transaction = await db.Database.BeginTransactionAsync();
@@ -249,6 +250,7 @@ public class Program
                 return Results.BadRequest(new { message = "Ett fel uppstod", error = ex.Message });
             }
         });
+       
         app.Run();
     }
 }
