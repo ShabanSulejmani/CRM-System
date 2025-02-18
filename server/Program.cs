@@ -250,7 +250,95 @@ public class Program
                 return Results.BadRequest(new { message = "Ett fel uppstod", error = ex.Message });
             }
         });
-       
+       // chatt funktionen mellan kund och support
+        app.MapPost("/api/chat/message", async (ChatMessage message, AppDbContext db) =>
+        {
+            try 
+            {
+                message.Timestamp = DateTime.UtcNow;
+                db.ChatMessages.Add(message);
+                await db.SaveChangesAsync();
+                return Results.Ok(new { message = "Meddelande skickat", chatMessage = message });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = "Kunde inte skicka meddelande", error = ex.Message });
+            }
+        });
+
+// Add an endpoint to fetch chat messages
+        app.MapGet("/api/chat/messages/{chatToken}", async (string chatToken, AppDbContext db) =>
+        {
+            try 
+            {
+                var messages = await db.ChatMessages
+                    .Where(m => m.ChatToken == chatToken)
+                    .OrderBy(m => m.Timestamp)
+                    .ToListAsync();
+        
+                return Results.Ok(messages);
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = "Kunde inte hämta meddelanden", error = ex.Message });
+            }
+        });
+   
+        // Skicka ticket till support på fordon
+        app.MapGet("/api/fordon", async (AppDbContext db) =>
+        {
+            try 
+            {
+                var fordonForms = await db.FordonForms
+                    .Where(f => f.IsChatActive)
+                    .OrderByDescending(f => f.SubmittedAt)
+                    .ToListAsync();
+        
+                return Results.Ok(fordonForms);
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = "Kunde inte hämta fordonsärenden", error = ex.Message });
+            }
+        });
+
+// Skicka ticket till support på Tele
+        app.MapGet("/api/tele", async (AppDbContext db) =>
+        {
+            try 
+            {
+                var teleForms = await db.TeleForms
+                    .Where(f => f.IsChatActive)
+                    .OrderByDescending(f => f.SubmittedAt)
+                    .ToListAsync();
+        
+                return Results.Ok(teleForms);
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = "Kunde inte hämta teleärenden", error = ex.Message });
+            }
+        });
+
+//Skicka ticket till support på Försäkring
+        app.MapGet("/api/forsakring", async (AppDbContext db) =>
+        {
+            try 
+            {
+                var forsakringsForms = await db.ForsakringsForms
+                    .Where(f => f.IsChatActive)
+                    .OrderByDescending(f => f.SubmittedAt)
+                    .ToListAsync();
+        
+                return Results.Ok(forsakringsForms);
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = "Kunde inte hämta försäkringsärenden", error = ex.Message });
+            }
+        });
+        
+        
         app.Run();
     }
 }

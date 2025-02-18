@@ -8,11 +8,44 @@ function Main() {
 
     useEffect(() => {
         const fetchData = async () => {
-            await Promise.all([
-                fetchFordonForms(),
-                fetchTeleForms(),
-                fetchForsakringsForms()
-            ]);
+            try {
+                console.log("Fetching tickets...");
+                const [fordonResponse, teleResponse, forsakringResponse] = await Promise.all([
+                    fetch('/api/fordon'),
+                    fetch('/api/tele'),
+                    fetch('/api/forsakring')
+                ]);
+
+                const fordonData = await fordonResponse.json();
+                const teleData = await teleResponse.json();
+                const forsakringData = await forsakringResponse.json();
+
+                // Map tickets with additional information
+                const newTickets = [
+                    ...fordonData.map(ticket => ({
+                        ...ticket,
+                        issueType: `${ticket.firstName} - Fordonsservice`,
+                        wtp: ticket.issueType,
+                        chatLink: `http://localhost:3001/chat/${ticket.chatToken}`
+                    })),
+                    ...teleData.map(ticket => ({
+                        ...ticket,
+                        issueType: `${ticket.firstName} - Tele/Bredband`,
+                        wtp: ticket.issueType,
+                        chatLink: `http://localhost:3001/chat/${ticket.chatToken}`
+                    })),
+                    ...forsakringData.map(ticket => ({
+                        ...ticket,
+                        issueType: `${ticket.firstName} - Försäkringsärenden`,
+                        wtp: ticket.issueType,
+                        chatLink: `http://localhost:3001/chat/${ticket.chatToken}`
+                    }))
+                ];
+
+                updateTasks(newTickets);
+            } catch (error) {
+                console.error("Error fetching tickets:", error);
+            }
         };
 
         fetchData();
@@ -20,105 +53,30 @@ function Main() {
         return () => clearInterval(interval);
     }, []);
 
-    const fetchFordonForms = async () => {
-        try {
-            const response = await fetch('/api/fordon', {
-                headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache'
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                const activeSubmissions = data.filter(sub => sub.email);
-                const baseUrl = "http://localhost:3001";
-                const newTickets = activeSubmissions.map(submission => ({
-                    id: submission.id,
-                    chatToken: submission.chatToken,
-                    issueType: `${submission.firstName} - Fordonsservice`,
-                    wtp: submission.issueType,
-                    email: submission.email,
-                    message: submission.message,
-                    submittedAt: submission.submittedAt || submission.createdAt,
-                    chatLink: `${baseUrl}/chat/${submission.chatToken}`
-                }));
-
-                updateTasks(newTickets);
-            }
-        } catch (error) {
-            console.error('Fel vid hämtning av fordonsärenden:', error);
-        }
-    };
-
-    const fetchTeleForms = async () => {
-        try {
-            const response = await fetch('/api/tele', {
-                headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache'
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                const activeSubmissions = data.filter(sub => sub.email);
-                const baseUrl = "http://localhost:3001";
-                const newTickets = activeSubmissions.map(submission => ({
-                    id: submission.id,
-                    chatToken: submission.chatToken,
-                    issueType: `${submission.firstName} - Tele/Bredband`,
-                    wtp: submission.issueType,
-                    email: submission.email,
-                    message: submission.message,
-                    submittedAt: submission.submittedAt || submission.createdAt,
-                    chatLink: `${baseUrl}/chat/${submission.chatToken}`
-                }));
-
-                updateTasks(newTickets);
-            }
-        } catch (error) {
-            console.error('Fel vid hämtning av teleärenden:', error);
-        }
-    };
-
-    const fetchForsakringsForms = async () => {
-        try {
-            const response = await fetch('/api/forsakring', {
-                headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache'
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                const activeSubmissions = data.filter(sub => sub.email);
-                const baseUrl = "http://localhost:3001";
-                const newTickets = activeSubmissions.map(submission => ({
-                    id: submission.id,
-                    chatToken: submission.chatToken,
-                    issueType: `${submission.firstName} - Försäkringsärenden`,
-                    wtp: submission.issueType,
-                    email: submission.email,
-                    message: submission.message,
-                    submittedAt: submission.submittedAt || submission.createdAt,
-                    chatLink: `${baseUrl}/chat/${submission.chatToken}`
-                }));
-
-                updateTasks(newTickets);
-            }
-        } catch (error) {
-            console.error('Fel vid hämtning av försäkringsärenden:', error);
-        }
-    };
-
     const updateTasks = (newTickets) => {
         setTasks(prevTasks => {
-            const existingIds = new Set(prevTasks.map(task => task.id));
-            const uniqueNewTickets = newTickets.filter(ticket => !existingIds.has(ticket.id));
+            // Create a Set of existing task IDs for efficient lookup
+            const existingTaskIds = new Set(prevTasks.map(task => task.id));
+            
+            // Filter out tickets that are already in the tasks
+            const uniqueNewTickets = newTickets.filter(ticket => 
+                !existingTaskIds.has(ticket.id)
+            );
+
+            // If there are new tickets, add them
             if (uniqueNewTickets.length > 0) {
-                const allTasks = [...uniqueNewTickets, ...prevTasks]
-                    .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-                return allTasks;
+                const combinedTasks = [
+                    ...uniqueNewTickets, 
+                    ...prevTasks
+                ];
+
+                // Sort by submission time, most recent first
+                return combinedTasks.sort((a, b) => 
+                    new Date(b.submittedAt) - new Date(a.submittedAt)
+                );
             }
+
+            // If no new tickets, return existing tasks
             return prevTasks;
         });
     };
