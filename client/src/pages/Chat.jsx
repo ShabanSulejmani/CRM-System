@@ -13,7 +13,7 @@ export default function Chat() {
     const [error, setError] = useState(null);
     const messagesEndRef = useRef(null);
 
-    // Comprehensive fetch function
+    // Fetch both initial message and chat messages
     const fetchChatData = useCallback(async () => {
         if (!token) {
             setError("Ingen token tillgänglig");
@@ -22,12 +22,13 @@ export default function Chat() {
         }
 
         try {
-            // Fetch initial chat info
+            // Fetch initial chat info from InitialFormMessages
             const chatResponse = await fetch(`/api/chat/${token}`);
             if (!chatResponse.ok) {
                 throw new Error('Could not fetch chat info');
             }
             const chatInfo = await chatResponse.json();
+            setChatData(chatInfo);
 
             // Fetch chat messages
             const messagesResponse = await fetch(`/api/chat/messages/${token}`);
@@ -35,13 +36,11 @@ export default function Chat() {
                 throw new Error('Could not fetch messages');
             }
             const chatMessages = await messagesResponse.json();
-
-            // Always update data
-            setChatData(chatInfo);
             setMessages(chatMessages);
+            
             setError(null);
         } catch (error) {
-            console.error('Detailed error:', error);
+            console.error('Error:', error);
             setError(`Ett fel uppstod: ${error.message}`);
         } finally {
             setLoading(false);
@@ -50,13 +49,8 @@ export default function Chat() {
 
     // Initial and continuous data fetching
     useEffect(() => {
-        // Immediate fetch
         fetchChatData();
-
-        // Set up polling
         const intervalId = setInterval(fetchChatData, 2000);
-
-        // Cleanup
         return () => clearInterval(intervalId);
     }, [fetchChatData]);
 
@@ -72,11 +66,11 @@ export default function Chat() {
         try {
             const newMessage = {
                 chatToken: token,
-                sender: chatData.firstName, 
+                sender: chatData.sender,  // To this
                 message: message,
                 timestamp: new Date().toISOString()
             };
-
+            
             const response = await fetch('/api/chat/message', {
                 method: 'POST',
                 headers: {
@@ -86,10 +80,7 @@ export default function Chat() {
             });
 
             if (response.ok) {
-                // Clear input immediately
                 setMessage("");
-                
-                // Refresh data to get latest messages
                 await fetchChatData();
             } else {
                 throw new Error('Kunde inte skicka meddelande');
@@ -105,7 +96,6 @@ export default function Chat() {
         setOpen(false);
     };
 
-    // Loading state
     if (loading) {
         return (
             <div className="chat-container">
@@ -114,7 +104,6 @@ export default function Chat() {
         );
     }
 
-    // Error state
     if (error) {
         return (
             <div className="chat-container">
@@ -124,7 +113,6 @@ export default function Chat() {
         );
     }
 
-    // No chat data
     if (!chatData) {
         return (
             <div className="chat-container">
@@ -135,7 +123,10 @@ export default function Chat() {
 
     return (
         <div className="chat-container">
-            <h2 className="chat-namn">{chatData.firstName}</h2>
+            <div className="chat-header">
+                <h2 className="chat-namn">{chatData.firstName}</h2>
+                {chatData.formType && <div className="chat-type">{chatData.formType}</div>}
+            </div>
             
             <div className="messages-container">
                 {messages.map((msg, index) => (

@@ -1,83 +1,59 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 function Main() {
     const [tasks, setTasks] = useState([]);
     const [myTasks, setMyTasks] = useState([]);
     const [done, setDone] = useState([]);
     const [draggedTask, setDraggedTask] = useState(null);
+    const intervalRef = useRef(null);
+
+    const fetchTickets = useCallback(async () => {
+        try {
+            const response = await fetch('/api/tickets');
+            const data = await response.json();
+            
+            const newTickets = data.map(ticket => ({
+                ...ticket,
+                id: ticket.chatToken,
+                issueType: `${ticket.sender} - ${ticket.formType}`,
+                wtp: ticket.formType,
+                chatLink: `http://localhost:3001/chat/${ticket.chatToken}`
+            }));
+
+            updateTasks(newTickets);
+        } catch (error) {
+            console.error("Error fetching tickets:", error);
+        }
+    }, []);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                console.log("Fetching tickets...");
-                const [fordonResponse, teleResponse, forsakringResponse] = await Promise.all([
-                    fetch('/api/fordon'),
-                    fetch('/api/tele'),
-                    fetch('/api/forsakring')
-                ]);
-
-                const fordonData = await fordonResponse.json();
-                const teleData = await teleResponse.json();
-                const forsakringData = await forsakringResponse.json();
-
-                // Map tickets with additional information
-                const newTickets = [
-                    ...fordonData.map(ticket => ({
-                        ...ticket,
-                        issueType: `${ticket.firstName} - Fordonsservice`,
-                        wtp: ticket.issueType,
-                        chatLink: `http://localhost:3001/chat/${ticket.chatToken}`
-                    })),
-                    ...teleData.map(ticket => ({
-                        ...ticket,
-                        issueType: `${ticket.firstName} - Tele/Bredband`,
-                        wtp: ticket.issueType,
-                        chatLink: `http://localhost:3001/chat/${ticket.chatToken}`
-                    })),
-                    ...forsakringData.map(ticket => ({
-                        ...ticket,
-                        issueType: `${ticket.firstName} - Försäkringsärenden`,
-                        wtp: ticket.issueType,
-                        chatLink: `http://localhost:3001/chat/${ticket.chatToken}`
-                    }))
-                ];
-
-                updateTasks(newTickets);
-            } catch (error) {
-                console.error("Error fetching tickets:", error);
+        fetchTickets();
+        
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+        }
+        
+        intervalRef.current = setInterval(fetchTickets, 30000);
+        
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
             }
         };
-
-        fetchData();
-        const interval = setInterval(fetchData, 5000);
-        return () => clearInterval(interval);
-    }, []);
+    }, [fetchTickets]);
 
     const updateTasks = (newTickets) => {
         setTasks(prevTasks => {
-            // Create a Set of existing task IDs for efficient lookup
-            const existingTaskIds = new Set(prevTasks.map(task => task.id));
+            const existingTasks = new Map(prevTasks.map(task => [task.chatToken, task]));
             
-            // Filter out tickets that are already in the tasks
-            const uniqueNewTickets = newTickets.filter(ticket => 
-                !existingTaskIds.has(ticket.id)
+            const updatedTasks = newTickets.map(ticket => ({
+                ...ticket,
+                ...existingTasks.get(ticket.chatToken)
+            }));
+
+            return updatedTasks.sort((a, b) => 
+                new Date(b.timestamp) - new Date(a.timestamp)
             );
-
-            // If there are new tickets, add them
-            if (uniqueNewTickets.length > 0) {
-                const combinedTasks = [
-                    ...uniqueNewTickets, 
-                    ...prevTasks
-                ];
-
-                // Sort by submission time, most recent first
-                return combinedTasks.sort((a, b) => 
-                    new Date(b.submittedAt) - new Date(a.submittedAt)
-                );
-            }
-
-            // If no new tickets, return existing tasks
-            return prevTasks;
         });
     };
 
@@ -230,8 +206,8 @@ function Main() {
                         </div>
                         <div className="ticket-task-details">
                             <div className="ticket-wtp">{task.wtp}</div>
-                            <div className="ticket-task-email">{task.email}</div>
-                            <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
+                        
+                            <div className="ticket-task-time">{formatDate(task.timestamp)}</div> 
                             <div className="ticket-task-token">
                                 <a 
                                     href={task.chatLink} 
