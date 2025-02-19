@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import EmojiPicker from "emoji-picker-react";
 
@@ -12,115 +12,154 @@ export default function Chat() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const messagesEndRef = useRef(null);
+    const intervalRef = useRef(null);
 
-    // Fetch both initial message and chat messages
-    const fetchChatData = useCallback(async () => {
-        if (!token) {
-            setError("Ingen token tillgänglig");
-            setLoading(false);
-            return;
-        }
+    // Combined fetch function
+    const fetchData = async () => {
+        if (!token) return;
 
         try {
-            // Fetch initial chat info from InitialFormMessages
-            const chatResponse = await fetch(`/api/chat/${token}`);
-            if (!chatResponse.ok) {
-                throw new Error('Could not fetch chat info');
-            }
-            const chatInfo = await chatResponse.json();
-            setChatData(chatInfo);
+            const [chatResponse, messagesResponse] = await Promise.all([
+                fetch(`/api/chat/${token}`),
+                fetch(`/api/chat/messages/${token}`)
+            ]);
 
-            // Fetch chat messages
-            const messagesResponse = await fetch(`/api/chat/messages/${token}`);
-            if (!messagesResponse.ok) {
-                throw new Error('Could not fetch messages');
+            if (!chatResponse.ok || !messagesResponse.ok) {
+                throw new Error('Kunde inte hämta chattdata');
             }
-            const chatMessages = await messagesResponse.json();
-            setMessages(chatMessages);
+
+            const [chatInfo, chatMessages] = await Promise.all([
+                chatResponse.json(),
+                messagesResponse.json()
+            ]);
+
+            console.log('Received data:', { chatInfo, chatMessages });
             
+            setChatData(chatInfo);
+            setMessages(chatMessages);
             setError(null);
-        } catch (error) {
-            console.error('Error:', error);
-            setError(`Ett fel uppstod: ${error.message}`);
+        } catch (err) {
+            console.error('Error fetching data:', err);
+            setError(err.message);
         } finally {
             setLoading(false);
         }
+    };
+
+    // Initial fetch and polling
+    useEffect(() => {
+        console.log('Setting up chat with token:', token);
+        
+        // Initial fetch
+        fetchData();
+
+        // Set up polling
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+        }
+        intervalRef.current = setInterval(fetchData, 5000);
+
+        return () => clearInterval(intervalRef.current);
     }, [token]);
 
-    // Initial and continuous data fetching
+    // Debug state changes
     useEffect(() => {
-        fetchChatData();
-        const intervalId = setInterval(fetchChatData, 2000);
-        return () => clearInterval(intervalId);
-    }, [fetchChatData]);
+        console.log('State updated:', {
+            loading,
+            hasChat: !!chatData,
+            messageCount: messages.length,
+            error
+        });
+    }, [loading, chatData, messages, error]);
 
     // Scroll to bottom when messages change
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    // Send message handler
     const handleSendMessage = async () => {
-        if (message.trim() === "") return;
+        if (message.trim() === "" || !chatData) return;
 
         try {
-            const newMessage = {
-                chatToken: token,
-                sender: chatData.sender,  // To this
-                message: message,
-                timestamp: new Date().toISOString()
-            };
-            
             const response = await fetch('/api/chat/message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(newMessage)
+                body: JSON.stringify({
+                    chatToken: token,
+                    sender: chatData.sender,
+                    message: message,
+                    timestamp: new Date().toISOString()
+                })
             });
 
-            if (response.ok) {
-                setMessage("");
-                await fetchChatData();
-            } else {
+            if (!response.ok) {
                 throw new Error('Kunde inte skicka meddelande');
             }
+
+            setMessage("");
+            await fetchData();
         } catch (error) {
-            console.error("Kunde inte skicka meddelande:", error);
+            setError("Kunde inte skicka meddelande. Försök igen.");
         }
     };
 
-    // Emoji handler
     const handleEmojiClick = (emojiObject) => {
-        setMessage(prevMessage => prevMessage + emojiObject.emoji);
+        setMessage(prev => prev + emojiObject.emoji);
         setOpen(false);
     };
 
+    // Show loading skeleton
     if (loading) {
         return (
             <div className="chat-container">
-                <p className="loading-message">Laddar chatt...</p>
+                <div className="chat-header">
+                    <div className="h-8 w-32 bg-gray-100 rounded animate-pulse"></div>
+                </div>
+                <div className="messages-container">
+                    <div className="space-y-4 p-4">
+                        <div className="h-16 w-2/3 bg-gray-100 rounded animate-pulse"></div>
+                        <div className="h-16 w-2/3 bg-gray-100 rounded animate-pulse ml-auto"></div>
+                        <div className="h-16 w-2/3 bg-gray-100 rounded animate-pulse"></div>
+                    </div>
+                </div>
+                <div className="chat-input">
+                    <div className="h-10 w-full bg-gray-100 rounded animate-pulse"></div>
+                </div>
             </div>
         );
     }
 
+    // Show error state
     if (error) {
         return (
             <div className="chat-container">
-                <p className="error-message">{error}</p>
-                <button onClick={fetchChatData}>Försök igen</button>
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded m-4">
+                    <p>{error}</p>
+                    <button 
+                        onClick={fetchData}
+                        className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                        Försök igen
+                    </button>
+                </div>
             </div>
         );
     }
 
+    // Show empty state if no chat data
     if (!chatData) {
         return (
             <div className="chat-container">
-                <p>Ingen chat data hittades</p>
+                <div className="p-4 text-gray-600">
+                    Ingen chattdata tillgänglig
+                </div>
             </div>
         );
     }
 
+    // Main chat UI
     return (
         <div className="chat-container">
             <div className="chat-header">

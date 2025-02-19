@@ -5,13 +5,26 @@ function Main() {
     const [myTasks, setMyTasks] = useState([]);
     const [done, setDone] = useState([]);
     const [draggedTask, setDraggedTask] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const intervalRef = useRef(null);
 
     const fetchTickets = useCallback(async () => {
         try {
+            // Always set loading to true on initial component mount
+            if (!intervalRef.current) {
+                setLoading(true);
+            }
+            setError(null);
+
             const response = await fetch('/api/tickets');
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
-            
+
             const newTickets = data.map(ticket => ({
                 ...ticket,
                 id: ticket.chatToken,
@@ -23,18 +36,21 @@ function Main() {
             updateTasks(newTickets);
         } catch (error) {
             console.error("Error fetching tickets:", error);
+            setError("Kunde inte hämta ärenden. Försök igen senare.");
+        } finally {
+            setLoading(false);
         }
     }, []);
 
     useEffect(() => {
         fetchTickets();
-        
+
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
         }
-        
+
         intervalRef.current = setInterval(fetchTickets, 30000);
-        
+
         return () => {
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
@@ -45,13 +61,13 @@ function Main() {
     const updateTasks = (newTickets) => {
         setTasks(prevTasks => {
             const existingTasks = new Map(prevTasks.map(task => [task.chatToken, task]));
-            
+
             const updatedTasks = newTickets.map(ticket => ({
                 ...ticket,
                 ...existingTasks.get(ticket.chatToken)
             }));
 
-            return updatedTasks.sort((a, b) => 
+            return updatedTasks.sort((a, b) =>
                 new Date(b.timestamp) - new Date(a.timestamp)
             );
         });
@@ -75,10 +91,10 @@ function Main() {
     const handleDragOver = (e) => e.preventDefault();
 
     const handleTaskEdit = (taskId, newContent, setColumn) => {
-        setColumn(prev => prev.map(task => 
+        setColumn(prev => prev.map(task =>
             task.id === taskId
-            ? { ...task, content: newContent }
-            : task
+                ? { ...task, content: newContent }
+                : task
         ));
     };
 
@@ -94,6 +110,49 @@ function Main() {
             minute: '2-digit'
         });
     };
+
+    // Only show loading initially, not on refresh
+    if (loading && tasks.length === 0) {
+        return (
+            <div className="main-container">
+                <aside className="staff-aside">
+                    <h2 className="company-name">Företagsnamn</h2>
+                    <div>Martin</div>
+                    <div>Ville</div>
+                    <div>Kevin</div>
+                    <div>Shaban</div>
+                    <div>Sigge</div>
+                    <div>Sebbe</div>
+                    Inloggad support
+                </aside>
+                <div className="ticket-tasks">
+                    <h2 className="ticket-tasks-header">Ärenden</h2>
+                    <div className="p-4 space-y-4">
+                        <div className="h-20 bg-gray-100 rounded animate-pulse"></div>
+                        <div className="h-20 bg-gray-100 rounded animate-pulse"></div>
+                        <div className="h-20 bg-gray-100 rounded animate-pulse"></div>
+                        <div className="text-gray-500 text-center mt-4">Laddar ärenden...</div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="main-container">
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                    <p>{error}</p>
+                </div>
+                <button
+                    onClick={fetchTickets}
+                    className="retry-button mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                    Försök igen
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="main-container">
@@ -121,10 +180,10 @@ function Main() {
                         onDragStart={() => handleDragStart(task)}
                         className="ticket-task-item"
                     >
-                        <div className="ticket-task-content" 
-                             contentEditable
-                             suppressContentEditableWarning={true}
-                             onBlur={(e) => handleTaskEdit(task.id, e.currentTarget.textContent, setTasks)}
+                        <div className="ticket-task-content"
+                            contentEditable
+                            suppressContentEditableWarning={true}
+                            onBlur={(e) => handleTaskEdit(task.id, e.currentTarget.textContent, setTasks)}
                         >
                             {task.issueType}
                         </div>
@@ -133,9 +192,9 @@ function Main() {
                             <div className="ticket-task-email">{task.email}</div>
                             <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
                             <div className="ticket-task-token">
-                                <a 
-                                    href={task.chatLink} 
-                                    target="_blank" 
+                                <a
+                                    href={task.chatLink}
+                                    target="_blank"
                                     rel="noopener noreferrer"
                                 >
                                     Öppna chatt
@@ -159,10 +218,10 @@ function Main() {
                         onDragStart={() => handleDragStart(task)}
                         className="ticket-task-item"
                     >
-                        <div className="ticket-task-content" 
-                             contentEditable
-                             suppressContentEditableWarning={true}
-                             onBlur={(e) => handleTaskEdit(task.id, e.currentTarget.textContent, setMyTasks)}
+                        <div className="ticket-task-content"
+                            contentEditable
+                            suppressContentEditableWarning={true}
+                            onBlur={(e) => handleTaskEdit(task.id, e.currentTarget.textContent, setMyTasks)}
                         >
                             {task.issueType}
                         </div>
@@ -171,9 +230,9 @@ function Main() {
                             <div className="ticket-task-email">{task.email}</div>
                             <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
                             <div className="ticket-task-token">
-                                <a 
-                                    href={task.chatLink} 
-                                    target="_blank" 
+                                <a
+                                    href={task.chatLink}
+                                    target="_blank"
                                     rel="noopener noreferrer"
                                 >
                                     Öppna chatt
@@ -197,21 +256,20 @@ function Main() {
                         onDragStart={() => handleDragStart(task)}
                         className="ticket-task-item"
                     >
-                        <div className="ticket-task-content" 
-                             contentEditable
-                             suppressContentEditableWarning={true}
-                             onBlur={(e) => handleTaskEdit(task.id, e.currentTarget.textContent, setDone)}
+                        <div className="ticket-task-content"
+                            contentEditable
+                            suppressContentEditableWarning={true}
+                            onBlur={(e) => handleTaskEdit(task.id, e.currentTarget.textContent, setDone)}
                         >
                             {task.issueType}
                         </div>
                         <div className="ticket-task-details">
                             <div className="ticket-wtp">{task.wtp}</div>
-                        
-                            <div className="ticket-task-time">{formatDate(task.timestamp)}</div> 
+                            <div className="ticket-task-time">{formatDate(task.timestamp)}</div>
                             <div className="ticket-task-token">
-                                <a 
-                                    href={task.chatLink} 
-                                    target="_blank" 
+                                <a
+                                    href={task.chatLink}
+                                    target="_blank"
                                     rel="noopener noreferrer"
                                 >
                                     Öppna chatt
