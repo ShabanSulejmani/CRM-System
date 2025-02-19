@@ -1,5 +1,5 @@
 // Layout.jsx
-import { Link, Outlet } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 
 function Layout() {
   return (
@@ -13,64 +13,66 @@ function Layout() {
 
             {/* Main Navigation */}
             <div>
-              {/* Public Links */}
+              {/* Public NavLinks */}
               <div>
              
-                <Link 
-                  to="/dynamisk" 
+                <NavLink 
+                  to={"/dynamisk"}
                   className="hover:text-blue-300 transition-colors"
                 >
                   Dynamiskt Formulär
-                </Link>
-                <Link 
-                  to="/faq" 
+                </NavLink>
+                <NavLink 
+                  to={"/faq"}
                   className="hover:text-blue-300 transition-colors"
                 >
                   FAQ
-                </Link>
+                </NavLink>
               </div>
 
-              {/* Admin Links */}
+              {/* Admin NavLinks */}
               <div>
                 <h2>Admin Pages</h2>
-                <Link 
-                  to="/admin/login" 
+                <NavLink 
+                  to={"/admin/login"}
                 >
                   Admin Login
-                </Link>
-                <Link 
-                  to="/admin/dashboard" 
+                </NavLink>
+
+                <NavLink 
+                  to={"/admin/dashboard"} 
                 >
                   Dashboard
-                </Link>
-                <Link 
-                  to="/admin/create-user" 
+                </NavLink>
+
+                <NavLink 
+                  to={"/admin/create-user"}
                 >
                   Create User
-                </Link>
+                </NavLink>
               </div>
 
-              {/* Staff Links */}
+              {/* Staff NavLinks */}
               <div>
                 <h2>Staff</h2>
-                <Link 
-                  to="/staff/login"
+                <NavLink 
+                  to={"/staff/login"}
                 >
                   Staff Login
-                </Link>
-                <Link 
-                  to="/staff/dashboard"
+                </NavLink>
+                <NavLink 
+                  to={"/staff/dashboard"}
                 >
                   Dashboard
-                </Link>
+                </NavLink>
               </div>
 
               {/* Chat */}
-              <Link 
-                to="chat"
+              <NavLink 
+                to={"chat"}
               >
                 Chat
-              </Link>
+              </NavLink>
             </div>
           </div>
         </div>
