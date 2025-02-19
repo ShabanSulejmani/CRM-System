@@ -29,7 +29,6 @@ public class Program
                         )
                         .AllowAnyMethod()
                         .AllowAnyHeader();
-                       
                 });
         });
 
@@ -50,7 +49,6 @@ public class Program
         app.UseCors("AllowReactApp");
         app.UseAuthentication();
         app.UseAuthorization();
-      
 
         // User Endpoints
         app.MapPost("/api/users", async (UserForm user, AppDbContext db) =>
@@ -143,7 +141,7 @@ public class Program
                     ChatToken = submission.ChatToken,
                     Sender = submission.FirstName,
                     Message = submission.Message,
-                    Timestamp =submission.SubmittedAt
+                    Timestamp = submission.SubmittedAt
                 };
                 db.ChatMessages.Add(initialMessage);
                 
@@ -167,7 +165,8 @@ public class Program
                 return Results.BadRequest(new { message = "Ett fel uppstod", error = ex.Message });
             }
         });
- // Forsakring Endpoints
+
+        // Forsakring Endpoints
         app.MapPost("/api/forsakring", async (ForsakringsForm submission, AppDbContext db, IEmailService emailService, IConfiguration config) =>
         {
             using var transaction = await db.Database.BeginTransactionAsync();
@@ -210,47 +209,38 @@ public class Program
                 return Results.BadRequest(new { message = "Ett fel uppstod", error = ex.Message });
             }
         });
-        
+
+        // Chat endpoints
         app.MapGet("/api/chat/{chatToken}", async (string chatToken, AppDbContext db) =>
         {
-            Console.WriteLine($"Received request for chat token: {chatToken}"); // Lägg till denna logg
-
             if (string.IsNullOrEmpty(chatToken))
             {
-                Console.WriteLine("Token was null or empty"); // Lägg till denna logg
                 return Results.BadRequest("Ingen token angiven");
             }
 
             try
             {
-                Console.WriteLine("Querying database..."); // Lägg till denna logg
                 var initialMessage = await db.InitialFormMessages
                     .FirstOrDefaultAsync(m => m.ChatToken == chatToken);
-
-                Console.WriteLine($"Query result: {(initialMessage == null ? "null" : "found")}"); // Lägg till denna logg
 
                 if (initialMessage == null)
                 {
                     return Results.NotFound("Ingen chatt hittades med denna token");
                 }
 
-                var response = new
-                {
+                return Results.Ok(new {
                     firstName = initialMessage.Sender,
                     message = initialMessage.Message,
-                    
-                };
-
-                Console.WriteLine($"Returning response with firstName: {response.firstName}"); // Lägg till denna logg
-                return Results.Ok(response);
+                    formType = initialMessage.FormType,
+                    timestamp = initialMessage.Timestamp
+                });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error details: {ex}"); // Förbättrad felloggning
                 return Results.BadRequest(new { message = "Ett fel uppstod", error = ex.Message });
             }
         });
-       // chatt funktionen mellan kund och support
+
         app.MapPost("/api/chat/message", async (ChatMessage message, AppDbContext db) =>
         {
             try 
@@ -266,7 +256,6 @@ public class Program
             }
         });
 
-// Add an endpoint to fetch chat messages
         app.MapGet("/api/chat/messages/{chatToken}", async (string chatToken, AppDbContext db) =>
         {
             try 
@@ -275,7 +264,7 @@ public class Program
                     .Where(m => m.ChatToken == chatToken)
                     .OrderBy(m => m.Timestamp)
                     .ToListAsync();
-        
+
                 return Results.Ok(messages);
             }
             catch (Exception ex)
@@ -283,62 +272,24 @@ public class Program
                 return Results.BadRequest(new { message = "Kunde inte hämta meddelanden", error = ex.Message });
             }
         });
-   
-        // Skicka ticket till support på fordon
-        app.MapGet("/api/fordon", async (AppDbContext db) =>
+
+        // Tickets endpoint
+        app.MapGet("/api/tickets", async (AppDbContext db) =>
         {
             try 
             {
-                var fordonForms = await db.FordonForms
-                    .Where(f => f.IsChatActive)
-                    .OrderByDescending(f => f.SubmittedAt)
+                var tickets = await db.InitialFormMessages
+                    .OrderByDescending(f => f.Timestamp)
                     .ToListAsync();
-        
-                return Results.Ok(fordonForms);
+
+                return Results.Ok(tickets);
             }
             catch (Exception ex)
             {
-                return Results.BadRequest(new { message = "Kunde inte hämta fordonsärenden", error = ex.Message });
+                return Results.BadRequest(new { message = "Kunde inte hämta ärenden", error = ex.Message });
             }
         });
 
-// Skicka ticket till support på Tele
-        app.MapGet("/api/tele", async (AppDbContext db) =>
-        {
-            try 
-            {
-                var teleForms = await db.TeleForms
-                    .Where(f => f.IsChatActive)
-                    .OrderByDescending(f => f.SubmittedAt)
-                    .ToListAsync();
-        
-                return Results.Ok(teleForms);
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(new { message = "Kunde inte hämta teleärenden", error = ex.Message });
-            }
-        });
-
-//Skicka ticket till support på Försäkring
-        app.MapGet("/api/forsakring", async (AppDbContext db) =>
-        {
-            try 
-            {
-                var forsakringsForms = await db.ForsakringsForms
-                    .Where(f => f.IsChatActive)
-                    .OrderByDescending(f => f.SubmittedAt)
-                    .ToListAsync();
-        
-                return Results.Ok(forsakringsForms);
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(new { message = "Kunde inte hämta försäkringsärenden", error = ex.Message });
-            }
-        });
-        
-        
         app.Run();
     }
 }
