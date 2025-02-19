@@ -1,7 +1,6 @@
-
-import { useState, useEffect, useRef } from 'react';
-import EmojiPicker from "emoji-picker-react";
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import EmojiPicker from "emoji-picker-react";
 
 export default function Chat() {
     const { token } = useParams();
@@ -11,88 +10,139 @@ export default function Chat() {
     const [chatData, setChatData] = useState(null);
     const emojiPickerRef = useRef(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const messagesEndRef = useRef(null);
 
-    useEffect(() => {
-        const fetchChatData = async () => {
-            if (!token) return;
-            
-            try {
-                // Uppdaterad endpoint för att hantera alla formulärtyper
-                const response = await fetch(`/api/chat/${token}`, {
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log("Hämtad chat data:", data);
-                    setChatData(data);
-                    setLoading(false);
-                }
-            } catch (error) {
-                console.error('Error fetching chat data:', error);
-                setLoading(false);
+    // Fetch both initial message and chat messages
+    const fetchChatData = useCallback(async () => {
+        if (!token) {
+            setError("Ingen token tillgänglig");
+            setLoading(false);
+            return;
+        }
+
+        try {
+            // Fetch initial chat info from InitialFormMessages
+            const chatResponse = await fetch(`/api/chat/${token}`);
+            if (!chatResponse.ok) {
+                throw new Error('Could not fetch chat info');
             }
-        };
+            const chatInfo = await chatResponse.json();
+            setChatData(chatInfo);
 
-        fetchChatData();
-        const interval = setInterval(fetchChatData, 5000);
-        return () => clearInterval(interval);
+            // Fetch chat messages
+            const messagesResponse = await fetch(`/api/chat/messages/${token}`);
+            if (!messagesResponse.ok) {
+                throw new Error('Could not fetch messages');
+            }
+            const chatMessages = await messagesResponse.json();
+            setMessages(chatMessages);
+            
+            setError(null);
+        } catch (error) {
+            console.error('Error:', error);
+            setError(`Ett fel uppstod: ${error.message}`);
+        } finally {
+            setLoading(false);
+        }
     }, [token]);
 
+    // Initial and continuous data fetching
+    useEffect(() => {
+        fetchChatData();
+        const intervalId = setInterval(fetchChatData, 2000);
+        return () => clearInterval(intervalId);
+    }, [fetchChatData]);
+
+    // Scroll to bottom when messages change
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+
+    // Send message handler
+    const handleSendMessage = async () => {
+        if (message.trim() === "") return;
+
+        try {
+            const newMessage = {
+                chatToken: token,
+                sender: chatData.sender,  // To this
+                message: message,
+                timestamp: new Date().toISOString()
+            };
+            
+            const response = await fetch('/api/chat/message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newMessage)
+            });
+
+            if (response.ok) {
+                setMessage("");
+                await fetchChatData();
+            } else {
+                throw new Error('Kunde inte skicka meddelande');
+            }
+        } catch (error) {
+            console.error("Kunde inte skicka meddelande:", error);
+        }
+    };
+
+    // Emoji handler
     const handleEmojiClick = (emojiObject) => {
         setMessage(prevMessage => prevMessage + emojiObject.emoji);
         setOpen(false);
     };
 
-    const handleSendMessage = () => {
-        if (message.trim() !== "") {
-            setMessages(prevMessages => [...prevMessages, message]);
-            setMessage("");
-        }
-    };
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target) && !event.target.closest('.emoji')) {
-                setOpen(false);
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const renderChatContent = () => {
-        if (loading) return <p className="loading-message">Laddar chat...</p>;
-        if (!chatData) return <p>Ingen chat data hittades</p>;
-
+    if (loading) {
         return (
-            <>
-                <h2 className="chat-namn">{chatData.firstName}</h2>
-                <div className="messages-container">
-                    <div className="chat-info">
-                        <p className="issue-type">Ärende: {chatData.issueType}</p>
-                        <p className="message-time">Meddelande skickat: {new Date().toLocaleString()}</p>
-                        <p className="message-content">{chatData.message}</p>
-                    </div>
-                    {messages.map((msg, index) => (
-                        <div key={index} className="message">{msg}</div>
-                    ))}
-                </div>
-            </>
+            <div className="chat-container">
+                <p className="loading-message">Laddar chatt...</p>
+            </div>
         );
-    };
+    }
+
+    if (error) {
+        return (
+            <div className="chat-container">
+                <p className="error-message">{error}</p>
+                <button onClick={fetchChatData}>Försök igen</button>
+            </div>
+        );
+    }
+
+    if (!chatData) {
+        return (
+            <div className="chat-container">
+                <p>Ingen chat data hittades</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="p-4">
-            <div className="chat-container">
-                {renderChatContent()}
+        <div className="chat-container">
+            <div className="chat-header">
+                <h2 className="chat-namn">{chatData.firstName}</h2>
+                {chatData.formType && <div className="chat-type">{chatData.formType}</div>}
+            </div>
+            
+            <div className="messages-container">
+                {messages.map((msg, index) => (
+                    <div 
+                        key={msg.id || index}
+                        className={`message ${msg.sender === chatData.firstName ? 'sent' : 'received'}`}
+                    >
+                        <p>{msg.message}</p>
+                        <small>{new Date(msg.timestamp).toLocaleString()}</small>
+                    </div>
+                ))}
+                <div ref={messagesEndRef} />
+            </div>
 
+            <div className="chat-input">
                 <input 
-                    id="text-bar" 
                     type="text" 
                     placeholder="Skriv ett meddelande..." 
                     value={message}
@@ -114,10 +164,7 @@ export default function Chat() {
                     </div>
                 )}
 
-                <button 
-                    className="skicka-knapp"
-                    onClick={handleSendMessage}
-                >
+                <button onClick={handleSendMessage}>
                     Skicka
                 </button>
             </div>
