@@ -1,5 +1,6 @@
 // Importerar nödvändiga React hooks för state-hantering, sidoeffekter, callbacks och referenser
 import { useState, useEffect, useCallback, useRef } from "react";
+import Aside from "./Aside";
 
 // Definierar huvudkomponenten för applikationen
 function Main() {
@@ -147,73 +148,16 @@ function Main() {
         });
     };
 
-    // Renderar laddningsskärm när ärenden hämtas första gången
-    if (loading && tasks.length === 0) {
-        return (
-            // Container för laddningsvyn
-            <div className="main-container">
-                {/* Sidopanel med personalinformation */}
-                <aside className="staff-aside">
-                    <h2 className="company-name">Företagsnamn</h2>
-                    <div>Martin</div>
-                    <div>Ville</div>
-                    <div>Kevin</div>
-                    <div>Shaban</div>
-                    <div>Sigge</div>
-                    <div>Sebbe</div>
-                    Inloggad support
-                </aside>
-                {/* Container för laddningsanimation */}
-                <div className="ticket-tasks">
-                    <h2 className="ticket-tasks-header">Ärenden</h2>
-                    <div className="p-4 space-y-4">
-                        {/* Tre pulserande platshållare för ärenden */}
-                        <div className="h-20 bg-gray-100 rounded animate-pulse"></div>
-                        <div className="h-20 bg-gray-100 rounded animate-pulse"></div>
-                        <div className="h-20 bg-gray-100 rounded animate-pulse"></div>
-                        <div className="text-gray-500 text-center mt-4">Laddar ärenden...</div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
-    // Renderar felmeddelande om något gick fel
-    if (error) {
-        return (
-            <div className="main-container">
-                {/* Visar felmeddelande i en röd ruta */}
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                    <p>{error}</p>
-                </div>
-                {/*Knapp för att försöka igen */}
-                <button
-                    onClick={fetchTickets}
-                    className="retry-button mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                    Försök igen
-                </button>
-            </div>
-        );
-    }
 
     // Huvudvy för applikationen
     return (
         // Huvudcontainer
         <div className="main-container">
-            {/* Sidopanel med personalinformation */}
-            <aside className="staff-aside">
-                <h2 className="company-name">Företagsnamn</h2>
-                <div>Martin</div>
-                <div>Ville</div>
-                <div>Kevin</div>
-                <div>Shaban</div>
-                <div>Sigge</div>
-                <div>Sebbe</div>
-                Inloggad support
-            </aside>
+            
+            <Aside />
 
-            {/*Sektion för alla ärenden */}
+            
             <div
                 className="ticket-tasks"
                 onDragOver={handleDragOver}
@@ -228,7 +172,7 @@ function Main() {
                         onDragStart={() => handleDragStart(task)}
                         className="ticket-task-item"
                     >
-                        {/*Redigerbar ärendetitel */}
+                        
                         <div className="ticket-task-content"
                             contentEditable
                             suppressContentEditableWarning={true}
@@ -236,13 +180,13 @@ function Main() {
                         >
                             {task.issueType}
                         </div>
-                        {/* Container för ärendedetaljer */}
+                        
                         <div className="ticket-task-details">
                             <div className="ticket-wtp">{task.wtp}</div>
                             <div className="ticket-task-email">{task.email}</div>
                             <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
                             <div className="ticket-task-token">
-                                {/*Länk till chatten*/}
+                                
                                 <a
                                     href={task.chatLink}
                                     target="_blank"
@@ -256,7 +200,7 @@ function Main() {
                 ))}
             </div>
 
-            {/* Sektion för mina ärenden */}
+            
             <div
                 className="ticket-my-tasks"
                 onDragOver={handleDragOver}
@@ -264,14 +208,14 @@ function Main() {
             >
                 <h2 className="ticket-my-tasks-header">Mina ärenden</h2>
                 {myTasks.map((task) => (
-                    // Container för varje ärende
+                    
                     <div
                         key={task.id}
                         draggable
                         onDragStart={() => handleDragStart(task)}
                         className="ticket-task-item"
                     >
-                        {/* Redigerbar ärendetitel */}
+                        
                         <div className="ticket-task-content"
                             contentEditable
                             suppressContentEditableWarning={true}
@@ -279,13 +223,13 @@ function Main() {
                         >
                             {task.issueType}
                         </div>
-                        {/* Container för ärendedetaljer */}
+                        
                         <div className="ticket-task-details">
                             <div className="ticket-wtp">{task.wtp}</div>
                             <div className="ticket-task-email">{task.email}</div>
                             <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
                             <div className="ticket-task-token">
-                                {/* Länk till chatten */}
+                               
                                 <a
                                     href={task.chatLink}
                                     target="_blank"
@@ -299,7 +243,7 @@ function Main() {
                 ))}
             </div>
 
-            {/* Sektion för färdiga ärenden */}
+           
             <div
                 className="ticket-done"
                 onDragOver={handleDragOver}
@@ -307,14 +251,14 @@ function Main() {
             >
                 <h2 className="ticket-done-header">Klara</h2>
                 {done.map((task) => (
-                    // Container för varje ärende
+                    
                     <div
                         key={task.id}
                         draggable
                         onDragStart={() => handleDragStart(task)}
                         className="ticket-task-item"
                     >
-                        {/* Redigerbar ärendetitel */}
+                        
                         <div className="ticket-task-content"
                             contentEditable
                             suppressContentEditableWarning={true}
@@ -322,12 +266,12 @@ function Main() {
                         >
                             {task.issueType}
                         </div>
-                        {/* Container för ärendedetaljer */}
+                        
                         <div className="ticket-task-details">
                             <div className="ticket-wtp">{task.wtp}</div>
                             <div className="ticket-task-time">{formatDate(task.timestamp)}</div>
                             <div className="ticket-task-token">
-                                {/* Länk till chatten */}
+                               
                                 <a
                                     href={task.chatLink}
                                     target="_blank"
