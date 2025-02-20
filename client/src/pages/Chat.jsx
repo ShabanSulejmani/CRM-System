@@ -79,32 +79,36 @@ export default function Chat() {
 
     const handleSendMessage = async () => {
         if (message.trim() === "" || !chatData) return;
-
+        
+        const messageToSend = {
+            chatToken: token,
+            sender: chatData.firstName,
+            message: message
+            // Don't set timestamp - let the server handle it
+        };
+    
         try {
             const response = await fetch('/api/chat/message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    chatToken: token,
-                    sender: chatData.sender,
-                    message: message,
-                    timestamp: new Date().toISOString()
-                })
+                body: JSON.stringify(messageToSend)
             });
-
+    
             if (!response.ok) {
                 throw new Error('Kunde inte skicka meddelande');
             }
-
+    
+            // Get the response data which should include the saved message with ID
+            const result = await response.json();
             setMessage("");
-            await fetchData();
+            // Update messages with the server response instead of local object
+            setMessages(prev => [...prev, result.chatMessage]);
         } catch (error) {
             setError("Kunde inte skicka meddelande. Försök igen.");
         }
     };
-
     const handleEmojiClick = (emojiObject) => {
         setMessage(prev => prev + emojiObject.emoji);
         setOpen(false);
@@ -168,17 +172,17 @@ export default function Chat() {
             </div>
             
             <div className="messages-container">
-                {messages.map((msg, index) => (
-                    <div 
-                        key={msg.id || index}
-                        className={`message ${msg.sender === chatData.firstName ? 'sent' : 'received'}`}
-                    >
-                        <p>{msg.message}</p>
-                        <small>{new Date(msg.timestamp).toLocaleString()}</small>
-                    </div>
-                ))}
-                <div ref={messagesEndRef} />
-            </div>
+    {messages.map((msg) => (
+        <div 
+            key={msg.id} // Use the database ID, remove the index fallback
+            className={`message ${msg.sender === chatData.firstName ? 'sent' : 'received'}`}
+        >
+            <p>{msg.message}</p>
+            <small>{new Date(msg.timestamp).toLocaleString()}</small>
+        </div>
+    ))}
+    <div ref={messagesEndRef} />
+</div>
 
             <div className="chat-input">
                 <input 
