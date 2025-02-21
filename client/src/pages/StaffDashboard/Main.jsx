@@ -18,29 +18,34 @@ function Main() {
     const [error, setError] = useState(null);
     // Referens för att hålla koll på intervallet för automatisk uppdatering
     const intervalRef = useRef(null);
+    // Referens för att hålla koll på om det är första laddningen
+    const initialLoadRef = useRef(true);
 
-    // Callback-funktion för att hämta ärenden från API:et
     const fetchTickets = useCallback(async () => {
         try {
-            // Sätter loading till true endast vid första laddningen
-            if (!intervalRef.current) {
+            if (initialLoadRef.current) {
                 setLoading(true);
             }
-            // Återställer eventuella fel
             setError(null);
-
-            // Gör API-anropet
-            const response = await fetch('/api/tickets');
-
-            // Kontrollerar om API-anropet lyckades
+    
+            const response = await fetch('/api/tickets', {
+                credentials: 'include', // Viktigt för att skicka med cookies
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.status === 403) {
+                throw new Error('Åtkomst nekad. Vänligen logga in igen.');
+            }
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-
-            // Konverterar svaret till JSON
+    
             const data = await response.json();
-
-            // Mappar om datan för att matcha applikationens format
+            
             const newTickets = data.map(ticket => ({
                 ...ticket,
                 id: ticket.chatToken,
@@ -48,17 +53,16 @@ function Main() {
                 wtp: ticket.formType,
                 chatLink: `http://localhost:3001/chat/${ticket.chatToken}`
             }));
-
-            // Uppdaterar listan med ärenden
+    
             updateTasks(newTickets);
         } catch (error) {
-            // Loggar fel i konsolen
             console.error("Error fetching tickets:", error);
-            // Sätter felmeddelande för användaren
-            setError("Kunde inte hämta ärenden. Försök igen senare.");
+            setError(error.message);
         } finally {
-            // Stänger av laddningsindikatorn
-            setLoading(false);
+            if (initialLoadRef.current) {
+                setLoading(false);
+                initialLoadRef.current = false;
+            }
         }
     }, []);
 
