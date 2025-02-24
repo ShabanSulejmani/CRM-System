@@ -13,6 +13,7 @@ export default function Chat() {
     const [error, setError] = useState(null);
     const messagesEndRef = useRef(null);
     const intervalRef = useRef(null);
+    const modalRef = useRef(null);
 
     // Combined fetch function
     const fetchData = async () => {
@@ -77,17 +78,44 @@ export default function Chat() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
+    // Close modal when clicking outside (keeping this from original)
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (modalRef.current && !modalRef.current.contains(event.target)) {
+               // You can implement close functionality here if needed
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const handleSendMessage = async () => {
         if (message.trim() === "" || !chatData) return;
+        
+        // Store message locally before sending (for immediate UI feedback)
+        const currentMessage = message.trim();
+        // Clear the input field immediately
+        setMessage("");
         
         const messageToSend = {
             chatToken: token,
             sender: chatData.firstName,
-            message: message
+            message: currentMessage
             // Don't set timestamp - let the server handle it
         };
+        
+        // Add temporary message to UI (optional, for immediate feedback)
+        const tempMessage = {
+            id: `temp-${Date.now()}`,
+            sender: chatData.firstName,
+            message: currentMessage,
+            timestamp: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, tempMessage]);
     
         try {
+            console.log('Sending message:', messageToSend);
             const response = await fetch('/api/chat/message', {
                 method: 'POST',
                 headers: {
@@ -102,11 +130,14 @@ export default function Chat() {
     
             // Get the response data which should include the saved message with ID
             const result = await response.json();
-            setMessage("");
-            // Update messages with the server response instead of local object
-            setMessages(prev => [...prev, result.chatMessage]);
+            console.log('Message sent successfully:', result);
+            
+            // Replace temporary message with server response or fetch fresh data
+            await fetchData();
         } catch (error) {
+            console.error('Error sending message:', error);
             setError("Kunde inte skicka meddelande. Försök igen.");
+            // Optionally revert temporary message if sending failed
         }
     };
     const handleEmojiClick = (emojiObject) => {
@@ -114,102 +145,124 @@ export default function Chat() {
         setOpen(false);
     };
 
-    // Show loading skeleton
+    // Show loading skeleton (using original styling)
     if (loading) {
         return (
-            <div className="chat-container">
-                <div className="chat-header">
-                    <div className="h-8 w-32 bg-gray-100 rounded animate-pulse"></div>
-                </div>
-                <div className="messages-container">
-                    <div className="space-y-4 p-4">
-                        <div className="h-16 w-2/3 bg-gray-100 rounded animate-pulse"></div>
-                        <div className="h-16 w-2/3 bg-gray-100 rounded animate-pulse ml-auto"></div>
-                        <div className="h-16 w-2/3 bg-gray-100 rounded animate-pulse"></div>
+            <div className="chat-modal" ref={modalRef}>
+                <div className="chat-modal__container">
+                    <div className="chat-modal__header">
+                        <div className="chat-modal__header-skeleton"></div>
                     </div>
-                </div>
-                <div className="chat-input">
-                    <div className="h-10 w-full bg-gray-100 rounded animate-pulse"></div>
+                    <div className="chat-modal__messages">
+                        <div className="chat-modal__messages-loading">
+                            <div className="chat-modal__message-skeleton"></div>
+                            <div className="chat-modal__message-skeleton chat-modal__message-skeleton--right"></div>
+                            <div className="chat-modal__message-skeleton"></div>
+                        </div>
+                    </div>
+                    <div className="chat-modal__input-container">
+                        <div className="chat-modal__input-skeleton"></div>
+                    </div>
                 </div>
             </div>
         );
     }
 
-    // Show error state
+    // Show error state (using original styling)
     if (error) {
         return (
-            <div className="chat-container">
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded m-4">
-                    <p>{error}</p>
-                    <button 
-                        onClick={fetchData}
-                        className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                    >
-                        Försök igen
-                    </button>
+            <div className="chat-modal" ref={modalRef}>
+                <div className="chat-modal__container">
+                    <div className="chat-modal__error">
+                        <p>{error}</p>
+                        <button 
+                            onClick={fetchData}
+                            className="chat-modal__error-button"
+                        >
+                            Försök igen
+                        </button>
+                    </div>
                 </div>
             </div>
         );
     }
 
-    // Show empty state if no chat data
+    // Show empty state if no chat data (using original styling)
     if (!chatData) {
         return (
-            <div className="chat-container">
-                <div className="p-4 text-gray-600">
-                    Ingen chattdata tillgänglig
+            <div className="chat-modal" ref={modalRef}>
+                <div className="chat-modal__container">
+                    <div className="chat-modal__empty">
+                        Ingen chattdata tillgänglig
+                    </div>
                 </div>
             </div>
         );
     }
 
-    // Main chat UI
+    // Main chat UI (using original styling)
     return (
-        <div className="chat-container">
-            <div className="chat-header">
-                <h2 className="chat-namn">{chatData.firstName}</h2>
-                {chatData.formType && <div className="chat-type">{chatData.formType}</div>}
-            </div>
-            
-            <div className="messages-container">
-    {messages.map((msg) => (
-        <div 
-            key={msg.id} // Use the database ID, remove the index fallback
-            className={`message ${msg.sender === chatData.firstName ? 'sent' : 'received'}`}
-        >
-            <p>{msg.message}</p>
-            <small>{new Date(msg.timestamp).toLocaleString()}</small>
-        </div>
-    ))}
-    <div ref={messagesEndRef} />
-</div>
-
-            <div className="chat-input">
-                <input 
-                    type="text" 
-                    placeholder="Skriv ett meddelande..." 
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                            handleSendMessage();
-                        }
-                    }}
-                />
-
-                <div className="emoji" onClick={() => setOpen(!open)}>
-                    😃
+        <div className="chat-modal" ref={modalRef}>
+            <div className="chat-modal__container">
+                <div className="chat-modal__header">
+                    <h2 className="chat-modal__name">{chatData.firstName}</h2>
+                    {chatData.formType && 
+                        <div className="chat-modal__type">{chatData.formType}</div>
+                    }
+                    <button className="chat-modal__close">&times;</button>
+                </div>
+                
+                <div className="chat-modal__messages">
+                    {messages.map((msg) => (
+                        <div 
+                            key={msg.id}
+                            className={`chat-modal__message ${
+                                msg.sender === chatData.firstName 
+                                    ? 'chat-modal__message--sent' 
+                                    : 'chat-modal__message--received'
+                            }`}
+                        >
+                            <p className="chat-modal__message-text">{msg.message}</p>
+                            <small className="chat-modal__message-timestamp">
+                                {new Date(msg.timestamp).toLocaleString()}
+                            </small>
+                        </div>
+                    ))}
+                    <div ref={messagesEndRef} />
                 </div>
 
-                {open && (
-                    <div ref={emojiPickerRef} className="emojipicker">
-                        <EmojiPicker onEmojiClick={handleEmojiClick} />
-                    </div>
-                )}
+                <div className="chat-modal__input-container">
+                    <input 
+                        type="text" 
+                        className="chat-modal__input-field"
+                        placeholder="Skriv ett meddelande..." 
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                                handleSendMessage();
+                            }
+                        }}
+                    />
 
-                <button onClick={handleSendMessage}>
-                    Skicka
-                </button>
+                    <div className="chat-modal__emoji-trigger" onClick={() => setOpen(!open)}>
+                        😃
+                    </div>
+
+                    {open && (
+                        <div ref={emojiPickerRef} className="chat-modal__emoji-picker">
+                            <EmojiPicker onEmojiClick={handleEmojiClick} />
+                        </div>
+                    )}
+
+                    <button 
+                        className="chat-modal__send-button" 
+                        onClick={handleSendMessage}
+                        type="button"
+                    >
+                        Skicka
+                    </button>
+                </div>
             </div>
         </div>
     );
