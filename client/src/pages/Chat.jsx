@@ -15,19 +15,7 @@ export default function Chat() {
     const intervalRef = useRef(null);
     const modalRef = useRef(null);
 
-    // Close modal when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (modalRef.current && !modalRef.current.contains(event.target)) {
-               
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    // Rest of the fetch logic remains the same...
+    // Combined fetch function
     const fetchData = async () => {
         if (!token) return;
 
@@ -45,52 +33,111 @@ export default function Chat() {
                 chatResponse.json(),
                 messagesResponse.json()
             ]);
+
+            console.log('Received data:', { chatInfo, chatMessages });
             
             setChatData(chatInfo);
             setMessages(chatMessages);
             setError(null);
         } catch (err) {
+            console.error('Error fetching data:', err);
             setError(err.message);
         } finally {
             setLoading(false);
         }
     };
 
+    // Initial fetch and polling
     useEffect(() => {
+        console.log('Setting up chat with token:', token);
+        
+        // Initial fetch
         fetchData();
+
+        // Set up polling
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+        }
         intervalRef.current = setInterval(fetchData, 5000);
+
         return () => clearInterval(intervalRef.current);
     }, [token]);
 
+    // Debug state changes
+    useEffect(() => {
+        console.log('State updated:', {
+            loading,
+            hasChat: !!chatData,
+            messageCount: messages.length,
+            error
+        });
+    }, [loading, chatData, messages, error]);
+
+    // Scroll to bottom when messages change
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
+    // Close modal when clicking outside (keeping this from original)
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (modalRef.current && !modalRef.current.contains(event.target)) {
+               // You can implement close functionality here if needed
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const handleSendMessage = async () => {
         if (message.trim() === "" || !chatData) return;
-
+        
+        // Store message locally before sending (for immediate UI feedback)
+        const currentMessage = message.trim();
+        // Clear the input field immediately
+        setMessage("");
+        
+        const messageToSend = {
+            chatToken: token,
+            sender: chatData.firstName,
+            message: currentMessage
+            // Don't set timestamp - let the server handle it
+        };
+        
+        // Add temporary message to UI (optional, for immediate feedback)
+        const tempMessage = {
+            id: `temp-${Date.now()}`,
+            sender: chatData.firstName,
+            message: currentMessage,
+            timestamp: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, tempMessage]);
+    
         try {
+            console.log('Sending message:', messageToSend);
             const response = await fetch('/api/chat/message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    chatToken: token,
-                    sender: chatData.sender,
-                    message: message,
-                    timestamp: new Date().toISOString()
-                })
+                body: JSON.stringify(messageToSend)
             });
-
+    
             if (!response.ok) {
                 throw new Error('Kunde inte skicka meddelande');
             }
-
-            setMessage("");
+    
+            // Get the response data which should include the saved message with ID
+            const result = await response.json();
+            console.log('Message sent successfully:', result);
+            
+            // Replace temporary message with server response or fetch fresh data
             await fetchData();
         } catch (error) {
+            console.error('Error sending message:', error);
             setError("Kunde inte skicka meddelande. Försök igen.");
+            // Optionally revert temporary message if sending failed
         }
     };
 
@@ -99,7 +146,7 @@ export default function Chat() {
         setOpen(false);
     };
 
-    // Show loading skeleton
+    // Show loading skeleton (using original styling)
     if (loading) {
         return (
             <div className="chat-modal" ref={modalRef}>
@@ -114,7 +161,7 @@ export default function Chat() {
                             <div className="chat-modal__message-skeleton"></div>
                         </div>
                     </div>
-                    <div className="chat-modal__input">
+                    <div className="chat-modal__input-container">
                         <div className="chat-modal__input-skeleton"></div>
                     </div>
                 </div>
@@ -122,7 +169,7 @@ export default function Chat() {
         );
     }
 
-    // Show error state
+    // Show error state (using original styling)
     if (error) {
         return (
             <div className="chat-modal" ref={modalRef}>
@@ -141,7 +188,7 @@ export default function Chat() {
         );
     }
 
-    // Show empty state if no chat data
+    // Show empty state if no chat data (using original styling)
     if (!chatData) {
         return (
             <div className="chat-modal" ref={modalRef}>
@@ -154,7 +201,7 @@ export default function Chat() {
         );
     }
 
-    // Main chat UI
+    // Main chat UI (using original styling)
     return (
         <div className="chat-modal" ref={modalRef}>
             <div className="chat-modal__container">
@@ -167,9 +214,9 @@ export default function Chat() {
                 </div>
                 
                 <div className="chat-modal__messages">
-                    {messages.map((msg, index) => (
+                    {messages.map((msg) => (
                         <div 
-                            key={msg.id || index}
+                            key={msg.id}
                             className={`chat-modal__message ${
                                 msg.sender === chatData.firstName 
                                     ? 'chat-modal__message--sent' 
@@ -209,7 +256,11 @@ export default function Chat() {
                         </div>
                     )}
 
-                    <button className="chat-modal__send-button" onClick={handleSendMessage}>
+                    <button 
+                        className="chat-modal__send-button" 
+                        onClick={handleSendMessage}
+                        type="button"
+                    >
                         Skicka
                     </button>
                 </div>
