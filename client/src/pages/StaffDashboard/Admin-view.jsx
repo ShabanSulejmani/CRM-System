@@ -5,14 +5,13 @@ function UserListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCompany, setSelectedCompany] = useState('');
-  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Funktion för att hämta alla användare
   const fetchUsers = async () => {
     try {
       setLoading(true);
       
-    
+      
       const response = await fetch("/api/users");
       
       if (!response.ok) {
@@ -30,39 +29,7 @@ function UserListPage() {
     }
   };
 
-  // Funktion för att ta bort en användare
-  const deleteUser = async (userId) => {
-    if (!window.confirm('Är du säker på att du vill ta bort denna användare?')) {
-      return;
-    }
-
-    try {
-      setDeleteLoading(true);
-      
-      // Anropa API:et för att ta bort användaren
-      const response = await fetch(`/api/users/${userId}`, {
-        method: 'DELETE',
-        
-      });
-      
-      if (!response.ok) {
-        throw new Error('Något gick fel vid borttagning av användaren');
-      }
-      
-      // Ta bort användaren från lokal state för att uppdatera UI:t direkt
-      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
-      
-      alert('Användaren har tagits bort');
-    } catch (err) {
-      setError(err.message);
-      console.error('Fel vid borttagning av användare:', err);
-      alert(`Fel vid borttagning: ${err.message}`);
-    } finally {
-      setDeleteLoading(false);
-    }
-  };
-
-  // Körs när komponenten laddas
+  
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -83,16 +50,15 @@ function UserListPage() {
           className="filter-dropdown"
         >
           <option value="">Alla företag</option>
-          <option value="fordon">fordon</option>
-          <option value="tele">tele</option>
-          <option value="försäkring">försäkring</option>
+          <option value="Tesla">Tesla</option>
+          <option value="Maxi">Maxi</option>
+          <option value="något annat">Något annat</option>
         </select>
         <button 
           onClick={fetchUsers} 
           className="refresh-button bla"
-          disabled={loading}
         >
-          {loading ? 'Laddar...' : 'Uppdatera lista'}
+          Uppdatera lista
         </button>
       </div>
 
@@ -122,13 +88,7 @@ function UserListPage() {
                     <td>{user.role || 'Användare'}</td>
                     <td>
                       <button className="edit-button">Redigera</button>
-                      <button 
-                        className="delete-button"
-                        onClick={() => deleteUser(user.id)}
-                        disabled={deleteLoading}
-                      >
-                        Ta bort
-                      </button>
+                      <button className="delete-button">Ta bort</button>
                     </td>
                   </tr>
                 ))
