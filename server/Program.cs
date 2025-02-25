@@ -73,6 +73,26 @@ public class Program // Deklarerar huvudklassen Program
                     }); // Returnerar ett BadRequest-resultat vid fel
                 }
             });
+        app.MapDelete("/api/users/{id}",
+            async (int id, AppDbContext db) =>
+            {
+                try
+                {
+                    var user = await db.Users.FindAsync(id);
+                    if (user == null)
+                    {
+                        return Results.NotFound(new { message = "Användaren hittades inte" });
+                    }
+
+                    db.Users.Remove(user);
+                    await db.SaveChangesAsync();
+                    return Results.Ok(new { message = "Användaren har tagits bort" });
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(new { message = "Kunde inte ta bort användaren", error = ex.Message });
+                }
+            });
 
         app.MapGet("/api/users", async (AppDbContext db) => // Mappar GET-begäran för att hämta alla användare
         {
