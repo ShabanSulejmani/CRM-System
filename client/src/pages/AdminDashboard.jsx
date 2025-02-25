@@ -30,6 +30,53 @@ function UserListPage() {
     }
   };
 
+  // Funktion för att uppdatera en användare
+  const updateUser = async (userId, user) => {
+    const newFirstName = prompt("Ange nytt förnamn:", user.firstName);
+    const newPassword = prompt("Ange nytt lösenord:", user.password);
+    const newRole = prompt("Ange ny roll:", user.role);
+    const newCompany = prompt("Ange nytt företag:", user.company);
+  
+    if (!newFirstName || !newPassword || !newRole || !newCompany) {
+      alert("Alla fält måste fyllas i!");
+      return;
+    }
+  
+    const updatedUserData = {
+      firstName: newFirstName,
+      password: newPassword,
+      role: newRole,
+      company: newCompany
+    };
+  
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(updatedUserData)
+      });
+  
+      if (!response.ok) {
+        throw new Error("Något gick fel vid uppdatering av användaren");
+      }
+  
+      const result = await response.json();
+      alert(result.message);
+  
+      // Uppdatera användarlistan
+      setUsers(prevUsers =>
+        prevUsers.map(u => (u.id === userId ? { ...u, ...updatedUserData } : u))
+      );
+    } catch (err) {
+      console.error("Fel vid uppdatering av användare:", err);
+      alert(`Fel vid uppdatering: ${err.message}`);
+    }
+  };
+  
+
+
   // Funktion för att ta bort en användare
   const deleteUser = async (userId) => {
     if (!window.confirm('Är du säker på att du vill ta bort denna användare?')) {
@@ -103,41 +150,47 @@ function UserListPage() {
       ) : (
         <div className="user-list-container">
           <table className="user-table">
-            <thead>
-              <tr>
-                <th>Användarnamn</th>
-                <th>Företag</th>
-                <th>Email</th>
-                <th>Användartyp</th>
-                <th>Åtgärder</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map(user => (
-                  <tr key={user.id}>
-                    <td>{user.username}</td>
-                    <td>{user.company}</td>
-                    <td>{user.email}</td>
-                    <td>{user.role || 'Användare'}</td>
-                    <td>
-                      <button className="edit-button">Redigera</button>
-                      <button 
-                        className="delete-button"
-                        onClick={() => deleteUser(user.id)}
-                        disabled={deleteLoading}
-                      >
-                        Ta bort
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5">Inga användare hittades</td>
-                </tr>
-              )}
-            </tbody>
+          <thead>
+  <tr>
+    <th>Förnamn</th>
+    <th>Lösenord</th>
+    <th>Företag</th>
+    <th>Roll</th>
+    <th>Åtgärder</th>
+  </tr>
+</thead>
+
+<tbody>
+  {filteredUsers.length > 0 ? (
+    filteredUsers.map(user => (
+      <tr key={user.id}>
+        <td>{user.firstName}</td>
+        <td>{user.password}</td>
+        <td>{user.company}</td>
+        <td>{user.role}</td>
+        <td>
+          <button 
+            className="edit-button" 
+            onClick={() => updateUser(user.id, user)}
+          >
+            Redigera
+          </button>
+          <button 
+            className="delete-button"
+            onClick={() => deleteUser(user.id)}
+            disabled={deleteLoading}
+          >
+            Ta bort
+          </button>
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="5">Inga användare hittades</td>
+    </tr>
+  )}
+</tbody>
           </table>
         </div>
       )}
