@@ -21,7 +21,6 @@ const navigate = useNavigate();
           </div>
 
         <div className="faq-extra-section">
-        <p>mer information om vi ska ha det!</p>
         </div>
     
     </div>

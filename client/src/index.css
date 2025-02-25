@@ -287,7 +287,7 @@ main {
 .faqh1 {
   font-size: x-large;
   text-align: center;
-  color: rgb(89, 36, 89);
+  color: rgb(0, 0, 0);
 }
 
 .faq-buttons {
@@ -298,20 +298,24 @@ main {
 }
 
 .faq-buttons button {
-  padding: 10px 15px;
-  border-radius: 6px;
-  margin: 15px;
+  background: linear-gradient(45deg, #3182ce, #2b6cb0);
+  color: white;
+  font-weight: 600;
+  width: 150px;
+  padding: 1rem;
   border: none;
-  color: aliceblue;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-top: 1rem;
   cursor: pointer;
-  background-color: rgb(62, 40, 83);
-  width: 40%;
-  font-size: 16px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .faq-buttons button:hover {
-  background-color: rgb(38, 6, 38);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.2);
 }
 
 /* Login specific styles */
