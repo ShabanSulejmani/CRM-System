@@ -32,21 +32,16 @@ function UserListPage() {
 
   // Funktion för att uppdatera en användare
   const updateUser = async (userId, user) => {
-    const newFirstName = prompt("Ange nytt förnamn:", user.firstName);
-    const newPassword = prompt("Ange nytt lösenord:", user.password);
-    const newRole = prompt("Ange ny roll:", user.role);
-    const newCompany = prompt("Ange nytt företag:", user.company);
-  
-    if (!newFirstName || !newPassword || !newRole || !newCompany) {
-      alert("Alla fält måste fyllas i!");
-      return;
-    }
+    const newFirstName = prompt("Ange nytt förnamn (eller lämna tomt för att behålla):", user.firstName);
+    const newPassword = prompt("Ange nytt lösenord (eller lämna tomt för att behålla):", user.password);
+    const newRole = prompt("Ange ny roll (eller lämna tomt för att behålla):", user.role);
+    const newCompany = prompt("Ange nytt företag (eller lämna tomt för att behålla):", user.company);
   
     const updatedUserData = {
-      firstName: newFirstName,
-      password: newPassword,
-      role: newRole,
-      company: newCompany
+      firstName: newFirstName.trim() || user.firstName,  // Behåll det gamla värdet om det är tomt
+      password: newPassword.trim() || user.password,
+      role: newRole.trim() || user.role,
+      company: newCompany.trim() || user.company
     };
   
     try {
@@ -65,7 +60,7 @@ function UserListPage() {
       const result = await response.json();
       alert(result.message);
   
-      // Uppdatera användarlistan
+      // Uppdatera UI:t
       setUsers(prevUsers =>
         prevUsers.map(u => (u.id === userId ? { ...u, ...updatedUserData } : u))
       );
@@ -74,6 +69,7 @@ function UserListPage() {
       alert(`Fel vid uppdatering: ${err.message}`);
     }
   };
+  
   
 
 
