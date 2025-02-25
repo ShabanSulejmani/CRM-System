@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import EmojiPicker from "emoji-picker-react";
 
 export default function Chat() {
     const { token } = useParams();
+    const navigate = useNavigate(); // Add useNavigate hook
     const [open, setOpen] = useState(false);
     const [message, setMessage] = useState(""); 
     const [messages, setMessages] = useState([]);
@@ -89,6 +90,20 @@ export default function Chat() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    // Add a function to handle closing the chat
+    const handleCloseChat = () => {
+        // Clear the interval to stop polling
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+        }
+        
+        // Navigate back or to a specific route
+        navigate('/'); // Navigate to home or another appropriate route
+        
+        // If you're using this in a modal context, you might want to call a parent function instead
+        // For example: props.onClose();
+    };
 
     const handleSendMessage = async () => {
         if (message.trim() === "" || !chatData) return;
@@ -209,7 +224,12 @@ export default function Chat() {
                     {chatData.formType && 
                         <div className="chat-modal__type">{chatData.formType}</div>
                     }
-                    <button className="chat-modal__close">&times;</button>
+                    <button 
+                        className="chat-modal__close" 
+                        onClick={handleCloseChat}
+                    >
+                        &times;
+                    </button>
                 </div>
                 
                 <div className="chat-modal__messages">
