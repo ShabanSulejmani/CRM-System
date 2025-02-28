@@ -248,14 +248,15 @@ function UserAndTicketPage() {
             </thead>
             <tbody>
               {filteredTickets.length > 0 ? (
-                filteredTickets.map(ticket => (
-                  <tr key={ticket.id}>
-                    <td>{ticket.id}</td>
-                    <td>{ticket.message || 'Inget meddelande'}</td>
-                    <td>{new Date(ticket.timestamp).toLocaleString('sv-SE')}</td>
-                    <td>{ticket.status || 'Ingen status'}</td>
-                  </tr>
-                ))
+  filteredTickets.map((ticket, index) => (
+    <tr key={ticket.id || `ticket-${index}`}>
+      <td>{ticket.id}</td>
+      <td>{ticket.message || 'Inget meddelande'}</td>
+      <td>{new Date(ticket.timestamp).toLocaleString('sv-SE')}</td>
+      <td>{ticket.status || 'Ingen status'}</td>
+    </tr>
+  ))
+  
               ) : (
                 <tr>
                   <td colSpan="4">Inga ärenden hittades</td>
