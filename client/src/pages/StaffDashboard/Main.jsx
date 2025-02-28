@@ -188,7 +188,9 @@ function Main() {
                         <div className="ticket-task-details">
                             <div className="ticket-wtp">{task.wtp}</div>
                             <div className="ticket-task-email">{task.email}</div>
-                            <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
+                        <div className="ticket-task-time">
+                            {formatDate(task.submittedAt || task.timestamp || task.createdAt)}
+                        </div>
                             <div className="ticket-task-token">
                                 
                                 <a
@@ -231,7 +233,9 @@ function Main() {
                         <div className="ticket-task-details">
                             <div className="ticket-wtp">{task.wtp}</div>
                             <div className="ticket-task-email">{task.email}</div>
-                            <div className="ticket-task-time">{formatDate(task.submittedAt)}</div>
+                        <div className="ticket-task-time">
+                            {formatDate(task.submittedAt || task.timestamp || task.createdAt)}
+                        </div>
                             <div className="ticket-task-token">
                                
                                 <a
@@ -273,7 +277,9 @@ function Main() {
                         
                         <div className="ticket-task-details">
                             <div className="ticket-wtp">{task.wtp}</div>
-                            <div className="ticket-task-time">{formatDate(task.timestamp)}</div>
+                        <div className="ticket-task-time">
+                            {formatDate(task.submittedAt  || task.timestamp || task.createdAt)}
+                        </div>
                             <div className="ticket-task-token">
                                
                                 <a
