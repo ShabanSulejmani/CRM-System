@@ -74,31 +74,16 @@ namespace server.Data
             });
             modelBuilder.Entity<UserForm>(entity =>
             {
-                entity.HasKey(e => e.Id);
-                
-                entity.Property(e => e.FirstName)
-                    .IsRequired()
-                    .HasMaxLength(50);
-                
-                entity.Property(e => e.Password)
-                    .IsRequired()
-                    .HasMaxLength(100);
-                
-                entity.Property(e => e.Company)     // Ny property
-                    .IsRequired()
-                    .HasMaxLength(50);
-                    
-                entity.Property(e => e.Role)
-                    .IsRequired()
-                    .HasMaxLength(20)
-                    .HasDefaultValue("staff");
+                entity.ToTable("Users");
 
-                entity.Property(e => e.CreatedAt)
-                    .IsRequired()
-                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
-                    
-
+                entity.Property(e => e.Id).HasColumnName("Id");
+                entity.Property(e => e.FirstName).HasColumnName("FirstName");
+                entity.Property(e => e.Password).HasColumnName("Password");
+                entity.Property(e => e.CreatedAt).HasColumnName("CreatedAt");
+                entity.Property(e => e.Company).HasColumnName("Company");
+                entity.Property(e => e.Role_id).HasColumnName("Role_id");
             });
+
             
             modelBuilder.Entity<InitialFormMessage>()
                 .ToView("InitialFormMessages")

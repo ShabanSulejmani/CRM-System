@@ -96,28 +96,19 @@ public class Program // Deklarerar huvudklassen Program
         // PUT: Uppdatera en användare
         app.MapPut("/api/users/{id}", async (int id, UserForm updatedUser, AppDbContext db) =>
         {
-            try
+            var user = await db.Users.FindAsync(id);
+            if (user == null)
             {
-                var user = await db.Users.FindAsync(id);
-                if (user == null)
-                {
-                    return Results.NotFound(new { message = "Användaren hittades inte" });
-                }
-
-                // Uppdatera användarens egenskaper
-                user.FirstName = updatedUser.FirstName;
-                user.Password = updatedUser.Password;
-                user.Company = updatedUser.Company;
-                user.Role = updatedUser.Role;
-                user.Company = updatedUser.Company;
-
-                await db.SaveChangesAsync();
-                return Results.Ok(new { message = "Användaren har uppdaterats", user });
+                return Results.NotFound(new { message = "Användaren hittades inte" });
             }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(new { message = "Kunde inte uppdatera användaren", error = ex.Message });
-            }
+
+            user.FirstName = updatedUser.FirstName;
+            user.Password = updatedUser.Password;
+            user.Company = updatedUser.Company;
+            user.Role_id = updatedUser.Role_id; // Fix the mapping here
+
+            await db.SaveChangesAsync();
+            return Results.Ok(new { message = "Användaren har uppdaterats", user });
         });
 
 
