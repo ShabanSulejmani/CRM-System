@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 
-function UserListPage() {
+function UserAndTicketPage() {
   const [users, setUsers] = useState([]);
+  const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCompany, setSelectedCompany] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [viewMode, setViewMode] = useState('users'); // 'users' or 'tickets'
 
   // Funktion för att hämta alla användare
   const fetchUsers = async () => {
     try {
       setLoading(true);
       
-    
       const response = await fetch("/api/users");
       
       if (!response.ok) {
@@ -30,6 +31,28 @@ function UserListPage() {
     }
   };
 
+  // Funktion för att hämta alla ärenden
+  const fetchTickets = async () => {
+    try {
+      setLoading(true);
+      
+      const response = await fetch("/api/tickets");
+      
+      if (!response.ok) {
+        throw new Error('Något gick fel vid hämtning av ärenden');
+      }
+      
+      const data = await response.json();
+      setTickets(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      console.error('Fel vid hämtning av ärenden:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Funktion för att uppdatera en användare
   const updateUser = async (userId, user) => {
     const newFirstName = prompt("Ange nytt förnamn (eller lämna tomt för att behålla):", user.firstName);
@@ -38,10 +61,10 @@ function UserListPage() {
     const newCompany = prompt("Ange nytt företag (eller lämna tomt för att behålla):", user.company);
   
     const updatedUserData = {
-      firstName: newFirstName.trim() || user.firstName,  // Behåll det gamla värdet om det är tomt
-      password: newPassword.trim() || user.password,
-      role: newRole.trim() || user.role,
-      company: newCompany.trim() || user.company
+      firstName: newFirstName?.trim() || user.firstName,  // Behåll det gamla värdet om det är tomt
+      password: newPassword?.trim() || user.password,
+      role: newRole?.trim() || user.role,
+      company: newCompany?.trim() || user.company
     };
   
     try {
@@ -69,9 +92,6 @@ function UserListPage() {
       alert(`Fel vid uppdatering: ${err.message}`);
     }
   };
-  
-  
-
 
   // Funktion för att ta bort en användare
   const deleteUser = async (userId) => {
@@ -85,7 +105,6 @@ function UserListPage() {
       // Anropa API:et för att ta bort användaren
       const response = await fetch(`/api/users/${userId}`, {
         method: 'DELETE',
-        
       });
       
       if (!response.ok) {
@@ -105,19 +124,45 @@ function UserListPage() {
     }
   };
 
-  // Körs när komponenten laddas
+  // Körs när komponenten laddas eller viewMode ändras
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (viewMode === 'users') {
+      fetchUsers();
+    } else {
+      fetchTickets();
+    }
+  }, [viewMode]);
 
   // Filtrerar användare baserat på valt företag
   const filteredUsers = selectedCompany 
     ? users.filter(user => user.company === selectedCompany) 
     : users;
 
+  // Filtrerar ärenden baserat på valt företag om ärendet har ett företagsfält
+  const filteredTickets = selectedCompany 
+    ? tickets.filter(ticket => ticket.company === selectedCompany) 
+    : tickets;
+
   return (
-    <div className="user-list-border">
-      <h1 className="user-list-title">Användarlista</h1>
+    <div className="page-container">
+      <div className="view-toggle">
+        <button 
+          className={`toggle-button ${viewMode === 'users' ? 'active' : ''}`}
+          onClick={() => setViewMode('users')}
+        >
+          Användare
+        </button>
+        <button 
+          className={`toggle-button ${viewMode === 'tickets' ? 'active' : ''}`}
+          onClick={() => setViewMode('tickets')}
+        >
+          Ärenden
+        </button>
+      </div>
+
+      <h1 className="page-title">
+        {viewMode === 'users' ? 'Användarlista' : 'Ärendelista'}
+      </h1>
       
       <div className="filter-container">
         <select 
@@ -131,7 +176,7 @@ function UserListPage() {
           <option value="försäkring">försäkring</option>
         </select>
         <button 
-          onClick={fetchUsers} 
+          onClick={viewMode === 'users' ? fetchUsers : fetchTickets} 
           className="refresh-button bla"
           disabled={loading}
         >
@@ -140,53 +185,83 @@ function UserListPage() {
       </div>
 
       {loading ? (
-        <p>Laddar användare...</p>
+        <p>Laddar data...</p>
       ) : error ? (
         <p className="error-message">Fel: {error}</p>
+      ) : viewMode === 'users' ? (
+        // Visa användartabell
+        <div className="list-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Förnamn</th>
+                <th>Lösenord</th>
+                <th>Företag</th>
+                <th>Roll</th>
+                <th>Åtgärder</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map(user => (
+                  <tr key={user.id}>
+                    <td>{user.firstName}</td>
+                    <td>{user.password}</td>
+                    <td>{user.company}</td>
+                    <td>{user.role}</td>
+                    <td>
+                      <button 
+                        className="edit-button" 
+                        onClick={() => updateUser(user.id, user)}
+                      >
+                        Redigera
+                      </button>
+                      <button 
+                        className="delete-button"
+                        onClick={() => deleteUser(user.id)}
+                        disabled={deleteLoading}
+                      >
+                        Ta bort
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5">Inga användare hittades</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       ) : (
-        <div className="user-list-container">
-          <table className="user-table">
-          <thead>
-  <tr>
-    <th>Förnamn</th>
-    <th>Lösenord</th>
-    <th>Företag</th>
-    <th>Roll</th>
-    <th>Åtgärder</th>
-  </tr>
-</thead>
-
-<tbody>
-  {filteredUsers.length > 0 ? (
-    filteredUsers.map(user => (
-      <tr key={user.id}>
-        <td>{user.firstName}</td>
-        <td>{user.password}</td>
-        <td>{user.company}</td>
-        <td>{user.role}</td>
-        <td>
-          <button 
-            className="edit-button" 
-            onClick={() => updateUser(user.id, user)}
-          >
-            Redigera
-          </button>
-          <button 
-            className="delete-button"
-            onClick={() => deleteUser(user.id)}
-            disabled={deleteLoading}
-          >
-            Ta bort
-          </button>
-        </td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td colSpan="5">Inga användare hittades</td>
-    </tr>
-  )}
-</tbody>
+        // Visa ärendetabell
+        <div className="list-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Meddelande</th>
+                <th>Tidpunkt</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTickets.length > 0 ? (
+                filteredTickets.map(ticket => (
+                  <tr key={ticket.id}>
+                    <td>{ticket.id}</td>
+                    <td>{ticket.message || 'Inget meddelande'}</td>
+                    <td>{new Date(ticket.timestamp).toLocaleString('sv-SE')}</td>
+                    <td>{ticket.status || 'Ingen status'}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4">Inga ärenden hittades</td>
+                </tr>
+              )}
+            </tbody>
           </table>
         </div>
       )}
@@ -194,4 +269,4 @@ function UserListPage() {
   );
 }
 
-export default UserListPage;
+export default UserAndTicketPage;
