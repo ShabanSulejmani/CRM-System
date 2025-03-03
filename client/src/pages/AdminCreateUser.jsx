@@ -54,9 +54,9 @@ function AdminCreateUser() {
 
   return (
     <div className="login-border">
-      <h1 className="admin-login">Skapa användare</h1>
 
       <form onSubmit={handleSubmit} className="login-container">
+      <h1 className="admin-login">Skapa användare</h1>
         <input
           type="text"
           name="firstName"

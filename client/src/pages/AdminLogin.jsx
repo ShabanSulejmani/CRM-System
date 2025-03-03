@@ -16,9 +16,9 @@ const handleLogin = () => {
 
     return (
       <div className="login-border">
-        <h1 className="admin-login">Login</h1>
 
         <form onSubmit={handleLogin} className="login-container">
+        <h1 className="admin-login">Logga in</h1>
           
 
 
