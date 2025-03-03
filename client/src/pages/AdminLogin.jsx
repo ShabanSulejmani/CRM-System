@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
 
-function AdminLogin() {
+function Login() {
 const [username, setUsername] = useState('');
 const [password, setPassword] = useState('');
-const [company, setCompany] = useState('');
+
 
 
 
@@ -16,7 +16,7 @@ const handleLogin = () => {
 
     return (
       <div className="login-border">
-        <h1 className="admin-login">Admin Login</h1>
+        <h1 className="admin-login">Login</h1>
 
         <form onSubmit={handleLogin} className="login-container">
           
@@ -41,20 +41,6 @@ const handleLogin = () => {
 
 
 
-          <select type="företag"
-          value={company}
-          onChange={(e) => setCompany(e.target.value)}
-          className="login-bar"
-          required
-          >
-          <option value="" disabled selected>Välj företag</option>
-            <option value="bilar">Tesla</option>
-          <option value="mat">Maxi</option>
-          <option value="lökar">något annat</option>
-      
-          </select>
-
-
 
 
           <div className='login-knapp'>
@@ -73,4 +59,4 @@ const handleLogin = () => {
   }
 
   
-  export default AdminLogin;
+  export default Login;
