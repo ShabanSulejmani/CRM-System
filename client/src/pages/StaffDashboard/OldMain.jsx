@@ -1,11 +1,10 @@
 // Importerar nödvändiga React hooks för state-hantering, sidoeffekter, callbacks och referenser
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Aside from "./Aside";
 
 // Definierar huvudkomponenten för applikationen
 function Main() {
     // State för alla ärenden/tasks
-    const render_again = false;
     const [tasks, setTasks] = useState([]);
     // State för användarens egna ärenden
     const [myTasks, setMyTasks] = useState([]);
@@ -13,45 +12,102 @@ function Main() {
     const [done, setDone] = useState([]);
     // State för att hålla koll på vilket ärende som dras
     const [draggedTask, setDraggedTask] = useState(null);
+    // State för laddningsstatus
+    const [loading, setLoading] = useState(true);
+    // State för felhantering
+    const [error, setError] = useState(null);
+    // Referens för att hålla koll på intervallet för automatisk uppdatering
+    const intervalRef = useRef(null);
+    // Referens för att hålla koll på om det är första laddningen
+    const initialLoadRef = useRef(true);
 
+    const fetchTickets = useCallback(async () => {
+        try {
+            if (initialLoadRef.current) {
+                setLoading(true);
+            }
+            setError(null);
+    
+            const response = await fetch('/api/tickets', {
+                credentials: 'include', // Viktigt för att skicka med cookies
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.status === 403) {
+                throw new Error('Åtkomst nekad. Vänligen logga in igen.');
+            }
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+    
+            const data = await response.json();
+            
+            const newTickets = data.map(ticket => ({
+                ...ticket,
+                id: ticket.chatToken,
+                issueType: `${ticket.sender} - ${ticket.formType}`,
+                wtp: ticket.formType,
+                chatLink: `http://localhost:3001/chat/${ticket.chatToken}`
+            }));
+    
+            updateTasks(newTickets);
+        } catch (error) {
+            console.error("Error fetching tickets:", error);
+            setError(error.message);
+        } finally {
+            if (initialLoadRef.current) {
+                setLoading(false);
+                initialLoadRef.current = false;
+            }
+        }
+    }, []);
 
-    useEffect(fetchAllTickets, []);
-	function printFetchError(error)
-	{
-			console.error("failed to fetch tickets: "+error);
-	}
+    // Effekt som körs när komponenten monteras
+    useEffect(() => {
+        // Hämtar ärenden direkt
+        fetchTickets();
 
-    function fetchAllTickets()
-	  {
-      console.log("fetching tickets");
-		  try
-		  {
-			fetch("/api/tickets", { credentials: "include" })
-			.then(response => response.json(), printFetchError)
-			.then(data => {
-        let newData = data.map(ticket => ({
-          ...ticket,
-          issueType: `${ticket.sender} - ${ticket.formType}`,
-          wtp: ticket.formType,
-          chatLink: `http://localhost:3001/chat/${ticket.chatToken}`}));
-      
-        setTasks(newData)
-      
-      }, printFetchError)
-		}
-		catch
-		{
-			console.error("failed to fetch tickets");
-		}
+        // Rensar eventuellt existerande intervall
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+        }
 
-    }
+        // Sätter upp ett nytt intervall för att hämta ärenden var 30:e sekund
+        intervalRef.current = setInterval(fetchTickets, 30000);
 
-
+        // Cleanup-funktion som körs när komponenten avmonteras
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+    }, [fetchTickets]);
 
     // Funktion för att uppdatera ärendelistan med ny data
-    
+    const updateTasks = (newTickets) => {
+        setTasks(prevTasks => {
+            // Skapar en Map med existerande ärenden för snabb uppslagning
+            const existingTasks = new Map(prevTasks.map(task => [task.chatToken, task]));
+
+            // Kombinerar nya ärenden med existerande data
+            const updatedTasks = newTickets.map(ticket => ({
+                ...ticket,
+                ...existingTasks.get(ticket.chatToken)
+            }));
+
+            // Sorterar ärenden efter timestamp, nyaste först
+            return updatedTasks.sort((a, b) =>
+                new Date(b.timestamp) - new Date(a.timestamp)
+            );
+        });
+    };
+
     // Funktion som körs när man börjar dra ett ärende
-    function handleDragStart(task){
+    const handleDragStart = (task) => {
         setDraggedTask(task);
     };
 
@@ -71,10 +127,10 @@ function Main() {
     };
 
     // Förhindrar standardbeteende vid drag-over
-    function handleDragOver(e){e.preventDefault()};
+    const handleDragOver = (e) => e.preventDefault();
 
     // Funktion för att hantera redigering av ärenden
-    function handleTaskEdit(taskId, newContent, setColumn){
+    const handleTaskEdit = (taskId, newContent, setColumn) => {
         setColumn(prev => prev.map(task =>
             task.id === taskId
                 ? { ...task, content: newContent }
@@ -83,7 +139,7 @@ function Main() {
     };
 
     // Funktion för att formatera datum enligt svenskt format
-    function formatDate (dateString){
+    const formatDate = (dateString) => {
         if (!dateString) return "Inget datum";
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return "Ogiltigt datum";

@@ -3,6 +3,7 @@ using server.Data; // Importerar server.Data för att få tillgång till AppDbCo
 using server.Services; // Importerar server.Services för att få tillgång till EmailService
 using server.Models; // Importerar server.Models för att få tillgång till datamodeller
 using System.Text.Json; // Importerar System.Text.Json för JSON-serialisering
+using Npgsql;
 
 namespace server; // Deklarerar namnrymden för serverprojektet
 
@@ -10,13 +11,15 @@ public class Program // Deklarerar huvudklassen Program
 {
     public static void Main(string[] args) // Deklarerar huvudmetoden Main
     {
+        NpgsqlDataSource postgresdb = NpgsqlDataSource.Create("Host=aws-0-eu-north-1.pooler.supabase.com;Port=6543;Database=postgres;Username=postgres.mwuzqdjbcmwyyftrdesb;Password=Mandelmassa25;Include Error Detail=true;Command Timeout=60;SSL Mode=Require;Trust Server Certificate=true");
         var builder = WebApplication.CreateBuilder(args); // Skapar en WebApplicationBuilder
-
+        
         builder.Services.AddEndpointsApiExplorer(); // Lägger till API Explorer för Swagger
         builder.Services.AddSwaggerGen(); // Lägger till Swagger-generering
         builder.Services.AddAuthentication(); // Lägger till autentiseringsstöd
         builder.Services.AddAuthorization(); // Lägger till auktoriseringsstöd
-
+        builder.Services.AddSingleton <NpgsqlDataSource>(postgresdb);
+        
         builder.Services.AddCors(options => // Lägger till CORS-stöd
         {
             options.AddPolicy("AllowReactApp", // Definierar en CORS-policy för React-appen
@@ -340,14 +343,27 @@ public class Program // Deklarerar huvudklassen Program
             });
 
         // Tickets endpoint
-        app.MapGet("/api/tickets", async (AppDbContext db) => // Mappar GET-begäran för att hämta ärenden
+        app.MapGet("/api/tickets", async (NpgsqlDataSource db) => // Mappar GET-begäran för att hämta ärenden
         {
+            List<GetTicketsDTO> tickets = new();
             try
             {
-                var tickets = await db.InitialFormMessages // Hämtar initiala formulärmeddelanden
-                    .OrderByDescending(f => f.Timestamp) // Sorterar ärendena efter tidsstämpel i fallande ordning
-                    .ToListAsync(); // Konverterar till en lista asynkront
+                var cmd = db.CreateCommand("select chat_token, message, sender, submitted_at, issue_type, form_type from initial_form_messages"); // Skapar en SQL-fråga för att hämta ärenden
 
+                var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    tickets.Add(new(
+                        reader.GetString(0),
+                        reader.GetString(0),
+                        reader.GetString(1),
+                        reader.GetString(2),
+                        reader.GetDateTime(3),
+                        reader.GetString(4),
+                        reader.GetString(5)
+                    ));
+                }
+                
                 return Results.Ok(tickets); // Returnerar ett OK-resultat med ärendena
             }
             catch (Exception ex)
@@ -361,4 +377,13 @@ public class Program // Deklarerar huvudklassen Program
 
         app.Run(); // Startar webbservern
     }
+
+    public record GetTicketsDTO(
+        string ChatToken,
+        string Id,
+        string Message,
+        string Sender,
+        DateTime Timestamp,
+        string IssueType,
+        string FormType);
 }
