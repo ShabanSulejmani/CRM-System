@@ -10,29 +10,44 @@ function UserAndTicketPage() {
   const [viewMode, setViewMode] = useState('users'); // 'users' or 'tickets'
 
   // Funktion för att hämta alla användare
-  const fetchUsers = async () => {
+  async function fetchUsers() {
     try {
       setLoading(true);
-      
       const response = await fetch("/api/users");
       
       if (!response.ok) {
-        throw new Error('Något gick fel vid hämtning av användardata');
+        // First try to get error as text
+        const errorText = await response.text();
+        console.log('Server error details:', errorText);
+        throw new Error(`Server error: ${errorText}`);
       }
       
       const data = await response.json();
-      setUsers(data);
+      console.log('Received user data:', data);
+      
+      // Transform the data to match your API response format
+      const transformedUsers = Array.isArray(data) ? data.map(user => ({
+        id: user.id,
+        firstName: user.firstName,
+        company: user.company,
+        role: user.role
+      })) : [];
+      
+      setUsers(transformedUsers);
       setError(null);
     } catch (err) {
-      setError(err.message);
-      console.error('Fel vid hämtning av användare:', err);
+      setError(`Failed to fetch users: ${err.message}`);
+      console.error('Full error details:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }
+  
+  
+  
 
   // Funktion för att hämta alla ärenden
-  const fetchTickets = async () => {
+  async function fetchTickets(){
     try {
       setLoading(true);
       
@@ -54,17 +69,16 @@ function UserAndTicketPage() {
   };
 
   // Funktion för att uppdatera en användare
-  const updateUser = async (userId, user) => {
+  async function updateUser(userId, user) {
     const newFirstName = prompt("Ange nytt förnamn (eller lämna tomt för att behålla):", user.firstName);
-    const newPassword = prompt("Ange nytt lösenord (eller lämna tomt för att behålla):", user.password);
-    const newRole = prompt("Ange ny roll (eller lämna tomt för att behålla):", user.role);
+    const newPassword = prompt("Ange nytt lösenord (eller lämna tomt för att behålla):", "");
     const newCompany = prompt("Ange nytt företag (eller lämna tomt för att behålla):", user.company);
   
     const updatedUserData = {
-      firstName: newFirstName?.trim() || user.firstName,  // Behåll det gamla värdet om det är tomt
-      password: newPassword?.trim() || user.password,
-      role: newRole?.trim() || user.role,
-      company: newCompany?.trim() || user.company
+      firstName: newFirstName?.trim() || user.firstName,
+      password: newPassword?.trim(),
+      company: newCompany?.trim() || user.company,
+      role: user.role
     };
   
     try {
@@ -83,7 +97,7 @@ function UserAndTicketPage() {
       const result = await response.json();
       alert(result.message);
   
-      // Uppdatera UI:t
+      // Update UI with the new data
       setUsers(prevUsers =>
         prevUsers.map(u => (u.id === userId ? { ...u, ...updatedUserData } : u))
       );
@@ -91,10 +105,10 @@ function UserAndTicketPage() {
       console.error("Fel vid uppdatering av användare:", err);
       alert(`Fel vid uppdatering: ${err.message}`);
     }
-  };
+  }
 
   // Funktion för att ta bort en användare
-  const deleteUser = async (userId) => {
+  async function deleteUser (userId){
     if (!window.confirm('Är du säker på att du vill ta bort denna användare?')) {
       return;
     }
@@ -202,36 +216,37 @@ function UserAndTicketPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map(user => (
-                  <tr key={user.id}>
-                    <td>{user.firstName}</td>
-                    <td>{user.password}</td>
-                    <td>{user.company}</td>
-                    <td>{user.role}</td>
-                    <td>
-                      <button 
-                        className="edit-button" 
-                        onClick={() => updateUser(user.id, user)}
-                      >
-                        Redigera
-                      </button>
-                      <button 
-                        className="delete-button"
-                        onClick={() => deleteUser(user.id)}
-                        disabled={deleteLoading}
-                      >
-                        Ta bort
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5">Inga användare hittades</td>
-                </tr>
-              )}
-            </tbody>
+  {filteredUsers.length > 0 ? (
+    filteredUsers.map(user => (
+      <tr key={user.id}>
+        <td>{user.firstName}</td>
+        <td>********</td> {/* Hide password for security */}
+        <td>{user.company}</td>
+        <td>{user.role}</td>
+        <td>
+          <button 
+            className="edit-button" 
+            onClick={() => updateUser(user.id, user)}
+          >
+            Redigera
+          </button>
+          <button 
+            className="delete-button"
+            onClick={() => deleteUser(user.id)}
+            disabled={deleteLoading}
+          >
+            Ta bort
+          </button>
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="5">Inga användare hittades</td>
+    </tr>
+  )}
+</tbody>
+
           </table>
         </div>
       ) : (
