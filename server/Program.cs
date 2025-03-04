@@ -114,6 +114,34 @@ public class Program // Deklarerar huvudklassen Program
             
             return Results.Ok(users); // Returnerar ett OK-resultat med användarna
         });
+        
+        app.MapDelete("/api/users/{userId}", async (int userId, NpgsqlDataSource db) =>
+        {
+            try
+            {
+                using var cmd = db.CreateCommand(@"
+            DELETE FROM users 
+            WHERE ""Id"" = @userId");
+            
+                cmd.Parameters.AddWithValue("userId", userId);
+        
+                var rowsAffected = await cmd.ExecuteNonQueryAsync();
+        
+                if (rowsAffected > 0)
+                {
+                    return Results.Ok(new { message = "Användare borttagen" });
+                }
+        
+                return Results.NotFound(new { message = "Användare hittades inte" });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = ex.Message });
+            }
+        });
+
+        
+
 
         app.MapGet("/api/chat/latest/{chatToken}",
             async (string chatToken, NpgsqlDataSource db) =>
