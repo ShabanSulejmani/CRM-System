@@ -1,8 +1,6 @@
 ﻿using System.Data;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices.JavaScript;
-using Microsoft.EntityFrameworkCore; // Importerar EntityFrameworkCore för att kunna använda databas
-using server.Data; // Importerar server.Data för att få tillgång till AppDbContext
 using server.Services; // Importerar server.Services för att få tillgång till EmailService
 using server.Models; // Importerar server.Models för att få tillgång till datamodeller
 using System.Text.Json; // Importerar System.Text.Json för JSON-serialisering
@@ -37,10 +35,6 @@ public class Program // Deklarerar huvudklassen Program
                         .AllowAnyHeader(); // Tillåter alla HTTP-headers
                 });
         });
-
-        builder.Services.AddDbContext<AppDbContext>(options => // Konfigurerar databasanslutning
-            options.UseNpgsql(
-                builder.Configuration.GetConnectionString("DefaultConnection"))); // Använder PostgreSQL som databas
 
         builder.Services.AddScoped<IEmailService, EmailService>(); // Registrerar EmailService som en scopad tjänst
 
@@ -157,10 +151,50 @@ public class Program // Deklarerar huvudklassen Program
                 }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(new { message = "Could not fetch latest message", error = ex.Message });
+                    return Results.BadRequest(new { message = "Kunde inte fetcha chat", error = ex.Message });
                 }
             });
 
+        app.MapPost("/api/chat/message", async (ChatMessage message, NpgsqlDataSource db) =>
+
+        {
+
+            try
+
+            {
+
+                using var cmd = db.CreateCommand(@"
+
+            INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
+
+            VALUES (@chat_token, @sender, @message, @submitted_at)");
+ 
+                cmd.Parameters.AddWithValue("chat_token", message.ChatToken);
+
+                cmd.Parameters.AddWithValue("sender", message.Sender);
+
+                cmd.Parameters.AddWithValue("message", message.Message);
+
+                cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow);
+ 
+                await cmd.ExecuteNonQueryAsync();
+ 
+                return Results.Ok(new { message = "Message sent successfully" });
+
+            }
+
+            catch (Exception ex)
+
+            {
+
+                return Results.BadRequest(new { message = "Could not send message", error = ex.Message });
+
+            }
+
+        });
+
+            
+                
        
 
         /*app.MapGet("/api/users/{id}",
