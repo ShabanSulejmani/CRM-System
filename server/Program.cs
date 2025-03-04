@@ -1,4 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore; // Importerar EntityFrameworkCore för att kunna använda databas
+﻿using System.Data;
+using System.Linq.Expressions;
+using System.Runtime.InteropServices.JavaScript;
+using Microsoft.EntityFrameworkCore; // Importerar EntityFrameworkCore för att kunna använda databas
 using server.Data; // Importerar server.Data för att få tillgång till AppDbContext
 using server.Services; // Importerar server.Services för att få tillgång till EmailService
 using server.Models; // Importerar server.Models för att få tillgång till datamodeller
@@ -54,38 +57,7 @@ public class Program // Deklarerar huvudklassen Program
         app.UseAuthentication(); // Aktiverar autentisering
         app.UseAuthorization(); // Aktiverar auktorisering
         
-        app.MapGet("/api/tickets", async (NpgsqlDataSource db) => // Mappar GET-begäran för att hämta ärenden
-        {
-            List<GetTicketsDTO> tickets = new();
-            try
-            {
-                var cmd = db.CreateCommand("select chat_token, message, sender, submitted_at, issue_type, form_type from initial_form_messages"); // Skapar en SQL-fråga för att hämta ärenden
-
-                var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    tickets.Add(new(
-                        reader.GetString(0),
-                        reader.GetString(0),
-                        reader.GetString(1),
-                        reader.GetString(2),
-                        reader.GetDateTime(3),
-                        reader.GetString(4),
-                        reader.GetString(5)
-                    ));
-                }
-                
-                return Results.Ok(tickets); // Returnerar ett OK-resultat med ärendena
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(new
-                {
-                    message = "Kunde inte hämta ärenden", error = ex.Message
-                }); // Returnerar ett BadRequest-resultat vid fel
-            }
-        });
-
+       
         // User Endpoints
         app.MapPost("/api/users", async (UserForm user, NpgsqlDataSource db) =>
         {
@@ -151,6 +123,45 @@ public class Program // Deklarerar huvudklassen Program
             
             return Results.Ok(users); // Returnerar ett OK-resultat med användarna
         });
+
+        app.MapGet("/api/chat/latest/{chatToken}",
+            async (string chatToken, NpgsqlDataSource db) =>
+            {
+                try
+                {
+                    using var cmd = db.CreateCommand(@"
+                SELECT chat_token, sender, message, submitted_at
+                FROM chat_message 
+                WHERE chat_token = @chat_token
+                ORDER BY submitted_at DESC
+                LIMIT 1");
+
+                    cmd.Parameters.AddWithValue("chat_token", chatToken);
+
+                    await using var reader = await cmd.ExecuteReaderAsync();
+            
+                    if (await reader.ReadAsync())
+                    {
+                        var message = new
+                        {
+                            chatToken = reader.GetString(0),
+                            sender = reader.GetString(1),
+                            message = reader.GetString(2),
+                            submitted_at = reader.GetDateTime(3)
+                        };
+
+                        return Results.Ok(message);
+                    }
+
+                    return Results.NotFound("No message found");
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(new { message = "Could not fetch latest message", error = ex.Message });
+                }
+            });
+
+       
 
         /*app.MapGet("/api/users/{id}",
             async (int id, AppDbContext db) => // Mappar GET-begäran för att hämta en användare baserat på ID
