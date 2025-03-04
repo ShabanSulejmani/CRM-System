@@ -17,7 +17,7 @@ namespace server.Data
         public DbSet<ForsakringsForm> ForsakringsForms { get; set; }
         public DbSet<TeleForm> TeleForms { get; set; }
         
-        public DbSet<InitialFormMessage> InitialFormMessages { get; set; }
+        public DbSet<InitialMessage> InitialFormMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -100,7 +100,7 @@ namespace server.Data
 
             });
             
-            modelBuilder.Entity<InitialFormMessage>()
+            modelBuilder.Entity<InitialMessage>()
                 .ToView("InitialFormMessages")
                 .HasNoKey();
             
