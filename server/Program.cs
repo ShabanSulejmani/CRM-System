@@ -54,17 +54,27 @@ public class Program // Deklarerar huvudklassen Program
         {
             try
             {
+                // Determine role_id based on role
+                int roleId = user.Role?.ToLower() switch
+                {
+                    "admin" => 2,
+                    "user" => 1,
+                    "staff" => 1,
+                    _ => 1 // Default to staff
+                };
+
                 user.CreatedAt = DateTime.UtcNow;
+        
                 using var cmd = db.CreateCommand(@"
-                    INSERT INTO users (first_name, password, company, created_at, role_id)
-                    VALUES (@first_name, @password, @company, @created_at, @role_id)
-                    RETURNING id, first_name, company, created_at;");
+            INSERT INTO users (first_name, password, company, created_at, role_id)
+            VALUES (@first_name, @password, @company, @created_at, @role_id)
+            RETURNING first_name, company, created_at;");
 
                 cmd.Parameters.AddWithValue("first_name", user.FirstName);
                 cmd.Parameters.AddWithValue("password", user.Password);
                 cmd.Parameters.AddWithValue("company", user.Company);
                 cmd.Parameters.AddWithValue("created_at", user.CreatedAt);
-                cmd.Parameters.AddWithValue("role_id", 1);
+                cmd.Parameters.AddWithValue("role_id", roleId);
 
                 using var reader = await cmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
@@ -74,10 +84,9 @@ public class Program // Deklarerar huvudklassen Program
                         message = "Användare skapad",
                         user = new
                         {
-                            Id = reader.GetInt32(0),
-                            FirstName = reader.GetString(1),
-                            Company = reader.GetString(2),
-                            CreatedAt = reader.GetDateTime(3)
+                            FirstName = reader.GetString(0),
+                            Company = reader.GetString(1),
+                            CreatedAt = reader.GetDateTime(2)
                         }
                     });
                 }
@@ -89,10 +98,12 @@ public class Program // Deklarerar huvudklassen Program
                 return Results.BadRequest(new
                 {
                     message = "Kunde inte skapa användare",
-                    error = ex.Message
+                    error = ex.Message,
+                    stackTrace = ex.StackTrace
                 });
             }
         });
+
 
         app.MapGet("/api/users", async (NpgsqlDataSource db) => // Mappar GET-begäran för att hämta alla användare
         {
