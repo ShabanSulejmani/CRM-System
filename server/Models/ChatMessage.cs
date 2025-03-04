@@ -1,9 +1,4 @@
-
-
 namespace server.Models;
-
-using System.ComponentModel.DataAnnotations;
-
 
 public class ChatMessage
 {
