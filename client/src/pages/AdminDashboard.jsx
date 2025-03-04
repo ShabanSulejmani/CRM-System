@@ -216,35 +216,20 @@ function UserAndTicketPage() {
               </tr>
             </thead>
             <tbody>
-  {filteredUsers.length > 0 ? (
-    filteredUsers.map(user => (
-      <tr key={user.id}>
-        <td>{user.firstName}</td>
-        <td>********</td> {/* Hide password for security */}
-        <td>{user.company}</td>
-        <td>{user.role}</td>
-        <td>
-          <button 
-            className="edit-button" 
-            onClick={() => updateUser(user.id, user)}
-          >
-            Redigera
-          </button>
-          <button 
-            className="delete-button"
-            onClick={() => deleteUser(user.id)}
-            disabled={deleteLoading}
-          >
-            Ta bort
-          </button>
-        </td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td colSpan="5">Inga användare hittades</td>
-    </tr>
-  )}
+{filteredUsers.length > 0 ? filteredUsers.map(user => (
+  <tr key={user.id}>
+    <td>{user.firstName}</td>
+    <td>********</td>
+    <td>{user.company}</td>
+    <td>{user.role}</td>
+    <td>
+      <button className="edit-button" onClick={() => updateUser(user.id, user)}>Redigera</button>
+      <button className="delete-button" onClick={() => deleteUser(user.id)} disabled={deleteLoading}>Ta bort</button>
+    </td>
+  </tr>
+)) : (
+  <tr><td colSpan="5">Inga användare hittades</td></tr>
+)}
 </tbody>
 
           </table>
@@ -262,22 +247,18 @@ function UserAndTicketPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredTickets.length > 0 ? (
-  filteredTickets.map((ticket, index) => (
-    <tr key={ticket.id || `ticket-${index}`}>
-      <td>{ticket.id}</td>
-      <td>{ticket.message || 'Inget meddelande'}</td>
-      <td>{new Date(ticket.timestamp).toLocaleString('sv-SE')}</td>
-      <td>{ticket.status || 'Ingen status'}</td>
-    </tr>
-  ))
-  
-              ) : (
-                <tr>
-                  <td colSpan="4">Inga ärenden hittades</td>
-                </tr>
-              )}
-            </tbody>
+{filteredTickets.length > 0 ? filteredTickets.map((ticket, index) => (
+  <tr key={ticket.id || `ticket-${index}`}>
+    <td>{ticket.id}</td>
+    <td>{ticket.message || 'Inget meddelande'}</td>
+    <td>{new Date(ticket.timestamp).toLocaleString('sv-SE')}</td>
+    <td>{ticket.status || 'Ingen status'}</td>
+  </tr>
+)) : (
+  <tr><td colSpan="4">Inga ärenden hittades</td></tr>
+)}
+</tbody>
+
           </table>
         </div>
       )}
