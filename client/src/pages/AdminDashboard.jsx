@@ -108,36 +108,39 @@ function UserAndTicketPage() {
   }
 
   // Funktion för att ta bort en användare
-  async function deleteUser (userId){
+  async function deleteUser(userId) {
     if (!window.confirm('Är du säker på att du vill ta bort denna användare?')) {
       return;
     }
-
+  
     try {
       setDeleteLoading(true);
       
-      // Anropa API:et för att ta bort användaren
       const response = await fetch(`/api/users/${userId}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error('Något gick fel vid borttagning av användaren');
+        throw new Error(data.message || 'Något gick fel vid borttagning av användaren');
       }
       
-      // Ta bort användaren från lokal state för att uppdatera UI:t direkt
       setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
-      
       alert('Användaren har tagits bort');
+      
     } catch (err) {
+      console.error('Delete error details:', err);
       setError(err.message);
-      console.error('Fel vid borttagning av användare:', err);
       alert(`Fel vid borttagning: ${err.message}`);
     } finally {
       setDeleteLoading(false);
     }
-  };
-
+  }
+  
   // Körs när komponenten laddas eller viewMode ändras
   useEffect(() => {
     if (viewMode === 'users') {
