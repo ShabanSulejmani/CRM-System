@@ -1,11 +1,8 @@
-﻿using System.Data;
-using System.Linq.Expressions;
-using System.Runtime.InteropServices.JavaScript;
+﻿
 using server.Services; // Importerar server.Services för att få tillgång till EmailService
 using server.Models; // Importerar server.Models för att få tillgång till datamodeller
 using System.Text.Json; // Importerar System.Text.Json för JSON-serialisering
 using Npgsql;
-
 namespace server; // Deklarerar namnrymden för serverprojektet
 
 public class Program // Deklarerar huvudklassen Program
@@ -125,7 +122,7 @@ public class Program // Deklarerar huvudklassen Program
                 {
                     using var cmd = db.CreateCommand(@"
                 SELECT chat_token, sender, message, submitted_at
-                FROM chat_message 
+                FROM chat_messages 
                 WHERE chat_token = @chat_token
                 ORDER BY submitted_at DESC
                 LIMIT 1");
@@ -421,8 +418,8 @@ app.MapGet("/api/initial-message/{chatToken}", async (string chatToken, NpgsqlDa
                 sender = reader.GetString(1),
                 message = reader.GetString(2),
                 submittedAt = reader.GetDateTime(3),
-                issueType = reader.GetString(4),
-                formType = reader.GetString(5)
+                issueType = reader.GetString(5),
+                formType = reader.GetString(6)
             };
 
             return Results.Ok(initialMessage);
