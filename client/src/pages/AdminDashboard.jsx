@@ -191,7 +191,7 @@ function UserAndTicketPage() {
           <option value="">Alla företag</option>
           <option value="fordon">fordon</option>
           <option value="tele">tele</option>
-          <option value="försäkring">försäkring</option>
+          <option value="forsakring">försäkring</option>
         </select>
         <button 
           onClick={viewMode === 'users' ? fetchUsers : fetchTickets} 
