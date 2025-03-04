@@ -139,6 +139,54 @@ public class Program // Deklarerar huvudklassen Program
                 return Results.BadRequest(new { message = ex.Message });
             }
         });
+        
+        app.MapPut("/api/users/{userId}", async (int userId, UserForm user, NpgsqlDataSource db) =>
+        {
+            try
+            {
+                using var cmd = db.CreateCommand(@"
+            UPDATE users 
+            SET first_name = @first_name, 
+                password = CASE WHEN @password = '' THEN password ELSE @password END,
+                company = @company,
+                role_id = @role_id
+            WHERE ""Id"" = @userId
+            RETURNING ""Id"", first_name, company, role_id;");
+
+                cmd.Parameters.AddWithValue("userId", userId);
+                cmd.Parameters.AddWithValue("first_name", user.FirstName);
+                cmd.Parameters.AddWithValue("password", user.Password);
+                cmd.Parameters.AddWithValue("company", user.Company);
+                cmd.Parameters.AddWithValue("role_id", user.Role == "admin" ? 2 : 1);
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return Results.Ok(new
+                    {
+                        message = "Användare uppdaterad",
+                        user = new
+                        {
+                            Id = reader.GetInt32(0),
+                            FirstName = reader.GetString(1),
+                            Company = reader.GetString(2),
+                            Role = reader.GetInt32(3) == 1 ? "staff" : "admin"
+                        }
+                    });
+                }
+
+                return Results.NotFound(new { message = "Användare hittades inte" });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new
+                {
+                    message = "Kunde inte uppdatera användare",
+                    error = ex.Message
+                });
+            }
+        });
+
 
         
 
