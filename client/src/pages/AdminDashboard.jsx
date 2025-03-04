@@ -73,12 +73,13 @@ function UserAndTicketPage() {
     const newFirstName = prompt("Ange nytt förnamn (eller lämna tomt för att behålla):", user.firstName);
     const newPassword = prompt("Ange nytt lösenord (eller lämna tomt för att behålla):", "");
     const newCompany = prompt("Ange nytt företag (eller lämna tomt för att behålla):", user.company);
-  
+    const newRole = prompt("Ange ny roll (staff/admin):", user.role);
+
     const updatedUserData = {
-      firstName: newFirstName?.trim() || user.firstName,
-      password: newPassword?.trim(),
-      company: newCompany?.trim() || user.company,
-      role: user.role
+        firstName: newFirstName?.trim() || user.firstName,
+        password: newPassword?.trim(),
+        company: newCompany?.trim() || user.company,
+        role: newRole?.trim() || user.role
     };
   
     try {
