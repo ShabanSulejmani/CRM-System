@@ -43,30 +43,38 @@ function UserAndTicketPage() {
     }
   }
   
-  
-  
 
   // Funktion för att hämta alla ärenden
-  async function fetchTickets(){
+  async function fetchTickets() {
     try {
       setLoading(true);
-      
       const response = await fetch("/api/tickets");
       
       if (!response.ok) {
-        throw new Error('Något gick fel vid hämtning av ärenden');
+        throw new Error('Failed to fetch tickets');
       }
       
       const data = await response.json();
-      setTickets(data);
+      // Transform the data to match the API response
+      const transformedTickets = Array.isArray(data) ? data.map(ticket => ({
+        chatToken: ticket.chatToken,
+        sender: ticket.sender,
+        message: ticket.message,
+        timestamp: ticket.timestamp,
+        issueType: ticket.issueType,
+        formType: ticket.formType
+      })) : [];
+      
+      setTickets(transformedTickets);
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('Fel vid hämtning av ärenden:', err);
+      console.error('Error fetching tickets:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }
+  
 
   // Funktion för att uppdatera en användare
   async function updateUser(userId, user) {
@@ -244,25 +252,28 @@ function UserAndTicketPage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Meddelande</th>
-                <th>Tidpunkt</th>
-                <th>Status</th>
+                <th>Chat Token</th>
+                <th>Sender</th>
+                <th>Issue Type</th>
+                <th>Form Type</th>
+                <th>Message</th>
+                <th>Timestamp</th>
               </tr>
             </thead>
             <tbody>
-{filteredTickets.length > 0 ? filteredTickets.map((ticket, index) => (
-  <tr key={ticket.id || `ticket-${index}`}>
-    <td>{ticket.id}</td>
-    <td>{ticket.message || 'Inget meddelande'}</td>
-    <td>{new Date(ticket.timestamp).toLocaleString('sv-SE')}</td>
-    <td>{ticket.status || 'Ingen status'}</td>
-  </tr>
-)) : (
-  <tr><td colSpan="4">Inga ärenden hittades</td></tr>
-)}
-</tbody>
-
+              {filteredTickets.length > 0 ? filteredTickets.map((ticket) => (
+                <tr key={ticket.chatToken}>
+                  <td>{ticket.chatToken}</td>
+                  <td>{ticket.sender}</td>
+                  <td>{ticket.issueType}</td>
+                  <td>{ticket.formType}</td>
+                  <td>{ticket.message || 'No message'}</td>
+                  <td>{new Date(ticket.timestamp).toLocaleString('sv-SE')}</td>
+                </tr>
+              )) : (
+                <tr><td colSpan="6">No tickets found</td></tr>
+              )}
+            </tbody>
           </table>
         </div>
       )}
