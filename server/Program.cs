@@ -98,7 +98,7 @@ public class Program // Deklarerar huvudklassen Program
         {
             List<UserForm> users = new(); // Skapar en lista för att lagra användare
             
-            using var cmd = db.CreateCommand("SELECT id, first_name, company, role_id FROM users"); // Skapar en SQL-fråga för att hämta användare
+            using var cmd = db.CreateCommand("SELECT users.\"Id\" as \"id\", users.first_name, users.company, users.role_id FROM users\n"); // Skapar en SQL-fråga för att hämta användare
             var reader = await cmd.ExecuteReaderAsync(); // Utför SQL-frågan och läser resultatet
             
             while (await reader.ReadAsync()) // Loopar igenom varje rad i resultatet
