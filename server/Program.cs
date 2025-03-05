@@ -50,7 +50,7 @@ public class Program // Deklarerar huvudklassen Program
         
        
         // User Endpoints
-        app.MapPost("/api/users", async (UserForm user, NpgsqlDataSource db) =>
+        app.MapPost("/api/users", async (UserForm user, NpgsqlDataSource db, EmailService emailService, IConfiguration configuration) =>
         {
             try
             {
@@ -76,6 +76,8 @@ public class Program // Deklarerar huvudklassen Program
                 cmd.Parameters.AddWithValue("created_at", user.CreatedAt);
                 cmd.Parameters.AddWithValue("role_id", roleId);
                 cmd.Parameters.AddWithValue("email", user.Email);
+                
+                
 
                 using var reader = await cmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
@@ -91,7 +93,13 @@ public class Program // Deklarerar huvudklassen Program
                         }
                     });
                 }
-
+                
+                await emailService.SendChangePasswordLink(
+                    user.Email,
+                    user.FirstName,
+                    user.Password
+                );
+                
                 return Results.BadRequest(new { message = "Kunde inte skapa användare" });
             }
             catch (Exception ex)
