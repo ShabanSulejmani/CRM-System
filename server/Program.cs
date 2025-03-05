@@ -66,8 +66,8 @@ public class Program // Deklarerar huvudklassen Program
                 user.CreatedAt = DateTime.UtcNow;
         
                 using var cmd = db.CreateCommand(@"
-            INSERT INTO users (first_name, password, company, created_at, role_id)
-            VALUES (@first_name, @password, @company, @created_at, @role_id)
+            INSERT INTO users (first_name, password, company, created_at, role_id, email)
+            VALUES (@first_name, @password, @company, @created_at, @role_id, @email)
             RETURNING first_name, company, created_at;");
 
                 cmd.Parameters.AddWithValue("first_name", user.FirstName);
@@ -75,6 +75,7 @@ public class Program // Deklarerar huvudklassen Program
                 cmd.Parameters.AddWithValue("company", user.Company);
                 cmd.Parameters.AddWithValue("created_at", user.CreatedAt);
                 cmd.Parameters.AddWithValue("role_id", roleId);
+                cmd.Parameters.AddWithValue("email", user.Email);
 
                 using var reader = await cmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
@@ -109,7 +110,7 @@ public class Program // Deklarerar huvudklassen Program
         {
             List<UserForm> users = new(); // Skapar en lista för att lagra användare
             
-            using var cmd = db.CreateCommand("SELECT users.\"Id\" as \"id\", users.first_name, users.company, users.role_id FROM users\n"); // Skapar en SQL-fråga för att hämta användare
+            using var cmd = db.CreateCommand("SELECT users.\"Id\" as \"id\", users.first_name, users.company, users.role_id, users.email FROM users\n"); // Skapar en SQL-fråga för att hämta användare
             var reader = await cmd.ExecuteReaderAsync(); // Utför SQL-frågan och läser resultatet
             
             while (await reader.ReadAsync()) // Loopar igenom varje rad i resultatet
@@ -119,7 +120,8 @@ public class Program // Deklarerar huvudklassen Program
                     Id = reader.GetInt32(0), // Hämtar ID från resultatet
                     FirstName = reader.GetString(1), // Hämtar förnamn från resultatet
                     Company = reader.GetString(2), // Hämtar företag från resultatet
-                    Role = reader.GetInt32(3) == 1 ? "staff" : "admin" // Hämtar roll från resultatet
+                    Role = reader.GetInt32(3) == 1 ? "staff" : "admin",
+                    Email = reader.GetString(4)
                 });
             }
             
