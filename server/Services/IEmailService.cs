@@ -2,5 +2,5 @@ namespace server.Services;
 
 public interface IEmailService
 {
-    Task SendChatInvitation(string recipientEmail, string chatLink, string firstName);
+    Task<bool> SendChatInvitation(string recipientEmail, string chatLink, string firstName);
 }

@@ -1,54 +1,100 @@
-﻿
-using server.Services; // Importerar server.Services för att få tillgång till EmailService
-using server.Models; // Importerar server.Models för att få tillgång till datamodeller
-using System.Text.Json; // Importerar System.Text.Json för JSON-serialisering
+﻿using server.Services;
+using server.Models;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Npgsql;
-namespace server; // Deklarerar namnrymden för serverprojektet
+using Microsoft.AspNetCore.Http.Json;
 
-public class Program // Deklarerar huvudklassen Program
+namespace server;
+
+public class Program
 {
-    public static void Main(string[] args) // Deklarerar huvudmetoden Main
+    public static void Main(string[] args)
     {
-        NpgsqlDataSource postgresdb = NpgsqlDataSource.Create("Host=aws-0-eu-north-1.pooler.supabase.com;Port=6543;Database=postgres;Username=postgres.mwuzqdjbcmwyyftrdesb;Password=Mandelmassa25;Include Error Detail=true;Command Timeout=60;SSL Mode=Require;Trust Server Certificate=true");
-        var builder = WebApplication.CreateBuilder(args); // Skapar en WebApplicationBuilder
+        var builder = WebApplication.CreateBuilder(args);
         
-        builder.Services.AddEndpointsApiExplorer(); // Lägger till API Explorer för Swagger
-        builder.Services.AddSwaggerGen(); // Lägger till Swagger-generering
-        builder.Services.AddAuthentication(); // Lägger till autentiseringsstöd
-        builder.Services.AddAuthorization(); // Lägger till auktoriseringsstöd
-        builder.Services.AddSingleton <NpgsqlDataSource>(postgresdb);
+        // Använd connection string från appsettings.json istället
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
         
-        builder.Services.AddCors(options => // Lägger till CORS-stöd
+        // Skapa datasource med förbättrade timeout-inställningar
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+        dataSourceBuilder.ConnectionStringBuilder.CommandTimeout = 90; // Öka timeout till 90 sekunder        
+        NpgsqlDataSource postgresdb = dataSourceBuilder.Build();
+        
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
+        builder.Services.AddAuthentication();
+        builder.Services.AddAuthorization();
+        builder.Services.AddSingleton<NpgsqlDataSource>(postgresdb);
+        
+        // Förbättrade CORS-inställningar
+        builder.Services.AddCors(options =>
         {
-            options.AddPolicy("AllowReactApp", // Definierar en CORS-policy för React-appen
-                builder =>
-                {
-                    builder
-                        .WithOrigins( // Anger tillåtna ursprung för CORS
-                            "http://localhost:3001",
-                            "https://localhost:3001"
-                        )
-                        .AllowAnyMethod() // Tillåter alla HTTP-metoder
-                        .AllowAnyHeader(); // Tillåter alla HTTP-headers
-                });
+            options.AddPolicy("AllowReactApp", policy =>
+            {
+                policy.WithOrigins("http://localhost:3000", "http://localhost:3001", "https://din-domain.se")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod();
+            });
         });
 
-        builder.Services.AddScoped<IEmailService, EmailService>(); // Registrerar EmailService som en scopad tjänst
-
-        var app = builder.Build(); // Bygger WebApplication-instansen
-
-        if (app.Environment.IsDevelopment()) // Kontrollerar om miljön är utvecklingsmiljö
+        // Förbättrade JSON-inställningar
+        builder.Services.Configure<JsonOptions>(options =>
         {
-            app.UseSwagger(); // Aktiverar Swagger
-            app.UseSwaggerUI(); // Aktiverar Swagger UI
+            options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        });
+
+        builder.Services.AddScoped<IEmailService, EmailService>();
+
+        var app = builder.Build();
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
         }
 
-        app.UseHttpsRedirection(); // Aktiverar HTTPS-omdirigering
-        app.UseCors("AllowReactApp"); // Använder CORS-policyn för React-appen
-        app.UseAuthentication(); // Aktiverar autentisering
-        app.UseAuthorization(); // Aktiverar auktorisering
-        
-       
+        app.UseHttpsRedirection();
+        app.UseCors("AllowReactApp");
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        // Lägg till middleware för debugging (kan tas bort i produktion)
+        app.Use(async (context, next) =>
+        {
+            // Spara originalposition för request body
+            var originalBodyStream = context.Request.Body;
+            
+            try
+            {
+                // Läs begäran om det är en POST till en av våra form-endpoints
+                string path = context.Request.Path.ToString().ToLower();
+                if (context.Request.Method == "POST" && 
+                    (path.Contains("/api/tele") || path.Contains("/api/fordon") || path.Contains("/api/forsakring")))
+                {
+                    // Endast debugga för specifika endpoints
+                    using var bodyReader = new StreamReader(context.Request.Body);
+                    var bodyAsText = await bodyReader.ReadToEndAsync();
+                    
+                    // Logga raw body
+                    Console.WriteLine($"Request for {context.Request.Path}: {bodyAsText}");
+                    
+                    // Återställ body
+                    var bodyMemoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(bodyAsText));
+                    bodyMemoryStream.Position = 0;
+                    context.Request.Body = bodyMemoryStream;
+                }
+
+                await next.Invoke();
+            }
+            finally
+            {
+                // Återställ den ursprungliga stream
+                context.Request.Body = originalBodyStream;
+            }
+        });
+
         // User Endpoints
         app.MapPost("/api/users", async (UserForm user, NpgsqlDataSource db) =>
         {
@@ -94,25 +140,25 @@ public class Program // Deklarerar huvudklassen Program
             }
         });
 
-        app.MapGet("/api/users", async (NpgsqlDataSource db) => // Mappar GET-begäran för att hämta alla användare
+        app.MapGet("/api/users", async (NpgsqlDataSource db) =>
         {
-            List<UserForm> users = new(); // Skapar en lista för att lagra användare
+            List<UserForm> users = new();
             
-            using var cmd = db.CreateCommand("SELECT users.\"Id\" as \"id\", users.first_name, users.company, users.role_id FROM users\n"); // Skapar en SQL-fråga för att hämta användare
-            var reader = await cmd.ExecuteReaderAsync(); // Utför SQL-frågan och läser resultatet
+            using var cmd = db.CreateCommand("SELECT users.\"Id\" as \"id\", users.first_name, users.company, users.role_id FROM users\n");
+            var reader = await cmd.ExecuteReaderAsync();
             
-            while (await reader.ReadAsync()) // Loopar igenom varje rad i resultatet
+            while (await reader.ReadAsync())
             {
-                users.Add(new UserForm // Lägger till en ny användare i listan
+                users.Add(new UserForm
                 {
-                    Id = reader.GetInt32(0), // Hämtar ID från resultatet
-                    FirstName = reader.GetString(1), // Hämtar förnamn från resultatet
-                    Company = reader.GetString(2), // Hämtar företag från resultatet
-                    Role = reader.GetInt32(3) == 1 ? "staff" : "admin" // Hämtar roll från resultatet
+                    Id = reader.GetInt32(0),
+                    FirstName = reader.GetString(1),
+                    Company = reader.GetString(2),
+                    Role = reader.GetInt32(3) == 1 ? "staff" : "admin"
                 });
             }
             
-            return Results.Ok(users); // Returnerar ett OK-resultat med användarna
+            return Results.Ok(users);
         });
 
         app.MapGet("/api/chat/latest/{chatToken}",
@@ -153,71 +199,45 @@ public class Program // Deklarerar huvudklassen Program
             });
 
         app.MapPost("/api/chat/message", async (ChatMessage message, NpgsqlDataSource db) =>
-
         {
-
             try
-
             {
-
                 using var cmd = db.CreateCommand(@"
-
             INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
-
             VALUES (@chat_token, @sender, @message, @submitted_at)");
  
                 cmd.Parameters.AddWithValue("chat_token", message.ChatToken);
-
                 cmd.Parameters.AddWithValue("sender", message.Sender);
-
                 cmd.Parameters.AddWithValue("message", message.Message);
-
                 cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow);
  
                 await cmd.ExecuteNonQueryAsync();
  
                 return Results.Ok(new { message = "Message sent successfully" });
-
             }
-
             catch (Exception ex)
-
             {
-
                 return Results.BadRequest(new { message = "Could not send message", error = ex.Message });
-
             }
-
         });
 
-            
-                
-       
-
-        /*app.MapGet("/api/users/{id}",
-            async (int id, AppDbContext db) => // Mappar GET-begäran för att hämta en användare baserat på ID
-            {
-                var user = await db.Users.FindAsync(id); // Söker efter användaren med det angivna ID:et asynkront
-                return
-                    user is null
-                        ? Results.NotFound()
-                        : Results.Ok(user); // Returnerar NotFound om användaren inte hittas, annars OK med användaren
-            }); */
-
         // Fordon Form Endpoints
-        
-app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IEmailService emailService, IConfiguration config) =>
+app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IEmailService emailService, IConfiguration config, ILogger<Program> logger) =>
 {
+    // Skapa en anslutning som vi kan använda för transaktioner
+    using var connection = await db.OpenConnectionAsync();
+    using var transaction = await connection.BeginTransactionAsync();
+    
     try
     {
         submission.ChatToken = Guid.NewGuid().ToString();
         submission.SubmittedAt = DateTime.UtcNow;
         submission.IsChatActive = true;
 
-        using var cmd = db.CreateCommand(@"
-            INSERT INTO fordon_forms ( first_name,email , reg_nummer, issue_type, message, chat_token, submitted_at, is_chat_active, company_type)
-            VALUES (@first_name, @email, @reg_nummer, @issue_type, @message, @chat_token, @submitted_at, @is_chat_active, @company_type)");
-        
+        using var cmd = new NpgsqlCommand(@"
+            INSERT INTO fordon_forms (first_name, email, reg_nummer, issue_type, message, chat_token, submitted_at, is_chat_active, company_type)
+            VALUES (@first_name, @email, @reg_nummer, @issue_type, @message, @chat_token, @submitted_at, @is_chat_active, @company_type)", connection, transaction);
+
         cmd.Parameters.AddWithValue("first_name", submission.FirstName);
         cmd.Parameters.AddWithValue("email", submission.Email);
         cmd.Parameters.AddWithValue("reg_nummer", submission.RegNummer);
@@ -230,9 +250,9 @@ app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IE
 
         await cmd.ExecuteNonQueryAsync();
 
-        using var chatCmd = db.CreateCommand(@"
+        using var chatCmd = new NpgsqlCommand(@"
             INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
-            VALUES (@chat_token, @sender, @message, @submitted_at)");
+            VALUES (@chat_token, @sender, @message, @submitted_at)", connection, transaction);
 
         chatCmd.Parameters.AddWithValue("chat_token", submission.ChatToken);
         chatCmd.Parameters.AddWithValue("sender", submission.FirstName);
@@ -240,39 +260,66 @@ app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IE
         chatCmd.Parameters.AddWithValue("submitted_at", submission.SubmittedAt);
 
         await chatCmd.ExecuteNonQueryAsync();
+        
+        // Slutför transaktionen
+        await transaction.CommitAsync();
 
+        // Skapa chattlänk efter lyckad databastransaktion
         var baseUrl = config["AppSettings:BaseUrl"] ?? "http://localhost:3001";
         var chatLink = $"{baseUrl}/chat/{submission.ChatToken}";
 
-        await emailService.SendChatInvitation(
+        bool emailSent = await emailService.SendChatInvitation(
             submission.Email,
             chatLink,
             submission.FirstName
         );
 
-        return Results.Ok(new { message = "Formulär skickat", submission });
+        logger.LogInformation(
+            "Fordon form submitted successfully. Email sent: {EmailSent}. ChatToken: {ChatToken}", 
+            emailSent, 
+            submission.ChatToken
+        );
+
+        return Results.Ok(new {
+            success = true,
+            message = emailSent
+                ? "Formulär skickat! Kolla din e-post för chattlänken."
+                : "Formulär skickat! Men e-post med chattlänken kunde inte skickas, du kan fortfarande nå chatten via denna länk.",
+            submission,
+            chatLink
+        });
     }
     catch (Exception ex)
     {
-        return Results.BadRequest(new { message = "Ett fel uppstod", error = ex.Message });
+        // Rulla tillbaka transaktionen om något går fel
+        await transaction.RollbackAsync();
+        
+        logger.LogError(ex, "Fel när ett Fordonformulär skulle sparas: {Message}", ex.Message);
+        return Results.BadRequest(new { 
+            success = false,
+            message = "Ett fel uppstod när formuläret skulle sparas. Försök igen senare.", 
+            error = ex.Message 
+        });
     }
 });
 
-        // Tele Form Endpoints
-        
-app.MapPost("/api/tele", async (TeleForm submission, NpgsqlDataSource db, IEmailService emailService, IConfiguration config) =>
+// Tele Form Endpoints
+app.MapPost("/api/tele", async (TeleForm submission, NpgsqlDataSource db, IEmailService emailService, IConfiguration config, ILogger<Program> logger) =>
 {
+    // Skapa en anslutning som vi kan använda för transaktioner
+    using var connection = await db.OpenConnectionAsync();
+    using var transaction = await connection.BeginTransactionAsync();
+    
     try
     {
         submission.ChatToken = Guid.NewGuid().ToString();
         submission.SubmittedAt = DateTime.UtcNow;
         submission.IsChatActive = true;
 
-        using var cmd = db.CreateCommand(@"
-            INSERT INTO tele_form (, first_name,email, service_type, issue_type, message ,chat_token ,submitted_at, is_chat_active,  company_type)
-            VALUES (@chat_token, @first_name, @email, @service_type, @issue_type, @message, @chat_token, @submitted_at, @is_chat_active, @company_type)");
+        using var cmd = new NpgsqlCommand(@"
+            INSERT INTO tele_forms (first_name, email, service_type, issue_type, message, chat_token, submitted_at, is_chat_active, company_type)
+            VALUES (@first_name, @email, @service_type, @issue_type, @message, @chat_token, @submitted_at, @is_chat_active, @company_type)", connection, transaction);
 
-        
         cmd.Parameters.AddWithValue("first_name", submission.FirstName);
         cmd.Parameters.AddWithValue("email", submission.Email);
         cmd.Parameters.AddWithValue("service_type", submission.ServiceType);
@@ -282,14 +329,12 @@ app.MapPost("/api/tele", async (TeleForm submission, NpgsqlDataSource db, IEmail
         cmd.Parameters.AddWithValue("submitted_at", submission.SubmittedAt);
         cmd.Parameters.AddWithValue("is_chat_active", submission.IsChatActive);
         cmd.Parameters.AddWithValue("company_type", submission.CompanyType);
-        
-        
 
         await cmd.ExecuteNonQueryAsync();
 
-        using var chatCmd = db.CreateCommand(@"
+        using var chatCmd = new NpgsqlCommand(@"
             INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
-            VALUES (@chat_token, @sender, @message, @submitted_at)");
+            VALUES (@chat_token, @sender, @message, @submitted_at)", connection, transaction);
 
         chatCmd.Parameters.AddWithValue("chat_token", submission.ChatToken);
         chatCmd.Parameters.AddWithValue("sender", submission.FirstName);
@@ -297,38 +342,65 @@ app.MapPost("/api/tele", async (TeleForm submission, NpgsqlDataSource db, IEmail
         chatCmd.Parameters.AddWithValue("submitted_at", submission.SubmittedAt);
 
         await chatCmd.ExecuteNonQueryAsync();
+        
+        // Slutför transaktionen
+        await transaction.CommitAsync();
 
+        // Skapa chattlänk efter lyckad databastransaktion
         var baseUrl = config["AppSettings:BaseUrl"] ?? "http://localhost:3001";
         var chatLink = $"{baseUrl}/chat/{submission.ChatToken}";
 
-        await emailService.SendChatInvitation(
+        bool emailSent = await emailService.SendChatInvitation(
             submission.Email,
             chatLink,
             submission.FirstName
         );
 
-        return Results.Ok(new { message = "Formulär skickat", submission });
+        logger.LogInformation(
+            "Tele form submitted successfully. Email sent: {EmailSent}. ChatToken: {ChatToken}", 
+            emailSent, 
+            submission.ChatToken
+        );
+
+        return Results.Ok(new {
+            success = true,
+            message = emailSent
+                ? "Formulär skickat! Kolla din e-post för chattlänken."
+                : "Formulär skickat! Men e-post med chattlänken kunde inte skickas, du kan fortfarande nå chatten via denna länk.",
+            submission,
+            chatLink
+        });
     }
     catch (Exception ex)
     {
-        return Results.BadRequest(new { message = "Ett fel uppstod", error = ex.Message });
+        // Rulla tillbaka transaktionen om något går fel
+        await transaction.RollbackAsync();
+        
+        logger.LogError(ex, "Fel när ett Teleformulär skulle sparas: {Message}", ex.Message);
+        return Results.BadRequest(new { 
+            success = false,
+            message = "Ett fel uppstod när formuläret skulle sparas. Försök igen senare.", 
+            error = ex.Message 
+        });
     }
 });
 
-
-        
-        // Forsakring Form Endpoints
-app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSource db, IEmailService emailService, IConfiguration config) =>
+// Forsakring Form Endpoints
+app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSource db, IEmailService emailService, IConfiguration config, ILogger<Program> logger) =>
 {
+    // Skapa en anslutning som vi kan använda för transaktioner
+    using var connection = await db.OpenConnectionAsync();
+    using var transaction = await connection.BeginTransactionAsync();
+    
     try
     {
         submission.ChatToken = Guid.NewGuid().ToString();
         submission.SubmittedAt = DateTime.UtcNow;
         submission.IsChatActive = true;
 
-        using var cmd = db.CreateCommand(@"
+        using var cmd = new NpgsqlCommand(@"
             INSERT INTO forsakrings_forms (first_name, email, insurance_type, issue_type, message, chat_token, submitted_at, is_chat_active, company_type)
-            VALUES (@first_name, @email, @insurance_type, @issue_type, @message, @chat_token, @submitted_at, @is_chat_active, @company_type)");
+            VALUES (@first_name, @email, @insurance_type, @issue_type, @message, @chat_token, @submitted_at, @is_chat_active, @company_type)", connection, transaction);
 
         cmd.Parameters.AddWithValue("first_name", submission.FirstName);
         cmd.Parameters.AddWithValue("email", submission.Email);
@@ -342,9 +414,9 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
 
         await cmd.ExecuteNonQueryAsync();
 
-        using var chatCmd = db.CreateCommand(@"
+        using var chatCmd = new NpgsqlCommand(@"
             INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
-            VALUES (@chat_token, @sender, @message, @submitted_at)");
+            VALUES (@chat_token, @sender, @message, @submitted_at)", connection, transaction);
 
         chatCmd.Parameters.AddWithValue("chat_token", submission.ChatToken);
         chatCmd.Parameters.AddWithValue("sender", submission.FirstName);
@@ -352,121 +424,168 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
         chatCmd.Parameters.AddWithValue("submitted_at", submission.SubmittedAt);
 
         await chatCmd.ExecuteNonQueryAsync();
+        
+        // Slutför transaktionen
+        await transaction.CommitAsync();
 
+        // Skapa chattlänk efter lyckad databastransaktion
         var baseUrl = config["AppSettings:BaseUrl"] ?? "http://localhost:3001";
         var chatLink = $"{baseUrl}/chat/{submission.ChatToken}";
 
-        await emailService.SendChatInvitation(
+        bool emailSent = await emailService.SendChatInvitation(
             submission.Email,
             chatLink,
             submission.FirstName
         );
 
-        return Results.Ok(new { message = "Formulär skickat", submission });
+        logger.LogInformation(
+            "Försäkrings form submitted successfully. Email sent: {EmailSent}. ChatToken: {ChatToken}", 
+            emailSent, 
+            submission.ChatToken
+        );
+
+        return Results.Ok(new {
+            success = true,
+            message = emailSent
+                ? "Formulär skickat! Kolla din e-post för chattlänken."
+                : "Formulär skickat! Men e-post med chattlänken kunde inte skickas, du kan fortfarande nå chatten via denna länk.",
+            submission,
+            chatLink
+        });
     }
     catch (Exception ex)
     {
-        return Results.BadRequest(new { message = "Ett fel uppstod", error = ex.Message });
-    }
-});
-// Initial Message Endpoints
-app.MapPost("/api/initial-message", async (InitialMessage message, NpgsqlDataSource db) =>
-{
-    try
-    {
-        using var cmd = db.CreateCommand(@"
-            INSERT INTO initial_form_messages (chat_token, sender, message, submitted_at, issue_type, email, form_type)
-            VALUES (@chat_token, @sender, @message, @submitted_at, @issue_type, @email, @form_type)");
-
-        cmd.Parameters.AddWithValue("chat_token", message.ChatToken);
-        cmd.Parameters.AddWithValue("sender", message.Sender);
-        cmd.Parameters.AddWithValue("message", message.Message);
-        cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow);
-        cmd.Parameters.AddWithValue("issue_type", message.IssueType);
-        cmd.Parameters.AddWithValue("email", message.Email);
-        cmd.Parameters.AddWithValue("form_type", message.FormType);
-
-        await cmd.ExecuteNonQueryAsync();
-
-        return Results.Ok(new { message = "Initial message created" });
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(new { message = "Could not create initial message", error = ex.Message });
+        // Rulla tillbaka transaktionen om något går fel
+        await transaction.RollbackAsync();
+        
+        logger.LogError(ex, "Fel när ett Försäkringsformulär skulle sparas: {Message}", ex.Message);
+        return Results.BadRequest(new { 
+            success = false,
+            message = "Ett fel uppstod när formuläret skulle sparas. Försök igen senare.", 
+            error = ex.Message 
+        });
     }
 });
 
-
- // Hämta första meddelandet från formulär via chatToken
-app.MapGet("/api/initial-message/{chatToken}", async (string chatToken, NpgsqlDataSource db) =>
-{
-    try
-    {
-        using var cmd = db.CreateCommand(@"
-            SELECT chat_token, sender, message, submitted_at, issue_type, email, form_type 
-            FROM initial_form_messages 
-            WHERE chat_token = @chat_token");
-
-        cmd.Parameters.AddWithValue("chat_token", chatToken);
-
-        using var reader = await cmd.ExecuteReaderAsync();
-        if (await reader.ReadAsync())
+        // Initial Message Endpoints
+        app.MapPost("/api/initial-message", async (InitialMessage message, NpgsqlDataSource db) =>
         {
-            var initialMessage = new
-            {
-                chatToken = reader.GetString(0),
-                sender = reader.GetString(1),
-                message = reader.GetString(2),
-                submittedAt = reader.GetDateTime(3),
-                issueType = reader.GetString(5),
-                formType = reader.GetString(6)
-            };
-
-            return Results.Ok(initialMessage);
-        }
-
-        return Results.NotFound("No initial message found with this chat token");
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(new { message = "Could not fetch initial message", error = ex.Message });
-    }
-});
-      
-
-        // Tickets endpoint
-        app.MapGet("/api/tickets", async (NpgsqlDataSource db) => // Mappar GET-begäran för att hämta ärenden
-        {
-            List<GetTicketsDTO> tickets = new();
             try
             {
-                var cmd = db.CreateCommand("select chat_token, message, sender, submitted_at, issue_type, form_type from initial_form_messages"); // Skapar en SQL-fråga för att hämta ärenden
+                using var cmd = db.CreateCommand(@"
+                    INSERT INTO initial_form_messages (chat_token, sender, message, submitted_at, issue_type, email, form_type)
+                    VALUES (@chat_token, @sender, @message, @submitted_at, @issue_type, @email, @form_type)");
 
-                var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    tickets.Add(new(
-                        reader.GetString(0),
-                        reader.GetString(0),
-                        reader.GetString(1),
-                        reader.GetString(2),
-                        reader.GetDateTime(3),
-                        reader.GetString(4),
-                        reader.GetString(5)
-                    ));
-                }
-                
-                return Results.Ok(tickets); // Returnerar ett OK-resultat med ärendena
+                cmd.Parameters.AddWithValue("chat_token", message.ChatToken);
+                cmd.Parameters.AddWithValue("sender", message.Sender);
+                cmd.Parameters.AddWithValue("message", message.Message);
+                cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow);
+                cmd.Parameters.AddWithValue("issue_type", message.IssueType);
+                cmd.Parameters.AddWithValue("email", message.Email);
+                cmd.Parameters.AddWithValue("form_type", message.FormType);
+
+                await cmd.ExecuteNonQueryAsync();
+
+                return Results.Ok(new { message = "Initial message created" });
             }
             catch (Exception ex)
             {
-                return Results.BadRequest(new
-                {
-                    message = "Kunde inte hämta ärenden", error = ex.Message
-                }); // Returnerar ett BadRequest-resultat vid fel
+                return Results.BadRequest(new { message = "Could not create initial message", error = ex.Message });
             }
         });
 
+         // Hämta första meddelandet från formulär via chatToken
+        app.MapGet("/api/initial-message/{chatToken}", async (string chatToken, NpgsqlDataSource db) =>
+        {
+            try
+            {
+                using var cmd = db.CreateCommand(@"
+                    SELECT chat_token, sender, message, submitted_at, issue_type, email, form_type 
+                    FROM initial_form_messages 
+                    WHERE chat_token = @chat_token");
+
+                cmd.Parameters.AddWithValue("chat_token", chatToken);
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    var initialMessage = new
+                    {
+                        chatToken = reader.GetString(0),
+                        sender = reader.GetString(1),
+                        message = reader.GetString(2),
+                        submittedAt = reader.GetDateTime(3),
+                        issueType = reader.GetString(5),
+                        formType = reader.GetString(6)
+                    };
+
+                    return Results.Ok(initialMessage);
+                }
+
+                return Results.NotFound("No initial message found with this chat token");
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = "Could not fetch initial message", error = ex.Message });
+            }
+        });
+              
+        // Tickets endpoint
+       app.MapGet("/api/tickets", async (NpgsqlDataSource db) =>
+{
+    try
+    {
+        Console.WriteLine("Hämtar ärenden...");
+        
+        // Mycket enklare approach: skapa en anonym lista och fyll direkt
+        var tickets = new List<Dictionary<string, object>>();
+        
+        using var cmd = db.CreateCommand(@"
+            SELECT chat_token, message, sender, submitted_at, issue_type, email, form_type
+            FROM initial_form_messages 
+            ORDER BY submitted_at DESC");
+        
+        using var reader = await cmd.ExecuteReaderAsync();
+        
+        while (await reader.ReadAsync())
+        {
+            var ticket = new Dictionary<string, object>();
+            
+            // Hämta värden med nullhantering
+            string chatToken = reader.IsDBNull(0) ? string.Empty : reader.GetString(0);
+            
+            ticket["chatToken"] = chatToken;
+            ticket["id"] = chatToken; // Samma som chatToken
+            ticket["message"] = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+            ticket["sender"] = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
+            
+            // Omvandla DateTime till string för att undvika JSON-serialiseringsproblem
+            DateTime timestamp = reader.IsDBNull(3) ? DateTime.UtcNow : reader.GetDateTime(3);
+            ticket["timestamp"] = timestamp.ToString("yyyy-MM-dd HH:mm:ss");
+            
+            ticket["issueType"] = reader.IsDBNull(4) ? string.Empty : reader.GetString(4);
+            ticket["email"] = reader.IsDBNull(5) ? string.Empty : reader.GetString(5);
+            ticket["formType"] = reader.IsDBNull(6) ? string.Empty : reader.GetString(6);
+            
+            // Extra fält som frontend förväntar sig
+            ticket["wtp"] = ticket["formType"];
+            ticket["chatLink"] = $"http://localhost:3001/chat/{chatToken}";
+            
+            tickets.Add(ticket);
+        }
+        
+        Console.WriteLine($"Hittade {tickets.Count} ärenden");
+        return Results.Ok(tickets);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Fel vid hämtning av ärenden: {ex.Message}");
+        return Results.Text("ERROR"); // Returnera text istället för JSON vid fel
+    }
+});
+       
+       
+       
         app.Run(); // Startar webbservern
     }
 
@@ -477,5 +596,6 @@ app.MapGet("/api/initial-message/{chatToken}", async (string chatToken, NpgsqlDa
         string Sender,
         DateTime Timestamp,
         string IssueType,
+        string Email,
         string FormType);
 }
