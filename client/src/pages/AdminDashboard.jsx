@@ -58,7 +58,7 @@ function UserAndTicketPage() {
       const data = await response.json();
       // Transform the data to match the API response
       const transformedTickets = Array.isArray(data) ? data.map(ticket => ({
-        chatToken: ticket.chatToken,
+        chatToken: `http://localhost:3001/chat/${ticket.chatToken}`,
         sender: ticket.sender,
         message: ticket.message,
         timestamp: ticket.timestamp,
@@ -264,7 +264,11 @@ function UserAndTicketPage() {
             <tbody>
               {filteredTickets.length > 0 ? filteredTickets.map((ticket) => (
                 <tr key={ticket.chatToken}>
-                  <td>{ticket.chatToken}</td>
+                  <td>
+                    <a href={ticket.chatToken} target="_blank" rel="noopener noreferrer">
+                      Open Chat
+                    </a>
+                  </td>
                   <td>{ticket.sender}</td>
                   <td>{ticket.issueType}</td>
                   <td>{ticket.formType}</td>
