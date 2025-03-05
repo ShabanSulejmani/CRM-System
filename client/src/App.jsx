@@ -8,6 +8,7 @@ import StaffDashboard from './pages/StaffDashboard/Header';
 import StaffLogin from './pages/StaffLogin';
 import Chat from './pages/Chat';
 import Faq from './pages/Faq';
+import TeleTest from './TeleTest';
 
 function App() {
   return (
@@ -18,7 +19,8 @@ function App() {
         
         <Route path="/" element={<Layout />}>
           <Route index element={<DynamiskForm />} />
-          <Route path="dynamisk" element={<DynamiskForm />} />
+           <Route path="dynamisk" element={<DynamiskForm />} /> 
+         {/* <Route path="/teletest" element={<TeleTest />} /> {/* Testkomponent */}
           
           <Route path="admin">
             <Route path="login" element={<AdminLogin />} />

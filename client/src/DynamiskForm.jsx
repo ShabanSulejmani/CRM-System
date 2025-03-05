@@ -28,38 +28,40 @@ function DynamiskForm() {
     setIsSubmitting(true);
     
     let endpoint = '';
-    let submitData = {
-      firstName: formData.firstName,
-      email: formData.email,
-      companyType: companyType,
-      message: formData.message,
-      isChatActive: true,
-      submittedAt: new Date().toISOString()
-    };
+    let submitData = {};
 
     switch (companyType) {
       case 'Tele/Bredband':
         endpoint = '/api/tele';
         submitData = {
-          ...submitData,
-          serviceType: formData.serviceType,
-          issueType: formData.issueType,
+          FirstName: formData.firstName,
+          Email: formData.email,
+          ServiceType: formData.serviceType,
+          IssueType: formData.issueType,
+          Message: formData.message,
+          CompanyType: companyType
         };
         break;
       case 'Fordonsservice':
         endpoint = '/api/fordon';
         submitData = {
-          ...submitData,
-          registrationNumber: formData.registrationNumber,
-          issueType: formData.issueType,
+          FirstName: formData.firstName,
+          Email: formData.email,
+          RegNummer: formData.registrationNumber,
+          IssueType: formData.issueType,
+          Message: formData.message,
+          CompanyType: companyType
         };
         break;
       case 'Försäkringsärenden':
         endpoint = '/api/forsakring';
         submitData = {
-          ...submitData,
-          insuranceType: formData.insuranceType,
-          issueType: formData.issueType,
+          FirstName: formData.firstName,
+          Email: formData.email, 
+          InsuranceType: formData.insuranceType,
+          IssueType: formData.issueType,
+          Message: formData.message,
+          CompanyType: companyType
         };
         break;
       default:
@@ -80,7 +82,7 @@ function DynamiskForm() {
       if (response.ok) {
         const result = await response.json();
         setMessage({ 
-          text: 'Formuläret har skickats! Kolla din e-post för chattlänken.', 
+          text: result.message, 
           isError: false 
         });
         setFormData({
@@ -94,7 +96,11 @@ function DynamiskForm() {
         });
         setCompanyType('');
       } else {
-        setMessage({ text: 'Ett fel uppstod vid skickandet av formuläret', isError: true });
+        const errorData = await response.json().catch(() => ({ message: 'Ett fel uppstod' }));
+        setMessage({ 
+          text: errorData.message || 'Ett fel uppstod vid skickandet av formuläret', 
+          isError: true 
+        });
       }
     } catch (error) {
       console.error('Error:', error);
