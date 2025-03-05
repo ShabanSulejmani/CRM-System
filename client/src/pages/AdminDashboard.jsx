@@ -30,7 +30,8 @@ function UserAndTicketPage() {
         id: user.id,
         firstName: user.firstName,
         company: user.company,
-        role: user.role
+        role: user.role,
+        email: user.email,
       })) : [];
       
       setUsers(transformedUsers);
@@ -221,7 +222,7 @@ function UserAndTicketPage() {
             <thead>
               <tr>
                 <th>Förnamn</th>
-                <th>Lösenord</th>
+                <th>Email</th>
                 <th>Företag</th>
                 <th>Roll</th>
                 <th>Åtgärder</th>
@@ -231,7 +232,7 @@ function UserAndTicketPage() {
 {filteredUsers.length > 0 ? filteredUsers.map(user => (
   <tr key={user.id}>
     <td>{user.firstName}</td>
-    <td>********</td>
+    <td>{user.email}</td>
     <td>{user.company}</td>
     <td>{user.role}</td>
     <td>
