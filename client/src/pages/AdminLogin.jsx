@@ -24,7 +24,7 @@ function AdminLogin() {
       <div className="admin-login-container">
         <div className="admin-login-header">
           <h1 className="admin-login-title">Admin Portal</h1>
-          <p className="admin-login-subtitle">Logga in för att komma åt administrationspanelen</p>
+          
         </div>
         
         <form onSubmit={handleLogin} className="admin-login-form">

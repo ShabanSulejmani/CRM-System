@@ -1,6 +1,6 @@
 /* Staff Login Page Container */
 .staff-page-container {
-  max-width: 960px;
+  max-width: 500px;
   margin: 5vh auto;
   display: flex;
   flex-direction: column;

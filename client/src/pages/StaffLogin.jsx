@@ -24,7 +24,7 @@ function StaffLogin() {
       <div className="staff-login-container">
         <div className="staff-login-header">
           <h1 className="staff-login-title">Staff Portal</h1>
-          <p className="staff-login-subtitle">Välkommen tillbaka! Logga in för att fortsätta</p>
+          <p className="staff-login-subtitle">Logga in för att fortsätta</p>
         </div>
         
         <form onSubmit={handleLogin} className="staff-login-form">
@@ -90,32 +90,9 @@ function StaffLogin() {
           </div>
         </form>
       </div>
-      
-      <div className="staff-login-info">
-        <div className="staff-info-item">
-          <div className="staff-info-icon">🔐</div>
-          <div className="staff-info-text">
-            <h3>Säker inloggning</h3>
-            <p>All information krypteras och skyddas</p>
-          </div>
-        </div>
-        <div className="staff-info-item">
-          <div className="staff-info-icon">🔔</div>
-          <div className="staff-info-text">
-            <h3>Få notiser</h3>
-            <p>Se nya händelser i realtid</p>
-          </div>
-        </div>
-        <div className="staff-info-item">
-          <div className="staff-info-icon">⚡</div>
-          <div className="staff-info-text">
-            <h3>Snabb support</h3>
-            <p>Vi finns här för att hjälpa dig</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
+      
 
 export default StaffLogin;
