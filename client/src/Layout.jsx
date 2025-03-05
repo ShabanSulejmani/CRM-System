@@ -33,7 +33,7 @@ function Layout() {
 
               {/* Admin NavLinks */}
               <div>
-                <h2>Admin Pages</h2>
+                <h2>Admin</h2>
                 <NavLink 
                   to={"/admin/login"}
                 >

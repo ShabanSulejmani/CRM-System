@@ -1238,3 +1238,9 @@ nav a[href="chat"]:hover {
     font-size: 0.9rem;
   }
 }
+
+.admin-login {
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+}
