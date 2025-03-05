@@ -50,7 +50,7 @@ public class Program // Deklarerar huvudklassen Program
         
        
         // User Endpoints
-        app.MapPost("/api/users", async (UserForm user, NpgsqlDataSource db, EmailService emailService, IConfiguration configuration) =>
+        app.MapPost("/api/users", async (UserForm user, NpgsqlDataSource db) =>
         {
             try
             {
@@ -93,12 +93,6 @@ public class Program // Deklarerar huvudklassen Program
                         }
                     });
                 }
-                
-                await emailService.SendChangePasswordLink(
-                    user.Email,
-                    user.FirstName,
-                    user.Password
-                );
                 
                 return Results.BadRequest(new { message = "Kunde inte skapa användare" });
             }
