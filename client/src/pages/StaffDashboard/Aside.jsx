@@ -19,7 +19,7 @@ function Aside() {
         <div className="staff-member">
           <div className="staff-member-content">
             <div className="staff-member-avatar">
-              <div className="avatar-placeholder">M</div>
+              <div className="avatar-placeholder">MH</div>
             </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Martin</h3>
@@ -31,7 +31,7 @@ function Aside() {
         <div className="staff-member">
           <div className="staff-member-content">
             <div className="staff-member-avatar">
-              <div className="avatar-placeholder">V</div>
+              <div className="avatar-placeholder">WE</div>
             </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Ville</h3>
@@ -43,7 +43,7 @@ function Aside() {
         <div className="staff-member">
           <div className="staff-member-content">
             <div className="staff-member-avatar">
-              <div className="avatar-placeholder">K</div>
+              <div className="avatar-placeholder">KL</div>
             </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Kevin</h3>
@@ -55,7 +55,7 @@ function Aside() {
         <div className="staff-member">
           <div className="staff-member-content">
             <div className="staff-member-avatar">
-              <div className="avatar-placeholder">S</div>
+              <div className="avatar-placeholder">SS</div>
             </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Shaban</h3>
@@ -67,7 +67,7 @@ function Aside() {
         <div className="staff-member">
           <div className="staff-member-content">
             <div className="staff-member-avatar">
-              <div className="avatar-placeholder">Si</div>
+              <div className="avatar-placeholder">SB</div>
             </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Sigge</h3>
@@ -79,7 +79,7 @@ function Aside() {
         <div className="staff-member">
           <div className="staff-member-content">
             <div className="staff-member-avatar">
-              <div className="avatar-placeholder">Se</div>
+              <div className="avatar-placeholder">SHN</div>
             </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Sebbe</h3>
