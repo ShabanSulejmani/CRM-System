@@ -94,6 +94,95 @@ public class Program
                 context.Request.Body = originalBodyStream;
             }
         });
+        
+        
+        app.MapPost("/api/chat/message", async (ChatMessage message, NpgsqlDataSource db) =>
+        {
+            try
+            {
+                using var cmd = db.CreateCommand(@"
+            INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
+            VALUES (@chat_token, @sender, @message, @submitted_at)
+            RETURNING id, sender, message, submitted_at, chat_token");
+ 
+                cmd.Parameters.AddWithValue("chat_token", message.ChatToken);
+                cmd.Parameters.AddWithValue("sender", message.Sender);
+                cmd.Parameters.AddWithValue("message", message.Message);
+                cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow);
+ 
+                using var reader = await cmd.ExecuteReaderAsync();
+        
+                if (await reader.ReadAsync())
+                {
+                    var createdMessage = new {
+                        id = reader.GetInt32(0),
+                        sender = reader.GetString(1),
+                        message = reader.GetString(2),
+                        timestamp = reader.GetDateTime(3),
+                        chatToken = reader.GetString(4)
+                    };
+            
+                    return Results.Ok(createdMessage);
+                }
+        
+                return Results.BadRequest(new { message = "Message could not be created" });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = "Could not send message", error = ex.Message });
+            }
+        });
+        
+        app.MapGet("/api/chat/messages/{chatToken}", async (string chatToken, NpgsqlDataSource db) =>
+        {
+            try
+            {
+                List<object> messages = new();
+        
+                using var cmd = db.CreateCommand(@"
+            SELECT id, sender, message, submitted_at, chat_token
+            FROM chat_messages 
+            WHERE chat_token = @chat_token
+            ORDER BY submitted_at ASC");
+        
+                cmd.Parameters.AddWithValue("chat_token", chatToken);
+        
+                using var reader = await cmd.ExecuteReaderAsync();
+        
+                while (await reader.ReadAsync())
+                {
+                    messages.Add(new
+                    {
+                        id = reader.GetInt32(0),
+                        sender = reader.GetString(1),
+                        message = reader.GetString(2),
+                        timestamp = reader.GetDateTime(3),
+                        chatToken = reader.GetString(4)
+                    });
+                }
+        
+                // Also get the chat "owner" (first unique sender)
+                string chatOwner = null;
+                if (messages.Count > 0)
+                {
+                    // Assuming the first message's sender is the chat owner
+                    chatOwner = ((dynamic)messages[0]).sender;
+                }
+        
+                return Results.Ok(new { 
+                    messages, 
+                    chatOwner 
+                });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = "Could not fetch messages", error = ex.Message });
+            }
+        });
+        
+        
+        
+        
 
         // User Endpoints
         app.MapPost("/api/users", async (UserForm user, NpgsqlDataSource db) =>
@@ -160,66 +249,7 @@ public class Program
             
             return Results.Ok(users);
         });
-
-        app.MapGet("/api/chat/latest/{chatToken}",
-            async (string chatToken, NpgsqlDataSource db) =>
-            {
-                try
-                {
-                    using var cmd = db.CreateCommand(@"
-                SELECT chat_token, sender, message, submitted_at
-                FROM chat_messages 
-                WHERE chat_token = @chat_token
-                ORDER BY submitted_at DESC
-                LIMIT 1");
-
-                    cmd.Parameters.AddWithValue("chat_token", chatToken);
-
-                    await using var reader = await cmd.ExecuteReaderAsync();
-            
-                    if (await reader.ReadAsync())
-                    {
-                        var message = new
-                        {
-                            chatToken = reader.GetString(0),
-                            sender = reader.GetString(1),
-                            message = reader.GetString(2),
-                            submitted_at = reader.GetDateTime(3)
-                        };
-
-                        return Results.Ok(message);
-                    }
-
-                    return Results.NotFound("No message found");
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(new { message = "Kunde inte fetcha chat", error = ex.Message });
-                }
-            });
-
-        app.MapPost("/api/chat/message", async (ChatMessage message, NpgsqlDataSource db) =>
-        {
-            try
-            {
-                using var cmd = db.CreateCommand(@"
-            INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
-            VALUES (@chat_token, @sender, @message, @submitted_at)");
- 
-                cmd.Parameters.AddWithValue("chat_token", message.ChatToken);
-                cmd.Parameters.AddWithValue("sender", message.Sender);
-                cmd.Parameters.AddWithValue("message", message.Message);
-                cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow);
- 
-                await cmd.ExecuteNonQueryAsync();
- 
-                return Results.Ok(new { message = "Message sent successfully" });
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(new { message = "Could not send message", error = ex.Message });
-            }
-        });
+        
 
         // Fordon Form Endpoints
 app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IEmailService emailService, IConfiguration config, ILogger<Program> logger) =>
