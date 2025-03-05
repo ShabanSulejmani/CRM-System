@@ -81,6 +81,12 @@ public class Program // Deklarerar huvudklassen Program
                 using var reader = await cmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
+                    await emailService.SendChangePasswordLink(
+                        user.Email,
+                        user.FirstName,
+                        user.Password
+                    );
+                    
                     return Results.Ok(new
                     {
                         message = "Användare skapad",
@@ -92,12 +98,6 @@ public class Program // Deklarerar huvudklassen Program
                         }
                     });
                 }
-                
-                await emailService.SendChangePasswordLink(
-                    user.Email,
-                    user.FirstName,
-                    user.Password
-                );
                 
                 return Results.BadRequest(new { message = "Kunde inte skapa användare" });
             }
