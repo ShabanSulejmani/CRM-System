@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 function AdminCreateUser() {
   const [formData, setFormData] = useState({
+    email: '',
     firstName: '',
     password: '',
     company: '',
@@ -28,7 +29,8 @@ function AdminCreateUser() {
           firstName: formData.firstName,
           password: formData.password,
           company: formData.company,
-          role: formData.role
+          role: formData.role,
+          email: formData.email,
         })
       });
 
@@ -41,6 +43,7 @@ function AdminCreateUser() {
       if (response.ok) {
         setMessage('Användare skapades framgångsrikt!');
         setFormData({
+          email: '',
           firstName: '',
           password: '',
           company: '',
@@ -71,6 +74,16 @@ function AdminCreateUser() {
     <div className="login-border">
       <form onSubmit={handleSubmit} className="login-container">
         <h1 className="admin-login">Skapa användare</h1>
+        <input type="text"
+        name='email'
+        placeholder='Ange en e-postadress'
+        value={formData.email}
+        onChange={handleInputChange}
+        className="login-bar"
+        required
+        
+        />
+
         <input
           type="text"
           name="firstName"
