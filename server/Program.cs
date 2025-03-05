@@ -251,13 +251,14 @@ app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IE
         await cmd.ExecuteNonQueryAsync();
 
         using var chatCmd = new NpgsqlCommand(@"
-            INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
-            VALUES (@chat_token, @sender, @message, @submitted_at)", connection, transaction);
+            INSERT INTO chat_messages ( sender, message, submitted_at, chat_token)
+            VALUES ( @sender, @message, @submitted_at, @chat_token)", connection, transaction);
 
-        chatCmd.Parameters.AddWithValue("chat_token", submission.ChatToken);
+       
         chatCmd.Parameters.AddWithValue("sender", submission.FirstName);
         chatCmd.Parameters.AddWithValue("message", submission.Message);
         chatCmd.Parameters.AddWithValue("submitted_at", submission.SubmittedAt);
+        chatCmd.Parameters.AddWithValue("chat_token", submission.ChatToken);
 
         await chatCmd.ExecuteNonQueryAsync();
         
@@ -333,14 +334,14 @@ app.MapPost("/api/tele", async (TeleForm submission, NpgsqlDataSource db, IEmail
         await cmd.ExecuteNonQueryAsync();
 
         using var chatCmd = new NpgsqlCommand(@"
-            INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
-            VALUES (@chat_token, @sender, @message, @submitted_at)", connection, transaction);
+            INSERT INTO chat_messages ( sender, message, submitted_at, chat_token)
+            VALUES ( @sender, @message, @submitted_at, @chat_token)", connection, transaction);
 
-        chatCmd.Parameters.AddWithValue("chat_token", submission.ChatToken);
+       
         chatCmd.Parameters.AddWithValue("sender", submission.FirstName);
         chatCmd.Parameters.AddWithValue("message", submission.Message);
         chatCmd.Parameters.AddWithValue("submitted_at", submission.SubmittedAt);
-
+         chatCmd.Parameters.AddWithValue("chat_token", submission.ChatToken);
         await chatCmd.ExecuteNonQueryAsync();
         
         // Slutför transaktionen
@@ -415,13 +416,14 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
         await cmd.ExecuteNonQueryAsync();
 
         using var chatCmd = new NpgsqlCommand(@"
-            INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
-            VALUES (@chat_token, @sender, @message, @submitted_at)", connection, transaction);
+            INSERT INTO chat_messages ( sender, message, submitted_at, chat_token)
+            VALUES ( @sender, @message, @submitted_at, @chat_token)", connection, transaction);
 
-        chatCmd.Parameters.AddWithValue("chat_token", submission.ChatToken);
+       
         chatCmd.Parameters.AddWithValue("sender", submission.FirstName);
         chatCmd.Parameters.AddWithValue("message", submission.Message);
         chatCmd.Parameters.AddWithValue("submitted_at", submission.SubmittedAt);
+        chatCmd.Parameters.AddWithValue("chat_token", submission.ChatToken);
 
         await chatCmd.ExecuteNonQueryAsync();
         
