@@ -50,7 +50,7 @@ public class Program // Deklarerar huvudklassen Program
         
        
         // User Endpoints
-        app.MapPost("/api/users", async (UserForm user, NpgsqlDataSource db) =>
+        app.MapPost("/api/users", async (UserForm user, NpgsqlDataSource db, IEmailService emailService) =>
         {
             try
             {
@@ -77,7 +77,6 @@ public class Program // Deklarerar huvudklassen Program
                 cmd.Parameters.AddWithValue("role_id", roleId);
                 cmd.Parameters.AddWithValue("email", user.Email);
                 
-                
 
                 using var reader = await cmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
@@ -93,6 +92,12 @@ public class Program // Deklarerar huvudklassen Program
                         }
                     });
                 }
+                
+                await emailService.SendChangePasswordLink(
+                    user.Email,
+                    user.FirstName,
+                    user.Password
+                );
                 
                 return Results.BadRequest(new { message = "Kunde inte skapa användare" });
             }
@@ -360,7 +365,7 @@ app.MapPost("/api/tele", async (TeleForm submission, NpgsqlDataSource db, IEmail
         submission.IsChatActive = true;
 
         using var cmd = db.CreateCommand(@"
-            INSERT INTO tele_form (, first_name,email, service_type, issue_type, message ,chat_token ,submitted_at, is_chat_active,  company_type)
+            INSERT INTO tele_forms (first_name,email, service_type, issue_type, message ,chat_token ,submitted_at, is_chat_active,  company_type)
             VALUES (@chat_token, @first_name, @email, @service_type, @issue_type, @message, @chat_token, @submitted_at, @is_chat_active, @company_type)");
 
         
