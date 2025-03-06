@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './index.css';
 
 function DynamiskForm() {
   const [companyType, setCompanyType] = useState('');
@@ -114,7 +115,7 @@ function DynamiskForm() {
   };
 
   const renderTelecomFields = () => (
-    <div className="field-group">
+    <div className="dynamisk-field-group">
       <label htmlFor="serviceType">Typ av tjänst</label>
       <select
         name="serviceType"
@@ -147,7 +148,7 @@ function DynamiskForm() {
   );
   
   const renderCarRepairFields = () => (
-    <div>
+    <div className="dynamisk-field-group">
       <label htmlFor="registrationNumber">Registreringsnummer</label>
       <input
         type="text"
@@ -177,7 +178,7 @@ function DynamiskForm() {
   );
 
   const renderInsuranceFields = () => (
-    <div>
+    <div className="dynamisk-field-group">
       <label htmlFor="insuranceType">Typ av försäkring</label>
       <select
         name="insuranceType"
@@ -210,84 +211,85 @@ function DynamiskForm() {
   );
 
   return (
-    <div className="container">
-      <h1>Kontakta kundtjänst</h1>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="companyType">Välj Företag</label>
-        <select
-          name="companyType"
-          value={companyType}
-          onChange={(e) => setCompanyType(e.target.value)}
-          required
-          disabled={isSubmitting}
-        >
-          <option value="">Välj område</option>
-          <option value="Tele/Bredband">Tele/Bredband</option>
-          <option value="Fordonsservice">Fordonsservice</option>
-          <option value="Försäkringsärenden">Försäkringsärenden</option>
-        </select>
-
-        <label htmlFor="firstName">Namn</label>
-        <input
-          type="text"
-          name="firstName"
-          value={formData.firstName}
-          onChange={handleInputChange}
-          required
-          disabled={isSubmitting}
-        />
-
-        <label htmlFor="email">E-post</label>
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleInputChange}
-          required
-          disabled={isSubmitting}
-        />
-
-        {companyType === 'Tele/Bredband' && renderTelecomFields()}
-        {companyType === 'Fordonsservice' && renderCarRepairFields()}
-        {companyType === 'Försäkringsärenden' && renderInsuranceFields()}
-
-        <label htmlFor="message">Beskriv ditt ärende</label>
-        <textarea
-          name="message"
-          value={formData.message}
-          onChange={handleInputChange}
-          placeholder="Beskriv ditt ärende i detalj..."
-          required
-          disabled={isSubmitting}
-        />
-
-        <button 
-          type="submit" 
-          disabled={isSubmitting}
-          style={{
-            cursor: isSubmitting ? 'not-allowed' : 'pointer',
-            opacity: isSubmitting ? 0.7 : 1
-          }}
-        >
-          {isSubmitting ? 'Skickar...' : 'Skicka ärende'}
-        </button>
-        
-        {message.text && (
-          <div 
-            className={`message ${message.isError ? 'error' : 'success'}`}
-            style={{
-              marginTop: '1rem',
-              padding: '1rem',
-              borderRadius: '4px',
-              backgroundColor: message.isError ? '#fee2e2' : '#dcfce7',
-              color: message.isError ? '#dc2626' : '#16a34a',
-              border: `1px solid ${message.isError ? '#fca5a5' : '#86efac'}`
-            }}
-          >
-            {message.text}
+    <div className="dynamisk-form-container">
+      <div className="dynamisk-form-inner">
+        <div className="dynamisk-form-header">
+          <h1 className="dynamisk-form-title">Kontakta kundtjänst</h1>
+        </div>
+        <form className="dynamisk-form" onSubmit={handleSubmit}>
+          <div className="dynamisk-field-group">
+            <label htmlFor="companyType">Välj Företag</label>
+            <select
+              name="companyType"
+              value={companyType}
+              onChange={(e) => setCompanyType(e.target.value)}
+              required
+              disabled={isSubmitting}
+            >
+              <option value="">Välj område</option>
+              <option value="Tele/Bredband">Tele/Bredband</option>
+              <option value="Fordonsservice">Fordonsservice</option>
+              <option value="Försäkringsärenden">Försäkringsärenden</option>
+            </select>
           </div>
-        )}
-      </form>
+
+          <div className="dynamisk-field-group">
+            <label htmlFor="firstName">Namn</label>
+            <input
+              type="text"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleInputChange}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className="dynamisk-field-group">
+            <label htmlFor="email">E-post</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+
+          {companyType === 'Tele/Bredband' && renderTelecomFields()}
+          {companyType === 'Fordonsservice' && renderCarRepairFields()}
+          {companyType === 'Försäkringsärenden' && renderInsuranceFields()}
+
+          <div className="dynamisk-field-group">
+            <label htmlFor="message">Beskriv ditt ärende</label>
+            <textarea
+              name="message"
+              value={formData.message}
+              onChange={handleInputChange}
+              placeholder="Beskriv ditt ärende i detalj..."
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <button 
+            type="submit" 
+            className="dynamisk-form-button"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Skickar...' : 'Skicka ärende'}
+          </button>
+          
+          {message.text && (
+            <div 
+              className={`dynamisk-message ${message.isError ? 'error' : 'success'}`}
+            >
+              {message.text}
+            </div>
+          )}
+        </form>
+      </div>
     </div>
   );
 }
