@@ -95,6 +95,12 @@ function Layout() {
                 Chat
               </NavLink>
             </div>
+            {/* Login icon on the right */}
+            <div className="navbar-right">
+              <a href="">
+                <img src="/img/login.png" alt="Logga in" className="login-img"/>
+              </a>
+            </div>
           </div>
         </div>
       </nav>
