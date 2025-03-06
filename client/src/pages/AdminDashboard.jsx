@@ -210,8 +210,80 @@ function UserAndTicketPage() {
           {loading ? 'Laddar...' : 'Uppdatera lista'}
         </button>
       </div>
-    );
-  }
-  
-  export default AdminDashboard;
-  
+
+      {loading ? (
+        <p>Laddar data...</p>
+      ) : error ? (
+        <p className="error-message">Fel: {error}</p>
+      ) : viewMode === 'users' ? (
+        // Visa användartabell
+        <div className="list-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Förnamn</th>
+                <th>Email</th>
+                <th>Företag</th>
+                <th>Roll</th>
+                <th>Åtgärder</th>
+              </tr>
+            </thead>
+            <tbody>
+{filteredUsers.length > 0 ? filteredUsers.map(user => (
+  <tr key={user.id}>
+    <td>{user.firstName}</td>
+    <td>{user.email}</td>
+    <td>{user.company}</td>
+    <td>{user.role}</td>
+    <td>
+      <button className="edit-button" onClick={() => updateUser(user.id, user)}>Redigera</button>
+      <button className="delete-button" onClick={() => deleteUser(user.id)} disabled={deleteLoading}>Ta bort</button>
+    </td>
+  </tr>
+)) : (
+  <tr><td colSpan="5">Inga användare hittades</td></tr>
+)}
+</tbody>
+
+          </table>
+        </div>
+      ) : (
+        // Visa ärendetabell
+        <div className="list-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Chat Token</th>
+                <th>Sender</th>
+                <th>Issue Type</th>
+                <th>Form Type</th>
+                <th>Message</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTickets.length > 0 ? filteredTickets.map((ticket) => (
+                <tr key={ticket.chatToken}>
+                  <td>
+                    <a href={ticket.chatToken} target="_blank" rel="noopener noreferrer">
+                      Open Chat
+                    </a>
+                  </td>
+                  <td>{ticket.sender}</td>
+                  <td>{ticket.issueType}</td>
+                  <td>{ticket.formType}</td>
+                  <td>{ticket.message || 'No message'}</td>
+                  <td>{new Date(ticket.timestamp).toLocaleString('sv-SE')}</td>
+                </tr>
+              )) : (
+                <tr><td colSpan="6">No tickets found</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default UserAndTicketPage;
