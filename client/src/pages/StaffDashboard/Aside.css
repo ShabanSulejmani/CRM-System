@@ -1,0 +1,48 @@
+/* Styling för avatar */
+.staff-member-avatar {
+  margin-right: 12px;
+}
+
+.avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #fff;
+  font-size: 16px;
+}
+
+/* Olika bakgrundsfärger för olika avatarer */
+.staff-member:nth-child(1) .avatar-placeholder { background-color: #3498db; }
+.staff-member:nth-child(2) .avatar-placeholder { background-color: #2ecc71; }
+.staff-member:nth-child(3) .avatar-placeholder { background-color: #f39c12; }
+.staff-member:nth-child(4) .avatar-placeholder { background-color: #e74c3c; }
+.staff-member:nth-child(5) .avatar-placeholder { background-color: #9b59b6; }
+.staff-member:nth-child(6) .avatar-placeholder { background-color: #1abc9c; }
+
+/* Staff member styling anpassat för mörk bakgrund */
+.staff-member {
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin-bottom: 8px;
+  transition: background-color 0.2s;
+}
+
+.staff-member:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.staff-member-name {
+  font-size: 0.95rem;
+  margin: 0 0 3px 0;
+  color: #fff;
+}
+
+.staff-member-role {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}

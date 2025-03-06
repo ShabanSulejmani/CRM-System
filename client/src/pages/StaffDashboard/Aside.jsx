@@ -1,4 +1,5 @@
 import React from 'react';
+import './aside.css';
 
 function Aside() {
   return (
@@ -17,6 +18,9 @@ function Aside() {
       <div className="staff-list">
         <div className="staff-member">
           <div className="staff-member-content">
+            <div className="staff-member-avatar">
+              <div className="avatar-placeholder">MH</div>
+            </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Martin</h3>
               <p className="staff-member-role">Support Lead</p>
@@ -26,6 +30,9 @@ function Aside() {
 
         <div className="staff-member">
           <div className="staff-member-content">
+            <div className="staff-member-avatar">
+              <div className="avatar-placeholder">WE</div>
+            </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Ville</h3>
               <p className="staff-member-role">Technical Support</p>
@@ -35,6 +42,9 @@ function Aside() {
 
         <div className="staff-member">
           <div className="staff-member-content">
+            <div className="staff-member-avatar">
+              <div className="avatar-placeholder">KL</div>
+            </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Kevin</h3>
               <p className="staff-member-role">Customer Service</p>
@@ -44,6 +54,9 @@ function Aside() {
 
         <div className="staff-member">
           <div className="staff-member-content">
+            <div className="staff-member-avatar">
+              <div className="avatar-placeholder">SS</div>
+            </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Shaban</h3>
               <p className="staff-member-role">Product Specialist</p>
@@ -53,6 +66,9 @@ function Aside() {
 
         <div className="staff-member">
           <div className="staff-member-content">
+            <div className="staff-member-avatar">
+              <div className="avatar-placeholder">SB</div>
+            </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Sigge</h3>
               <p className="staff-member-role">Technical Support</p>
@@ -62,6 +78,9 @@ function Aside() {
 
         <div className="staff-member">
           <div className="staff-member-content">
+            <div className="staff-member-avatar">
+              <div className="avatar-placeholder">SHN</div>
+            </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Sebbe</h3>
               <p className="staff-member-role">Customer Service</p>
