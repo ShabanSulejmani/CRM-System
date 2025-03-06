@@ -247,7 +247,7 @@ public class Program // Deklarerar huvudklassen Program
                     return Results.BadRequest(new { message = "Kunde inte fetcha chat", error = ex.Message });
                 }
             });
-        app.MapDelete("/api/users/{id}",
+       /* app.MapDelete("/api/users/{id}",
             async (int id, AppDbContext db) =>
             {
                 try
@@ -268,7 +268,7 @@ public class Program // Deklarerar huvudklassen Program
                 }
             });
         // PUT: Uppdatera en användare
-        app.MapPut("/api/users/{id}", async (int id, UserForm updatedUser, AppDbContext db) =>
+        /*app.MapPut("/api/users/{id}", async (int id, UserForm updatedUser, AppDbContext db) =>
         {
             var user = await db.Users.FindAsync(id);
             if (user == null)
@@ -283,7 +283,7 @@ public class Program // Deklarerar huvudklassen Program
 
             await db.SaveChangesAsync();
             return Results.Ok(new { message = "Användaren har uppdaterats", user });
-        });
+        });*/
 
 
         app.MapPost("/api/chat/message", async (ChatMessage message, NpgsqlDataSource db) =>
