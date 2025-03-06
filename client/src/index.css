@@ -477,7 +477,7 @@ footer {
 
 .emoji {
   display: flex;
-  position: absolute;
+  position: sticky;
   font-size: 30px;
   bottom: 15px;
   top: 78%;

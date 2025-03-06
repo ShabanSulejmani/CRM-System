@@ -58,6 +58,135 @@ public class Program // Deklarerar huvudklassen Program
         app.UseAuthorization(); // Aktiverar auktorisering
         
        
+        app.UseHttpsRedirection();
+        app.UseCors("AllowReactApp");
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        // Lägg till middleware för debugging (kan tas bort i produktion)
+        app.Use(async (context, next) =>
+        {
+            // Spara originalposition för request body
+            var originalBodyStream = context.Request.Body;
+            
+            try
+            {
+                // Läs begäran om det är en POST till en av våra form-endpoints
+                string path = context.Request.Path.ToString().ToLower();
+                if (context.Request.Method == "POST" && 
+                    (path.Contains("/api/tele") || path.Contains("/api/fordon") || path.Contains("/api/forsakring")))
+                {
+                    // Endast debugga för specifika endpoints
+                    using var bodyReader = new StreamReader(context.Request.Body);
+                    var bodyAsText = await bodyReader.ReadToEndAsync();
+                    
+                    // Logga raw body
+                    Console.WriteLine($"Request for {context.Request.Path}: {bodyAsText}");
+                    
+                    // Återställ body
+                    var bodyMemoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(bodyAsText));
+                    bodyMemoryStream.Position = 0;
+                    context.Request.Body = bodyMemoryStream;
+                }
+
+                await next.Invoke();
+            }
+            finally
+            {
+                // Återställ den ursprungliga stream
+                context.Request.Body = originalBodyStream;
+            }
+        });
+        
+        
+        app.MapPost("/api/chat/message", async (ChatMessage message, NpgsqlDataSource db) =>
+        {
+            try
+            {
+                using var cmd = db.CreateCommand(@"
+            INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
+            VALUES (@chat_token, @sender, @message, @submitted_at)
+            RETURNING id, sender, message, submitted_at, chat_token");
+ 
+                cmd.Parameters.AddWithValue("chat_token", message.ChatToken);
+                cmd.Parameters.AddWithValue("sender", message.Sender);
+                cmd.Parameters.AddWithValue("message", message.Message);
+                cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow);
+ 
+                using var reader = await cmd.ExecuteReaderAsync();
+        
+                if (await reader.ReadAsync())
+                {
+                    var createdMessage = new {
+                        id = reader.GetInt32(0),
+                        sender = reader.GetString(1),
+                        message = reader.GetString(2),
+                        timestamp = reader.GetDateTime(3),
+                        chatToken = reader.GetString(4)
+                    };
+            
+                    return Results.Ok(createdMessage);
+                }
+        
+                return Results.BadRequest(new { message = "Message could not be created" });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = "Could not send message", error = ex.Message });
+            }
+        });
+        
+        app.MapGet("/api/chat/messages/{chatToken}", async (string chatToken, NpgsqlDataSource db) =>
+        {
+            try
+            {
+                List<object> messages = new();
+        
+                using var cmd = db.CreateCommand(@"
+            SELECT id, sender, message, submitted_at, chat_token
+            FROM chat_messages 
+            WHERE chat_token = @chat_token
+            ORDER BY submitted_at ASC");
+        
+                cmd.Parameters.AddWithValue("chat_token", chatToken);
+        
+                using var reader = await cmd.ExecuteReaderAsync();
+        
+                while (await reader.ReadAsync())
+                {
+                    messages.Add(new
+                    {
+                        id = reader.GetInt32(0),
+                        sender = reader.GetString(1),
+                        message = reader.GetString(2),
+                        timestamp = reader.GetDateTime(3),
+                        chatToken = reader.GetString(4)
+                    });
+                }
+        
+                // Also get the chat "owner" (first unique sender)
+                string chatOwner = null;
+                if (messages.Count > 0)
+                {
+                    // Assuming the first message's sender is the chat owner
+                    chatOwner = ((dynamic)messages[0]).sender;
+                }
+        
+                return Results.Ok(new { 
+                    messages, 
+                    chatOwner 
+                });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = "Could not fetch messages", error = ex.Message });
+            }
+        });
+        
+        
+        
+        
+
         // User Endpoints
         app.MapPost("/api/users", async (UserForm user, NpgsqlDataSource db, IEmailService emailService) =>
         {
@@ -217,94 +346,8 @@ public class Program // Deklarerar huvudklassen Program
         
 
 
-        app.MapGet("/api/chat/latest/{chatToken}",
-            async (string chatToken, NpgsqlDataSource db) =>
-            {
-                try
-                {
-                    using var cmd = db.CreateCommand(@"
-                    SELECT chat_token, sender, message, submitted_at
-                    FROM chat_messages 
-                    WHERE chat_token = @chat_token
-                    ORDER BY submitted_at DESC
-                    LIMIT 1");
-
-                    cmd.Parameters.AddWithValue("chat_token", chatToken);
-
-                    await using var reader = await cmd.ExecuteReaderAsync();
-            
-                    if (await reader.ReadAsync())
-                    {
-                        var message = new
-                        {
-                            chatToken = reader.GetString(0),
-                            sender = reader.GetString(1),
-                            message = reader.GetString(2),
-                            submitted_at = reader.GetDateTime(3)
-                        };
-
-                        return Results.Ok(message);
-                    }
-
-                    return Results.NotFound("No message found");
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(new { message = "Kunde inte fetcha chat", error = ex.Message });
-                }
-            });
-
-        app.MapPost("/api/chat/message", async (ChatMessage message, NpgsqlDataSource db) =>
-
-        {
-
-            try
-
-            {
-
-                using var cmd = db.CreateCommand(@"
-
-            INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
-
-            VALUES (@chat_token, @sender, @message, @submitted_at)");
- 
-                cmd.Parameters.AddWithValue("chat_token", message.ChatToken);
-
-                cmd.Parameters.AddWithValue("sender", message.Sender);
-
-                cmd.Parameters.AddWithValue("message", message.Message);
-
-                cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow);
- 
-                await cmd.ExecuteNonQueryAsync();
- 
-                return Results.Ok(new { message = "Message sent successfully" });
-
-            }
-
-            catch (Exception ex)
-
-            {
-
-                return Results.BadRequest(new { message = "Could not send message", error = ex.Message });
-
-            }
-
-        });
-
-            
-                
        
-
-        /*app.MapGet("/api/users/{id}",
-            async (int id, AppDbContext db) => // Mappar GET-begäran för att hämta en användare baserat på ID
-            {
-                var user = await db.Users.FindAsync(id); // Söker efter användaren med det angivna ID:et asynkront
-                return
-                    user is null
-                        ? Results.NotFound()
-                        : Results.Ok(user); // Returnerar NotFound om användaren inte hittas, annars OK med användaren
-            }); */
+       
 
         // Fordon Form Endpoints
 app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IEmailService emailService, IConfiguration config, ILogger<Program> logger) =>
@@ -350,6 +393,7 @@ app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IE
         // Slutför transaktionen
         await transaction.CommitAsync();
 
+        // Skapa chattlänk efter lyckad databastransaktion
         var baseUrl = config["AppSettings:BaseUrl"] ?? "http://localhost:3001";
         var chatLink = $"{baseUrl}/chat/{submission.ChatToken}";
 
@@ -405,7 +449,6 @@ app.MapPost("/api/tele", async (TeleForm submission, NpgsqlDataSource db, IEmail
             INSERT INTO tele_forms (first_name, email, service_type, issue_type, message, chat_token, submitted_at, is_chat_active, company_type)
             VALUES (@first_name, @email, @service_type, @issue_type, @message, @chat_token, @submitted_at, @is_chat_active, @company_type)", connection, transaction);
 
-        
         cmd.Parameters.AddWithValue("first_name", submission.FirstName);
         cmd.Parameters.AddWithValue("email", submission.Email);
         cmd.Parameters.AddWithValue("service_type", submission.ServiceType);
@@ -415,8 +458,6 @@ app.MapPost("/api/tele", async (TeleForm submission, NpgsqlDataSource db, IEmail
         cmd.Parameters.AddWithValue("submitted_at", submission.SubmittedAt);
         cmd.Parameters.AddWithValue("is_chat_active", submission.IsChatActive);
         cmd.Parameters.AddWithValue("company_type", submission.CompanyType);
-        
-        
 
         await cmd.ExecuteNonQueryAsync();
 
@@ -573,15 +614,15 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
                 cmd.Parameters.AddWithValue("email", message.Email);
                 cmd.Parameters.AddWithValue("form_type", message.FormType);
 
-        await cmd.ExecuteNonQueryAsync();
+                await cmd.ExecuteNonQueryAsync();
 
-        return Results.Ok(new { message = "Initial message created" });
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(new { message = "Could not create initial message", error = ex.Message });
-    }
-});
+                return Results.Ok(new { message = "Initial message created" });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = "Could not create initial message", error = ex.Message });
+            }
+        });
 
          // Hämta första meddelandet från formulär via chatToken
         app.MapGet("/api/initial-message/{chatToken}", async (string chatToken, NpgsqlDataSource db) =>
@@ -595,31 +636,30 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
 
                 cmd.Parameters.AddWithValue("chat_token", chatToken);
 
-        using var reader = await cmd.ExecuteReaderAsync();
-        if (await reader.ReadAsync())
-        {
-            var initialMessage = new
+                using var reader = await cmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    var initialMessage = new
+                    {
+                        chatToken = reader.GetString(0),
+                        sender = reader.GetString(1),
+                        message = reader.GetString(2),
+                        submittedAt = reader.GetDateTime(3),
+                        issueType = reader.GetString(5),
+                        formType = reader.GetString(6)
+                    };
+
+                    return Results.Ok(initialMessage);
+                }
+
+                return Results.NotFound("No initial message found with this chat token");
+            }
+            catch (Exception ex)
             {
-                chatToken = reader.GetString(0),
-                sender = reader.GetString(1),
-                message = reader.GetString(2),
-                submittedAt = reader.GetDateTime(3),
-                issueType = reader.GetString(5),
-                formType = reader.GetString(6)
-            };
-
-            return Results.Ok(initialMessage);
-        }
-
-        return Results.NotFound("No initial message found with this chat token");
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(new { message = "Could not fetch initial message", error = ex.Message });
-    }
-});
-      
-
+                return Results.BadRequest(new { message = "Could not fetch initial message", error = ex.Message });
+            }
+        });
+              
         // Tickets endpoint
         app.MapGet("/api/tickets", async (NpgsqlDataSource db) => // Mappar GET-begäran för att hämta ärenden
         {

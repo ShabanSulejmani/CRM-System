@@ -4,11 +4,12 @@ import EmojiPicker from "emoji-picker-react";
 
 export default function Chat() {
     const { token } = useParams();
-    const navigate = useNavigate(); // Add useNavigate hook
+    const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const [message, setMessage] = useState(""); 
     const [messages, setMessages] = useState([]);
-    const [chatData, setChatData] = useState(null);
+    const [chatOwner, setChatOwner] = useState(null);
+    const [userName, setUserName] = useState("You"); // Default user name
     const emojiPickerRef = useRef(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -16,70 +17,69 @@ export default function Chat() {
     const intervalRef = useRef(null);
     const modalRef = useRef(null);
 
-    // Combined fetch function
-    const fetchData = async () => {
+    // Simple fetch for chat messages
+    const fetchMessages = async () => {
         if (!token) return;
 
         try {
-            const [chatResponse, messagesResponse] = await Promise.all([
-                fetch(`/api/chat/${token}`),
-                fetch(`/api/chat/messages/${token}`)
-            ]);
+            const response = await fetch(`/api/chat/messages/${token}`);
 
-            if (!chatResponse.ok || !messagesResponse.ok) {
-                throw new Error('Kunde inte hämta chattdata');
+            if (!response.ok) {
+                throw new Error(`Kunde inte hämta chatmeddelanden: ${response.status}`);
             }
-
-            const [chatInfo, chatMessages] = await Promise.all([
-                chatResponse.json(),
-                messagesResponse.json()
-            ]);
-
-            console.log('Received data:', { chatInfo, chatMessages });
             
-            setChatData(chatInfo);
-            setMessages(chatMessages);
+            const data = await response.json();
+            console.log('Chat data:', data);
+            
+            // Set messages from response
+            setMessages(data.messages);
+            
+            // Set chat owner (first sender)
+            if (data.chatOwner && !chatOwner) {
+                setChatOwner(data.chatOwner);
+                
+                // If we haven't set a user name yet, set it to something different than the chat owner
+                if (userName === "You") {
+                    setUserName(data.chatOwner === "Support" ? "You" : "Support");
+                }
+            }
+            
             setError(null);
         } catch (err) {
-            console.error('Error fetching data:', err);
+            console.error('Error fetching messages:', err);
             setError(err.message);
         } finally {
             setLoading(false);
         }
     };
 
-    // Initial fetch and polling
+    // Set up initial fetch and polling
     useEffect(() => {
         console.log('Setting up chat with token:', token);
         
-        // Initial fetch
-        fetchData();
+        // Initial data fetch
+        fetchMessages();
 
-        // Set up polling
+        // Set up polling every 5 seconds
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
         }
-        intervalRef.current = setInterval(fetchData, 5000);
+        intervalRef.current = setInterval(fetchMessages, 5000);
 
-        return () => clearInterval(intervalRef.current);
+        // Clean up interval on component unmount
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
     }, [token]);
-
-    // Debug state changes
-    useEffect(() => {
-        console.log('State updated:', {
-            loading,
-            hasChat: !!chatData,
-            messageCount: messages.length,
-            error
-        });
-    }, [loading, chatData, messages, error]);
 
     // Scroll to bottom when messages change
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    // Close modal when clicking outside (keeping this from original)
+    // Close emoji picker when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (
@@ -95,41 +95,41 @@ export default function Chat() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [open]);
 
-    // Add a function to handle closing the chat
+    // Handle closing the chat and navigating away
     const handleCloseChat = () => {
         // Clear the interval to stop polling
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
         }
         
-        // Navigate back or to a specific route
-        navigate('/'); // Navigate to home or another appropriate route
-        
-        // If you're using this in a modal context, you might want to call a parent function instead
-        // For example: props.onClose();
+        // Navigate back to home or specified route
+        navigate('/');
     };
 
+    // Handle sending a new message
     const handleSendMessage = async () => {
-        if (message.trim() === "" || !chatData) return;
+        if (message.trim() === "") return;
         
         // Store message locally before sending (for immediate UI feedback)
         const currentMessage = message.trim();
-        // Clear the input field immediately
+        
+        // Clear the input field immediately for better UX
         setMessage("");
         
         const messageToSend = {
             chatToken: token,
-            sender: chatData.firstName,
+            sender: userName,
             message: currentMessage
-            // Don't set timestamp - let the server handle it
+            // Server will handle timestamp
         };
         
-        // Add temporary message to UI (optional, for immediate feedback)
+        // Add temporary message to UI for immediate feedback
         const tempMessage = {
             id: `temp-${Date.now()}`,
-            sender: chatData.firstName,
+            sender: userName,
             message: currentMessage,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            chatToken: token
         };
         setMessages(prev => [...prev, tempMessage]);
     
@@ -147,24 +147,25 @@ export default function Chat() {
                 throw new Error('Kunde inte skicka meddelande');
             }
     
-            // Get the response data which should include the saved message with ID
+            // Get the server response with the saved message
             const result = await response.json();
             console.log('Message sent successfully:', result);
             
-            // Replace temporary message with server response or fetch fresh data
-            await fetchData();
+            // Refresh messages to get the official message with server timestamp
+            await fetchMessages();
         } catch (error) {
             console.error('Error sending message:', error);
             setError("Kunde inte skicka meddelande. Försök igen.");
-            // Optionally revert temporary message if sending failed
         }
     };
+
+    // Handle emoji selection
     const handleEmojiClick = (emojiObject) => {
         setMessage(prev => prev + emojiObject.emoji);
         setOpen(false);
     };
 
-    // Show loading skeleton (using original styling)
+    // Show loading skeleton
     if (loading) {
         return (
             <div className="chat-modal" ref={modalRef}>
@@ -187,7 +188,7 @@ export default function Chat() {
         );
     }
 
-    // Show error state (using original styling)
+    // Show error state
     if (error) {
         return (
             <div className="chat-modal" ref={modalRef}>
@@ -195,7 +196,7 @@ export default function Chat() {
                     <div className="chat-modal__error">
                         <p>{error}</p>
                         <button 
-                            onClick={fetchData}
+                            onClick={fetchMessages}
                             className="chat-modal__error-button"
                         >
                             Försök igen
@@ -206,28 +207,14 @@ export default function Chat() {
         );
     }
 
-    // Show empty state if no chat data (using original styling)
-    if (!chatData) {
-        return (
-            <div className="chat-modal" ref={modalRef}>
-                <div className="chat-modal__container">
-                    <div className="chat-modal__empty">
-                        Ingen chattdata tillgänglig
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // Main chat UI (using original styling)
+    // Main chat UI
     return (
         <div className="chat-modal" ref={modalRef}>
             <div className="chat-modal__container">
                 <div className="chat-modal__header">
-                    <h2 className="chat-modal__name">{chatData.firstName}</h2>
-                    {chatData.formType && 
-                        <div className="chat-modal__type">{chatData.formType}</div>
-                    }
+                    <h2 className="chat-modal__name">
+                        {chatOwner || "Chat"}
+                    </h2>
                     <button 
                         className="chat-modal__close" 
                         onClick={handleCloseChat}
@@ -237,21 +224,27 @@ export default function Chat() {
                 </div>
                 
                 <div className="chat-modal__messages">
-                    {messages.map((msg) => (
-                        <div 
-                            key={msg.id}
-                            className={`chat-modal__message ${
-                                msg.sender === chatData.firstName 
-                                    ? 'chat-modal__message--sent' 
-                                    : 'chat-modal__message--received'
-                            }`}
-                        >
-                            <p className="chat-modal__message-text">{msg.message}</p>
-                            <small className="chat-modal__message-timestamp">
-                                {new Date(msg.timestamp).toLocaleString()}
-                            </small>
+                    {messages.length === 0 ? (
+                        <div className="chat-modal__no-messages">
+                            Inga meddelanden än
                         </div>
-                    ))}
+                    ) : (
+                        messages.map((msg) => (
+                            <div 
+                                key={msg.id}
+                                className={`chat-modal__message ${
+                                    msg.sender === userName 
+                                        ? 'chat-modal__message--sent' 
+                                        : 'chat-modal__message--received'
+                                }`}
+                            >
+                                <p className="chat-modal__message-text">{msg.message}</p>
+                                <small className="chat-modal__message-timestamp">
+                                    {new Date(msg.timestamp).toLocaleString()}
+                                </small>
+                            </div>
+                        ))
+                    )}
                     <div ref={messagesEndRef} />
                 </div>
 
