@@ -8,6 +8,7 @@ import StaffDashboard from './pages/StaffDashboard/Header';
 import StaffLogin from './pages/StaffLogin';
 import Chat from './pages/Chat';
 import Faq from './pages/Faq';
+import UpdateUserInfo from './pages/UpdatePassword';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="staff">
             <Route path="login" element={<StaffLogin />} />
             <Route path="dashboard" element={<StaffDashboard />} />
+            <Route path="update-user" element={<UpdateUserInfo />} />
           </Route>
           
           <Route path="faq" element={<Faq />} />

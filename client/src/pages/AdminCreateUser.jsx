@@ -2,11 +2,13 @@ import { useState } from 'react';
 
 function AdminCreateUser() {
   const [formData, setFormData] = useState({
+    email: '',
     firstName: '',
     password: '',
     company: '',
-    role: '',
+    role: 'staff',
   });
+
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -15,29 +17,45 @@ function AdminCreateUser() {
     setIsSubmitting(true);
     setMessage('');
 
+    console.log('Submitting form data:', formData);
+
     try {
       const response = await fetch('/api/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          password: formData.password,
+          company: formData.company,
+          role: formData.role,
+          email: formData.email,
+        })
       });
 
+      // Log raw response for debugging
+      console.log('Response status:', response.status);
+      
+      const result = await response.json();
+      console.log('Response body:', result);
+
       if (response.ok) {
-        const result = await response.json();
         setMessage('Användare skapades framgångsrikt!');
         setFormData({
+          email: '',
           firstName: '',
           password: '',
           company: '',
-          role: '',
+          role: 'staff',
         });
       } else {
-        setMessage('Ett fel uppstod när användaren skulle skapas.');
+        // Log and display detailed error
+        console.error('Error response:', result);
+        setMessage(result.message || JSON.stringify(result));
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Fetch error:', error);
       setMessage('Ett fel uppstod vid anslutning till servern.');
     } finally {
       setIsSubmitting(false);
@@ -54,9 +72,18 @@ function AdminCreateUser() {
 
   return (
     <div className="login-border">
-      <h1 className="admin-login">Skapa användare</h1>
-
       <form onSubmit={handleSubmit} className="login-container">
+        <h1 className="admin-login">Skapa användare</h1>
+        <input type="text"
+        name='email'
+        placeholder='Ange en e-postadress'
+        value={formData.email}
+        onChange={handleInputChange}
+        className="login-bar"
+        required
+        
+        />
+
         <input
           type="text"
           name="firstName"
@@ -97,10 +124,9 @@ function AdminCreateUser() {
           className="login-bar"
           required
         >
-          <option value="">Välj roll</option>
-          <option value="admin">Super-admin</option>
-          <option value="user">Företags-admin</option>
           <option value="staff">Kundtjänst</option>
+          <option value="user">Företags-admin</option>
+          <option value="admin">Super-admin</option>
         </select>
 
         {message && (

@@ -65,6 +65,13 @@ function Layout() {
                 >
                   Dashboard
                 </NavLink>
+
+                <NavLink 
+                  to={"/staff/update-user"}
+                >
+                  Update password
+                </NavLink>
+
               </div>
 
               {/* Chat */}

@@ -10,61 +10,85 @@ function UserAndTicketPage() {
   const [viewMode, setViewMode] = useState('users'); // 'users' or 'tickets'
 
   // Funktion för att hämta alla användare
-  async function fetchUsers(){
+  async function fetchUsers() {
     try {
       setLoading(true);
-      
       const response = await fetch("/api/users");
       
       if (!response.ok) {
-        throw new Error('Något gick fel vid hämtning av användardata');
+        // First try to get error as text
+        const errorText = await response.text();
+        console.log('Server error details:', errorText);
+        throw new Error(`Server error: ${errorText}`);
       }
       
-      const data = response.json();
-      setUsers(data);
+      const data = await response.json();
+      console.log('Received user data:', data);
+      
+      // Transform the data to match your API response format
+      const transformedUsers = Array.isArray(data) ? data.map(user => ({
+        id: user.id,
+        firstName: user.firstName,
+        company: user.company,
+        role: user.role,
+        email: user.email,
+      })) : [];
+      
+      setUsers(transformedUsers);
       setError(null);
     } catch (err) {
-      setError(err.message);
-      console.error('Fel vid hämtning av användare:', err);
+      setError(`Failed to fetch users: ${err.message}`);
+      console.error('Full error details:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }
+  
 
   // Funktion för att hämta alla ärenden
-  async function fetchTickets(){
+  async function fetchTickets() {
     try {
       setLoading(true);
-      
       const response = await fetch("/api/tickets");
       
       if (!response.ok) {
-        throw new Error('Något gick fel vid hämtning av ärenden');
+        throw new Error('Failed to fetch tickets');
       }
       
-      const data = response.json();
-      setTickets(data);
+      const data = await response.json();
+      // Transform the data to match the API response
+      const transformedTickets = Array.isArray(data) ? data.map(ticket => ({
+        chatToken: `http://localhost:3001/chat/${ticket.chatToken}`,
+        sender: ticket.sender,
+        message: ticket.message,
+        timestamp: ticket.timestamp,
+        issueType: ticket.issueType,
+        formType: ticket.formType
+      })) : [];
+      
+      setTickets(transformedTickets);
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('Fel vid hämtning av ärenden:', err);
+      console.error('Error fetching tickets:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }
+  
 
   // Funktion för att uppdatera en användare
-  async function updateUser(userId, user){
+  async function updateUser(userId, user) {
     const newFirstName = prompt("Ange nytt förnamn (eller lämna tomt för att behålla):", user.firstName);
-    const newPassword = prompt("Ange nytt lösenord (eller lämna tomt för att behålla):", user.password);
-    const newRole = prompt("Ange ny roll (eller lämna tomt för att behålla):", user.role);
+    const newPassword = prompt("Ange nytt lösenord (eller lämna tomt för att behålla):", "");
     const newCompany = prompt("Ange nytt företag (eller lämna tomt för att behålla):", user.company);
-  
+    const newRole = prompt("Ange ny roll (staff/admin):", user.role);
+
     const updatedUserData = {
-      firstName: newFirstName?.trim() || user.firstName,  // Behåll det gamla värdet om det är tomt
-      password: newPassword?.trim() || user.password,
-      role: newRole?.trim() || user.role,
-      company: newCompany?.trim() || user.company
+        firstName: newFirstName?.trim() || user.firstName,
+        password: newPassword?.trim(),
+        company: newCompany?.trim() || user.company,
+        role: newRole?.trim() || user.role
     };
   
     try {
@@ -80,10 +104,10 @@ function UserAndTicketPage() {
         throw new Error("Något gick fel vid uppdatering av användaren");
       }
   
-      const result = response.json();
+      const result = await response.json();
       alert(result.message);
   
-      // Uppdatera UI:t
+      // Update UI with the new data
       setUsers(prevUsers =>
         prevUsers.map(u => (u.id === userId ? { ...u, ...updatedUserData } : u))
       );
@@ -91,39 +115,42 @@ function UserAndTicketPage() {
       console.error("Fel vid uppdatering av användare:", err);
       alert(`Fel vid uppdatering: ${err.message}`);
     }
-  };
+  }
 
   // Funktion för att ta bort en användare
-  async function deleteUser(userId){
+  async function deleteUser(userId) {
     if (!window.confirm('Är du säker på att du vill ta bort denna användare?')) {
       return;
     }
-
+  
     try {
       setDeleteLoading(true);
       
-      // Anropa API:et för att ta bort användaren
       const response = await fetch(`/api/users/${userId}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error('Något gick fel vid borttagning av användaren');
+        throw new Error(data.message || 'Något gick fel vid borttagning av användaren');
       }
       
-      // Ta bort användaren från lokal state för att uppdatera UI:t direkt
       setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
-      
       alert('Användaren har tagits bort');
+      
     } catch (err) {
+      console.error('Delete error details:', err);
       setError(err.message);
-      console.error('Fel vid borttagning av användare:', err);
       alert(`Fel vid borttagning: ${err.message}`);
     } finally {
       setDeleteLoading(false);
     }
-  };
-
+  }
+  
   // Körs när komponenten laddas eller viewMode ändras
   useEffect(() => {
     if (viewMode === 'users') {
@@ -173,7 +200,7 @@ function UserAndTicketPage() {
           <option value="">Alla företag</option>
           <option value="fordon">fordon</option>
           <option value="tele">tele</option>
-          <option value="försäkring">försäkring</option>
+          <option value="forsakring">försäkring</option>
         </select>
         <button 
           onClick={viewMode === 'users' ? fetchUsers : fetchTickets} 
@@ -183,91 +210,8 @@ function UserAndTicketPage() {
           {loading ? 'Laddar...' : 'Uppdatera lista'}
         </button>
       </div>
-
-      {loading ? (
-        <p>Laddar data...</p>
-      ) : error ? (
-        <p className="error-message">Fel: {error}</p>
-      ) : viewMode === 'users' ? (
-        // Visa användartabell
-        <div className="list-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Förnamn</th>
-                <th>Lösenord</th>
-                <th>Företag</th>
-                <th>Roll</th>
-                <th>Åtgärder</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map(user => (
-                  <tr key={user.id}>
-                    <td>{user.firstName}</td>
-                    <td>{user.password}</td>
-                    <td>{user.company}</td>
-                    <td>{user.role}</td>
-                    <td>
-                      <button 
-                        className="edit-button" 
-                        onClick={() => updateUser(user.id, user)}
-                      >
-                        Redigera
-                      </button>
-                      <button 
-                        className="delete-button"
-                        onClick={() => deleteUser(user.id)}
-                        disabled={deleteLoading}
-                      >
-                        Ta bort
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5">Inga användare hittades</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        // Visa ärendetabell
-        <div className="list-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Meddelande</th>
-                <th>Tidpunkt</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTickets.length > 0 ? (
-  filteredTickets.map((ticket, index) => (
-    <tr key={ticket.id || `ticket-${index}`}>
-      <td>{ticket.id}</td>
-      <td>{ticket.message || 'Inget meddelande'}</td>
-      <td>{new Date(ticket.timestamp).toLocaleString('sv-SE')}</td>
-      <td>{ticket.status || 'Ingen status'}</td>
-    </tr>
-  ))
+    );
+  }
   
-              ) : (
-                <tr>
-                  <td colSpan="4">Inga ärenden hittades</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default UserAndTicketPage;
+  export default AdminDashboard;
+  

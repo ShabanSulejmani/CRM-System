@@ -247,6 +247,44 @@ public class Program // Deklarerar huvudklassen Program
                     return Results.BadRequest(new { message = "Kunde inte fetcha chat", error = ex.Message });
                 }
             });
+        app.MapDelete("/api/users/{id}",
+            async (int id, AppDbContext db) =>
+            {
+                try
+                {
+                    var user = await db.Users.FindAsync(id);
+                    if (user == null)
+                    {
+                        return Results.NotFound(new { message = "Användaren hittades inte" });
+                    }
+
+                    db.Users.Remove(user);
+                    await db.SaveChangesAsync();
+                    return Results.Ok(new { message = "Användaren har tagits bort" });
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(new { message = "Kunde inte ta bort användaren", error = ex.Message });
+                }
+            });
+        // PUT: Uppdatera en användare
+        app.MapPut("/api/users/{id}", async (int id, UserForm updatedUser, AppDbContext db) =>
+        {
+            var user = await db.Users.FindAsync(id);
+            if (user == null)
+            {
+                return Results.NotFound(new { message = "Användaren hittades inte" });
+            }
+
+            user.FirstName = updatedUser.FirstName;
+            user.Password = updatedUser.Password;
+            user.Company = updatedUser.Company;
+            user.Role_id = updatedUser.Role_id; // Fix the mapping here
+
+            await db.SaveChangesAsync();
+            return Results.Ok(new { message = "Användaren har uppdaterats", user });
+        });
+
 
         app.MapPost("/api/chat/message", async (ChatMessage message, NpgsqlDataSource db) =>
 
