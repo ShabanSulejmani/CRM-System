@@ -11,7 +11,7 @@ public class Program // Deklarerar huvudklassen Program
 {
     public static void Main(string[] args) // Deklarerar huvudmetoden Main
     {
-        NpgsqlDataSource postgresdb = NpgsqlDataSource.Create("Host=aws-0-eu-north-1.pooler.supabase.com;Port=6543;Database=postgres;Username=postgres.mwuzqdjbcmwyyftrdesb;Password=Mandelmassa25;Include Error Detail=true;Command Timeout=60;SSL Mode=Require;Trust Server Certificate=true");
+        NpgsqlDataSource postgresdb = NpgsqlDataSource.Create("Host=45.10.162.204;Port=5438;Database=test_db;Username=postgres;Password=_FrozenPresidentSmacks!;");
         var builder = WebApplication.CreateBuilder(args); // Skapar en WebApplicationBuilder
         
         builder.Services.AddEndpointsApiExplorer(); // Lägger till API Explorer för Swagger
@@ -103,7 +103,7 @@ public class Program // Deklarerar huvudklassen Program
         {
             try
             {
-                using var cmd = db.CreateCommand(@"
+               await using var cmd = db.CreateCommand(@"
             INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
             VALUES (@chat_token, @sender, @message, @submitted_at)
             RETURNING id, sender, message, submitted_at, chat_token");
@@ -113,7 +113,7 @@ public class Program // Deklarerar huvudklassen Program
                 cmd.Parameters.AddWithValue("message", message.Message);
                 cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow);
  
-                using var reader = await cmd.ExecuteReaderAsync();
+               await using var reader = await cmd.ExecuteReaderAsync();
         
                 if (await reader.ReadAsync())
                 {
@@ -142,7 +142,7 @@ public class Program // Deklarerar huvudklassen Program
             {
                 List<object> messages = new();
         
-                using var cmd = db.CreateCommand(@"
+             await using var cmd = db.CreateCommand(@"
             SELECT id, sender, message, submitted_at, chat_token
             FROM chat_messages 
             WHERE chat_token = @chat_token
@@ -150,7 +150,7 @@ public class Program // Deklarerar huvudklassen Program
         
                 cmd.Parameters.AddWithValue("chat_token", chatToken);
         
-                using var reader = await cmd.ExecuteReaderAsync();
+               await using var reader = await cmd.ExecuteReaderAsync();
         
                 while (await reader.ReadAsync())
                 {
@@ -202,9 +202,9 @@ public class Program // Deklarerar huvudklassen Program
                 };
 
                 user.CreatedAt = DateTime.UtcNow;
-                using var cmd = db.CreateCommand(@"
-                    INSERT INTO users (first_name, password, company, created_at, role_id)
-                    VALUES (@first_name, @password, @company, @created_at, @role_id)
+               await using var cmd = db.CreateCommand(@"
+                    INSERT INTO users (first_name, password, company, created_at, role_id, email)
+                    VALUES (@first_name, @password, @company, @created_at, @role_id, @email)
                     RETURNING first_name, company, created_at;");
 
                 cmd.Parameters.AddWithValue("first_name", user.FirstName);
@@ -214,7 +214,7 @@ public class Program // Deklarerar huvudklassen Program
                 cmd.Parameters.AddWithValue("role_id", 1);
                 cmd.Parameters.AddWithValue("email", user.Email);
 
-                using var reader = await cmd.ExecuteReaderAsync();
+               await using var reader = await cmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
                     await emailService.SendChangePasswordLink(
@@ -252,7 +252,7 @@ public class Program // Deklarerar huvudklassen Program
         {
             List<UserForm> users = new(); // Skapar en lista för att lagra användare
             
-            using var cmd = db.CreateCommand("SELECT users.\"Id\" as \"id\", users.first_name, users.company, users.role_id, users.email FROM users\n"); // Skapar en SQL-fråga för att hämta användare
+            await using var cmd = db.CreateCommand("SELECT users.\"Id\" as \"id\", users.first_name, users.company, users.role_id, users.email FROM users\n"); // Skapar en SQL-fråga för att hämta användare
             var reader = await cmd.ExecuteReaderAsync(); // Utför SQL-frågan och läser resultatet
             
             while (await reader.ReadAsync()) // Loopar igenom varje rad i resultatet
@@ -274,7 +274,7 @@ public class Program // Deklarerar huvudklassen Program
         {
             try
             {
-                using var cmd = db.CreateCommand(@"
+                await using var cmd = db.CreateCommand(@"
                     DELETE FROM users 
                     WHERE ""Id"" = @userId");
             
@@ -299,7 +299,7 @@ public class Program // Deklarerar huvudklassen Program
         {
             try
             {
-                using var cmd = db.CreateCommand(@"
+                await using var cmd = db.CreateCommand(@"
                 UPDATE users 
                 SET first_name = @first_name, 
                 password = CASE WHEN @password = '' THEN password ELSE @password END,
@@ -314,7 +314,7 @@ public class Program // Deklarerar huvudklassen Program
                 cmd.Parameters.AddWithValue("company", user.Company);
                 cmd.Parameters.AddWithValue("role_id", user.Role == "admin" ? 2 : 1);
 
-                using var reader = await cmd.ExecuteReaderAsync();
+                await using var reader = await cmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
                     return Results.Ok(new
@@ -353,8 +353,8 @@ public class Program // Deklarerar huvudklassen Program
 app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IEmailService emailService, IConfiguration config, ILogger<Program> logger) =>
 {
     // Skapa en anslutning som vi kan använda för transaktioner
-    using var connection = await db.OpenConnectionAsync();
-    using var transaction = await connection.BeginTransactionAsync();
+    await using var connection = await db.OpenConnectionAsync();
+    await using var transaction = await connection.BeginTransactionAsync();
     
     try
     {
@@ -362,7 +362,7 @@ app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IE
         submission.SubmittedAt = DateTime.UtcNow;
         submission.IsChatActive = true;
 
-        using var cmd = new NpgsqlCommand(@"
+        await using var cmd = new NpgsqlCommand(@"
             INSERT INTO fordon_forms (first_name, email, reg_nummer, issue_type, message, chat_token, submitted_at, is_chat_active, company_type)
             VALUES (@first_name, @email, @reg_nummer, @issue_type, @message, @chat_token, @submitted_at, @is_chat_active, @company_type)", connection, transaction);
 
@@ -378,7 +378,7 @@ app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IE
 
         await cmd.ExecuteNonQueryAsync();
 
-        using var chatCmd = new NpgsqlCommand(@"
+        await using var chatCmd = new NpgsqlCommand(@"
             INSERT INTO chat_messages ( sender, message, submitted_at, chat_token)
             VALUES ( @sender, @message, @submitted_at, @chat_token)", connection, transaction);
 
@@ -436,8 +436,8 @@ app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IE
 app.MapPost("/api/tele", async (TeleForm submission, NpgsqlDataSource db, IEmailService emailService, IConfiguration config, ILogger<Program> logger) =>
 {
     // Skapa en anslutning som vi kan använda för transaktioner
-    using var connection = await db.OpenConnectionAsync();
-    using var transaction = await connection.BeginTransactionAsync();
+   await using var connection = await db.OpenConnectionAsync();
+   await using var transaction = await connection.BeginTransactionAsync();
     
     try
     {
@@ -445,7 +445,7 @@ app.MapPost("/api/tele", async (TeleForm submission, NpgsqlDataSource db, IEmail
         submission.SubmittedAt = DateTime.UtcNow;
         submission.IsChatActive = true;
 
-        using var cmd = new NpgsqlCommand(@"
+        await using var cmd = new NpgsqlCommand(@"
             INSERT INTO tele_forms (first_name, email, service_type, issue_type, message, chat_token, submitted_at, is_chat_active, company_type)
             VALUES (@first_name, @email, @service_type, @issue_type, @message, @chat_token, @submitted_at, @is_chat_active, @company_type)", connection, transaction);
 
@@ -461,7 +461,7 @@ app.MapPost("/api/tele", async (TeleForm submission, NpgsqlDataSource db, IEmail
 
         await cmd.ExecuteNonQueryAsync();
 
-        using var chatCmd = new NpgsqlCommand(@"
+        await using var chatCmd = new NpgsqlCommand(@"
             INSERT INTO chat_messages ( sender, message, submitted_at, chat_token)
             VALUES ( @sender, @message, @submitted_at, @chat_token)", connection, transaction);
 
@@ -518,8 +518,8 @@ app.MapPost("/api/tele", async (TeleForm submission, NpgsqlDataSource db, IEmail
 app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSource db, IEmailService emailService, IConfiguration config, ILogger<Program> logger) =>
 {
     // Skapa en anslutning som vi kan använda för transaktioner
-    using var connection = await db.OpenConnectionAsync();
-    using var transaction = await connection.BeginTransactionAsync();
+    await using var connection = await db.OpenConnectionAsync();
+    await using var transaction = await connection.BeginTransactionAsync();
     
     try
     {
@@ -527,7 +527,7 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
         submission.SubmittedAt = DateTime.UtcNow;
         submission.IsChatActive = true;
 
-        using var cmd = new NpgsqlCommand(@"
+        await using var cmd = new NpgsqlCommand(@"
             INSERT INTO forsakrings_forms (first_name, email, insurance_type, issue_type, message, chat_token, submitted_at, is_chat_active, company_type)
             VALUES (@first_name, @email, @insurance_type, @issue_type, @message, @chat_token, @submitted_at, @is_chat_active, @company_type)", connection, transaction);
 
@@ -543,7 +543,7 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
 
         await cmd.ExecuteNonQueryAsync();
 
-        using var chatCmd = new NpgsqlCommand(@"
+        await using var chatCmd = new NpgsqlCommand(@"
             INSERT INTO chat_messages ( sender, message, submitted_at, chat_token)
             VALUES ( @sender, @message, @submitted_at, @chat_token)", connection, transaction);
 
@@ -602,7 +602,7 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
         {
             try
             {
-                using var cmd = db.CreateCommand(@"
+               await using var cmd = db.CreateCommand(@"
                     INSERT INTO initial_form_messages (chat_token, sender, message, submitted_at, issue_type, email, form_type)
                     VALUES (@chat_token, @sender, @message, @submitted_at, @issue_type, @email, @form_type)");
 
@@ -629,14 +629,14 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
         {
             try
             {
-                using var cmd = db.CreateCommand(@"
+               await using var cmd = db.CreateCommand(@"
                     SELECT chat_token, sender, message, submitted_at, issue_type, email, form_type 
                     FROM initial_form_messages 
                     WHERE chat_token = @chat_token");
 
                 cmd.Parameters.AddWithValue("chat_token", chatToken);
 
-                using var reader = await cmd.ExecuteReaderAsync();
+                await using var reader = await cmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
                     var initialMessage = new
@@ -666,9 +666,9 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
             List<GetTicketsDTO> tickets = new();
             try
             {
-                var cmd = db.CreateCommand("select chat_token, message, sender, submitted_at, issue_type, email, form_type from initial_form_messages"); // Skapar en SQL-fråga för att hämta ärenden
+              var  cmd = db.CreateCommand("select chat_token, message, sender, submitted_at, issue_type, email, form_type from initial_form_messages"); // Skapar en SQL-fråga för att hämta ärenden
 
-                var reader = await cmd.ExecuteReaderAsync();
+               var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
                     tickets.Add(new(

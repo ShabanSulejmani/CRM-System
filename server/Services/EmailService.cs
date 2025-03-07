@@ -1,8 +1,11 @@
+using server.Models;
+
 namespace server.Services;
 
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
+
 
 public class EmailService : IEmailService
 {
