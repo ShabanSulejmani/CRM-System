@@ -158,7 +158,7 @@ public class Program // Deklarerar huvudklassen Program
                await using var cmd = db.CreateCommand(@"
                     INSERT INTO users (first_name, password, company, created_at, role_id, email)
                     VALUES (@first_name, @password, @company, @created_at, @role_id, @email)
-                    RETURNING first_name, company, created_at;");
+                    RETURNING ""Id"", first_name, company, created_at;");
 
                 cmd.Parameters.AddWithValue("first_name", user.FirstName);
                 cmd.Parameters.AddWithValue("password", user.Password);
@@ -185,8 +185,7 @@ public class Program // Deklarerar huvudklassen Program
                             FirstName = reader.GetString(1),
                             Company = reader.GetString(2),
                             CreatedAt = reader.GetDateTime(3),
-                            Role = reader.GetString(4),
-                            Email = reader.GetString(5),
+                     
                         }
                     });
                 }
