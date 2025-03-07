@@ -35,13 +35,6 @@ public class Program // Deklarerar huvudklassen Program
                 });
         });
 
-        // Förbättrade JSON-inställningar
-        builder.Services.Configure<JsonOptions>(options =>
-        {
-            options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-            options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-        });
-
         builder.Services.AddScoped<IEmailService, EmailService>(); // Registrerar EmailService som en scopad tjänst
 
         var app = builder.Build(); // Bygger WebApplication-instansen
@@ -51,53 +44,13 @@ public class Program // Deklarerar huvudklassen Program
             app.UseSwagger(); // Aktiverar Swagger
             app.UseSwaggerUI(); // Aktiverar Swagger UI
         }
-
-        app.UseHttpsRedirection(); // Aktiverar HTTPS-omdirigering
+        
         app.UseCors("AllowReactApp"); // Använder CORS-policyn för React-appen
         app.UseAuthentication(); // Aktiverar autentisering
         app.UseAuthorization(); // Aktiverar auktorisering
         
-       
-        app.UseHttpsRedirection();
-        app.UseCors("AllowReactApp");
-        app.UseAuthentication();
-        app.UseAuthorization();
-
         // Lägg till middleware för debugging (kan tas bort i produktion)
-        app.Use(async (context, next) =>
-        {
-            // Spara originalposition för request body
-            var originalBodyStream = context.Request.Body;
-            
-            try
-            {
-                // Läs begäran om det är en POST till en av våra form-endpoints
-                string path = context.Request.Path.ToString().ToLower();
-                if (context.Request.Method == "POST" && 
-                    (path.Contains("/api/tele") || path.Contains("/api/fordon") || path.Contains("/api/forsakring")))
-                {
-                    // Endast debugga för specifika endpoints
-                    using var bodyReader = new StreamReader(context.Request.Body);
-                    var bodyAsText = await bodyReader.ReadToEndAsync();
-                    
-                    // Logga raw body
-                    Console.WriteLine($"Request for {context.Request.Path}: {bodyAsText}");
-                    
-                    // Återställ body
-                    var bodyMemoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(bodyAsText));
-                    bodyMemoryStream.Position = 0;
-                    context.Request.Body = bodyMemoryStream;
-                }
-
-                await next.Invoke();
-            }
-            finally
-            {
-                // Återställ den ursprungliga stream
-                context.Request.Body = originalBodyStream;
-            }
-        });
-        
+       
         
         app.MapPost("/api/chat/message", async (ChatMessage message, NpgsqlDataSource db) =>
         {
@@ -231,7 +184,9 @@ public class Program // Deklarerar huvudklassen Program
                             Id = reader.GetInt32(0),
                             FirstName = reader.GetString(1),
                             Company = reader.GetString(2),
-                            CreatedAt = reader.GetDateTime(3)
+                            CreatedAt = reader.GetDateTime(3),
+                            Role = reader.GetString(4),
+                            Email = reader.GetString(5),
                         }
                     });
                 }
@@ -242,7 +197,7 @@ public class Program // Deklarerar huvudklassen Program
             {
                 return Results.BadRequest(new
                 {
-                    message = "Kunde inte skapa användare",
+                    message = "Användare skapad", // Gris
                     error = ex.Message
                 });
             }
