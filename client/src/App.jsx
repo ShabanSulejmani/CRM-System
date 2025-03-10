@@ -3,7 +3,6 @@ import Layout from './Layout';
 import DynamiskForm from './DynamiskForm';
 import AdminCreateUser from './pages/AdminCreateUser';
 import AdminDashboard from './pages/AdminDashboard';
-import AdminLogin from './pages/AdminLogin';
 import StaffDashboard from './pages/StaffDashboard/Header';
 import StaffLogin from './pages/StaffLogin';
 import Chat from './pages/Chat';
@@ -22,7 +21,6 @@ function App() {
           <Route path="dynamisk" element={<DynamiskForm />} />
           
           <Route path="admin">
-            <Route path="login" element={<AdminLogin />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="create-user" element={<AdminCreateUser />} />
           </Route>
