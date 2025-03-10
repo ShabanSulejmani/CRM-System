@@ -1,5 +1,5 @@
 import React from 'react';
-import './aside.css';
+import './Aside.css';
 
 function Aside() {
   return (
@@ -19,7 +19,18 @@ function Aside() {
         <div className="staff-member">
           <div className="staff-member-content">
             <div className="staff-member-avatar">
-              <div className="avatar-placeholder">MH</div>
+              {/* Ersätt med Mario bild */}
+              <img 
+                src="/img/team-avatars/mh.jpg" 
+                alt="Mario" 
+                className="avatar-image"
+                onError={(e) => {
+                  // Fallback till placeholder om bilden inte laddas
+                  e.target.style.display = "none";
+                  e.target.nextElementSibling.style.display = "flex";
+                }}
+              />
+              <div className="avatar-placeholder" style={{display: "none"}}>MH</div>
             </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Martin</h3>
@@ -31,7 +42,17 @@ function Aside() {
         <div className="staff-member">
           <div className="staff-member-content">
             <div className="staff-member-avatar">
-              <div className="avatar-placeholder">WE</div>
+              {/* Ersätt med Luigi bild */}
+              <img 
+                src="/img/team-avatars/we.jpg" 
+                alt="Luigi" 
+                className="avatar-image"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.nextElementSibling.style.display = "flex";
+                }}
+              />
+              <div className="avatar-placeholder" style={{display: "none"}}>WE</div>
             </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Ville</h3>
@@ -43,7 +64,17 @@ function Aside() {
         <div className="staff-member">
           <div className="staff-member-content">
             <div className="staff-member-avatar">
-              <div className="avatar-placeholder">KL</div>
+              {/* Ersätt med Toad bild */}
+              <img 
+                src="/img/team-avatars/kl.jpg" 
+                alt="Toad" 
+                className="avatar-image"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.nextElementSibling.style.display = "flex";
+                }}
+              />
+              <div className="avatar-placeholder" style={{display: "none"}}>KL</div>
             </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Kevin</h3>
@@ -55,7 +86,17 @@ function Aside() {
         <div className="staff-member">
           <div className="staff-member-content">
             <div className="staff-member-avatar">
-              <div className="avatar-placeholder">SS</div>
+              {/* Ersätt med Yoshi bild */}
+              <img 
+                src="/img/team-avatars/ss.jpg" 
+                alt="Yoshi" 
+                className="avatar-image"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.nextElementSibling.style.display = "flex";
+                }}
+              />
+              <div className="avatar-placeholder" style={{display: "none"}}>SS</div>
             </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Shaban</h3>
@@ -67,7 +108,17 @@ function Aside() {
         <div className="staff-member">
           <div className="staff-member-content">
             <div className="staff-member-avatar">
-              <div className="avatar-placeholder">SB</div>
+              {/* Ersätt med Bowser bild */}
+              <img 
+                src="/img/team-avatars/sb.jpg" 
+                alt="Bowser" 
+                className="avatar-image"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.nextElementSibling.style.display = "flex";
+                }}
+              />
+              <div className="avatar-placeholder" style={{display: "none"}}>SB</div>
             </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Sigge</h3>
@@ -79,7 +130,17 @@ function Aside() {
         <div className="staff-member">
           <div className="staff-member-content">
             <div className="staff-member-avatar">
-              <div className="avatar-placeholder">SHN</div>
+              {/* Ersätt med Princess Peach bild */}
+              <img 
+                src="/img/team-avatars/shn.jpg" 
+                alt="Princess Peach" 
+                className="avatar-image"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.nextElementSibling.style.display = "flex";
+                }}
+              />
+              <div className="avatar-placeholder" style={{display: "none"}}>SHN</div>
             </div>
             <div className="staff-member-info">
               <h3 className="staff-member-name">Sebbe</h3>

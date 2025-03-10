@@ -1,8 +1,22 @@
 /* Styling för avatar */
 .staff-member-avatar {
   margin-right: 12px;
+  position: relative;
+  width: 40px;
+  height: 40px;
 }
 
+/* Styling för bildavatarer */
+.avatar-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover; /* Ser till att bilden täcker området utan att förvrängas */
+  background-color: white; /* Bakgrund för transparenta bilder */
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Gamla placeholder-stilen bevaras som fallback */
 .avatar-placeholder {
   width: 40px;
   height: 40px;
@@ -45,4 +59,11 @@
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.7);
   margin: 0;
+}
+
+/* Hover-effekt för avatar-bilder */
+.avatar-image:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
