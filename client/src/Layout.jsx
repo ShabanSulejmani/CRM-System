@@ -1,12 +1,20 @@
 // Layout.jsx
 import { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user, logout, isLoggedIn } = useAuth();
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
+  };
+  
+  const handleLogout = () => {
+    logout();
+    navigate('/staff/login');
   };
 
   return (
@@ -45,48 +53,53 @@ function Layout() {
                 </NavLink>
               </div>
 
-              {/* Admin NavLinks */}
-              <div>
-                <h2>Admin</h2>
-                
+              {/* Admin NavLinks - Visas endast när användaren är inloggad som admin */}
+              {isLoggedIn && user.role === 'admin' && (
+                <div>
+                  <h2>Admin</h2>
+                  <NavLink 
+                    to={"/admin/dashboard"} 
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Dashboard
+                  </NavLink>
 
-                <NavLink 
-                  to={"/admin/dashboard"} 
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Dashboard
-                </NavLink>
-
-                <NavLink 
-                  to={"/admin/create-user"}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Create User
-                </NavLink>
-              </div>
+                  <NavLink 
+                    to={"/admin/create-user"}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Create User
+                  </NavLink>
+                </div>
+              )}
 
               {/* Staff NavLinks */}
               <div>
                 <h2>Staff</h2>
-                <NavLink 
-                  to={"/staff/login"}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Login
-                </NavLink>
-                <NavLink 
-                  to={"/staff/dashboard"}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Dashboard
-                </NavLink>
+                {!isLoggedIn ? (
+                  <NavLink 
+                    to={"/staff/login"}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Login
+                  </NavLink>
+                ) : (
+                  <>
+                    <NavLink 
+                      to={"/staff/dashboard"}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Dashboard
+                    </NavLink>
 
-                <NavLink 
-                  to={"/staff/update-user"}
-                >
-                  Update password
-                </NavLink>
-
+                    <NavLink 
+                      to={"/staff/update-user"}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Update password
+                    </NavLink>
+                  </>
+                )}
               </div>
 
               {/* Chat */}
@@ -97,11 +110,19 @@ function Layout() {
                 Chat
               </NavLink>
             </div>
-            {/* Login icon on the right */}
+            
+            {/* Login/Användarinfo till höger */}
             <div className="navbar-right">
-              <a href="">
-                <img src="/img/login.png" alt="Logga in" className="login-img"/>
-              </a>
+              {isLoggedIn ? (
+                <div className="user-menu">
+                  <span className="user-name">{user.username}</span>
+                  <button onClick={handleLogout} className="logout-button">Logga ut</button>
+                </div>
+              ) : (
+                <NavLink to="/staff/login">
+                  <img src="/img/login.png" alt="Logga in" className="login-img"/>
+                </NavLink>
+              )}
             </div>
           </div>
         </div>

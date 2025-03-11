@@ -9,21 +9,19 @@ import StaffLogin from './pages/StaffLogin';
 import Chat from './pages/Chat';
 import Faq from './pages/Faq';
 import UpdateUserInfo from './pages/UpdatePassword';
-import { useChat } from './ChatContext'; // Importera useChat hook
+import { useChat } from './ChatContext';
+import ProtectedRoute from './ProtectedRoute';
 
 function ChatRedirect({ match }) {
-  // Detta är en komponent som omdirigerar /chat/:token till huvudsidan och öppnar modalen
   const { openChat } = useChat();
   const token = window.location.pathname.split('/chat/')[1];
   
   useEffect(() => {
     if (token) {
-      // Öppna chatten via context när komponenten mountas
       openChat(token);
     }
   }, [token, openChat]);
   
-  // Omdirigera till huvudsidan
   return <Navigate to="/" replace />;
 }
 
@@ -31,7 +29,6 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Ersätt Chat-routen med ChatRedirect */}
         <Route path="/chat/:token" element={<ChatRedirect />} />
         
         <Route path="/" element={<Layout />}>
@@ -39,14 +36,30 @@ function App() {
           <Route path="dynamisk" element={<DynamiskForm />} />
           
           <Route path="admin">
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="create-user" element={<AdminCreateUser />} />
+            <Route path="dashboard" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="create-user" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminCreateUser />
+              </ProtectedRoute>
+            } />
           </Route>
           
           <Route path="staff">
             <Route path="login" element={<StaffLogin />} />
-            <Route path="dashboard" element={<StaffDashboard />} />
-            <Route path="update-user" element={<UpdateUserInfo />} />
+            <Route path="dashboard" element={
+              <ProtectedRoute>
+                <StaffDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="update-user" element={
+              <ProtectedRoute>
+                <UpdateUserInfo />
+              </ProtectedRoute>
+            } />
           </Route>
           
           <Route path="faq" element={<Faq />} />
