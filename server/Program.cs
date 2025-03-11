@@ -70,44 +70,164 @@ public class Program // Deklarerar huvudklassen Program
         // Lägg till middleware för debugging (kan tas bort i produktion)
        
         
+ app.MapPost("/api/chat/message", async (HttpContext context, ChatMessage message, NpgsqlDataSource db) =>
+{
+    try
+    {
+        // Check if user is logged in (staff/admin)
+        var isLoggedIn = context.Session.GetString("userId") != null;
+        var userFirstName = context.Session.GetString("userFirstName");
         
-        app.MapPost("/api/chat/message", async (ChatMessage message, NpgsqlDataSource db) =>
+        Console.WriteLine($"Processing chat message. IsLoggedIn: {isLoggedIn}, UserFirstName: {userFirstName}");
+        Console.WriteLine($"Original message sender: {message.Sender}");
+        
+        // If user is logged in as staff/admin, override the sender with the user's name from session
+        if (isLoggedIn && !string.IsNullOrEmpty(userFirstName))
         {
-            try
+            // Save original sender for logging
+            var originalSender = message.Sender;
+            message.Sender = userFirstName;
+            Console.WriteLine($"Changed sender from '{originalSender}' to '{userFirstName}' (logged in user)");
+        }
+        else
+        {
+            // For non-logged in users, we need to check if they're the original form submitter
+            await using var checkCmd = db.CreateCommand(@"
+                SELECT sender FROM chat_messages 
+                WHERE chat_token = @chat_token 
+                ORDER BY submitted_at ASC LIMIT 1");
+                
+            checkCmd.Parameters.AddWithValue("chat_token", message.ChatToken);
+            
+            var originalSender = await checkCmd.ExecuteScalarAsync() as string;
+            
+            // If we found the original sender, use that name consistently for non-logged in users
+            if (!string.IsNullOrEmpty(originalSender))
             {
-               await using var cmd = db.CreateCommand(@"
+                // Save current sender for logging
+                var currentSender = message.Sender;
+                message.Sender = originalSender;
+                Console.WriteLine($"Changed sender from '{currentSender}' to '{originalSender}' (original submitter)");
+            }
+        }
+
+        // Now insert the message with the correct sender
+        await using var cmd = db.CreateCommand(@"
             INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
             VALUES (@chat_token, @sender, @message, @submitted_at)
             RETURNING id, sender, message, submitted_at, chat_token");
  
-                cmd.Parameters.AddWithValue("chat_token", message.ChatToken);
-                cmd.Parameters.AddWithValue("sender", message.Sender);
-                cmd.Parameters.AddWithValue("message", message.Message);
-                cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow);
+        cmd.Parameters.AddWithValue("chat_token", message.ChatToken);
+        cmd.Parameters.AddWithValue("sender", message.Sender);
+        cmd.Parameters.AddWithValue("message", message.Message);
+        cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow);
  
-               await using var reader = await cmd.ExecuteReaderAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
         
-                if (await reader.ReadAsync())
-                {
-                    var createdMessage = new {
-                        id = reader.GetInt32(0),
-                        sender = reader.GetString(1),
-                        message = reader.GetString(2),
-                        timestamp = reader.GetDateTime(3),
-                        chatToken = reader.GetString(4)
-                    };
+        if (await reader.ReadAsync())
+        {
+            var createdMessage = new {
+                id = reader.GetInt32(0),
+                sender = reader.GetString(1),
+                message = reader.GetString(2),
+                timestamp = reader.GetDateTime(3),
+                chatToken = reader.GetString(4)
+            };
             
-                    return Results.Ok(createdMessage);
-                }
+            return Results.Ok(createdMessage);
+        }
         
-                return Results.BadRequest(new { message = "Message could not be created" });
-            }
-            catch (Exception ex)
+        return Results.BadRequest(new { message = "Message could not be created" });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { message = "Could not send message", error = ex.Message });
+    }
+});
+        
+app.MapPost("/api/login", async (HttpContext context, LoginRequest loginRequest, NpgsqlDataSource db) =>
+{
+    try
+    {
+        Console.WriteLine($"Inloggningsförsök: {loginRequest.Username}, {loginRequest.Password}");
+        
+        // Query that accepts both email and first_name as login identifiers
+        await using var cmd = db.CreateCommand(@"
+            SELECT ""Id"", first_name, company, role_id, email
+            FROM users
+            WHERE (email = @login_id OR LOWER(TRIM(first_name)) = LOWER(TRIM(@login_id)))
+            AND password = @password");
+
+        cmd.Parameters.AddWithValue("login_id", loginRequest.Username);
+        cmd.Parameters.AddWithValue("password", loginRequest.Password);
+
+        await using var reader = await cmd.ExecuteReaderAsync();
+        
+        if (await reader.ReadAsync())
+        {
+            var userId = reader.GetInt32(0);
+            var firstName = reader.GetString(1);
+            var company = reader.GetString(2);
+            
+            // Handle potential NULL values for role_id
+            int roleId = reader.IsDBNull(3) ? 1 : reader.GetInt32(3); // Default to 1 (Staff) if NULL
+            var email = reader.GetString(4);
+            
+            // Map role_id to the correct role based on your database structure
+            string roleName = roleId switch
             {
-                return Results.BadRequest(new { message = "Could not send message", error = ex.Message });
-            }
-        });
+                1 => "staff",     // ID 1 is Staff
+                2 => "admin",     // ID 2 is Admin
+                3 => "admin",     // ID 3 is Super-Admin (treated as admin in your app)
+                _ => "staff"      // Default to staff for any other value
+            };
+            
+            // Store user info in session
+            context.Session.SetString("userId", userId.ToString());
+            context.Session.SetString("userFirstName", firstName);
+            context.Session.SetString("userCompany", company);
+            context.Session.SetString("userRole", roleName);
+            context.Session.SetString("userEmail", email);
+            
+            Console.WriteLine($"Inloggning lyckades för användare: {firstName}, Roll: {roleName}, Företag: {company}");
+            
+            var user = new
+            {
+                id = userId,
+                username = firstName,
+                company = company,
+                role = roleName,
+                email = email
+            };
+            
+            return Results.Ok(new { success = true, user });
+        }
         
+        Console.WriteLine("Inloggning misslyckades: Användare hittades inte");
+        return Results.Unauthorized();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Inloggningsfel: {ex.Message}");
+        return Results.BadRequest(new { message = "Inloggningen misslyckades", error = ex.Message });
+    }
+});
+
+app.MapGet("/api/chat/auth-status", (HttpContext context) =>
+{
+    var userId = context.Session.GetString("userId");
+    var userFirstName = context.Session.GetString("userFirstName");
+    var userRole = context.Session.GetString("userRole");
+    
+    Console.WriteLine($"Auth status check: UserId={userId}, UserFirstName={userFirstName}, UserRole={userRole}");
+    
+    return Results.Ok(new { 
+        isLoggedIn = !string.IsNullOrEmpty(userId),
+        firstName = userFirstName ?? "",
+        role = userRole ?? ""
+    });
+});
+
         app.MapGet("/api/chat/messages/{chatToken}", async (string chatToken, NpgsqlDataSource db) =>
         {
             try
