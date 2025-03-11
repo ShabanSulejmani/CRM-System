@@ -9,7 +9,6 @@ export default function Chat() {
     const [message, setMessage] = useState(""); 
     const [messages, setMessages] = useState([]);
     const [chatOwner, setChatOwner] = useState(null);
-    const [userName, setUserName] = useState("You"); // Default user name
     const emojiPickerRef = useRef(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -17,8 +16,13 @@ export default function Chat() {
     const intervalRef = useRef(null);
     const modalRef = useRef(null);
 
+
+   
+    
     // Simple fetch for chat messages
     const fetchMessages = async () => {
+        
+        fetch('/api/set-session', { credentials: 'include' })
         if (!token) return;
 
         try {
