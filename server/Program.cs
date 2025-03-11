@@ -7,6 +7,18 @@ using Microsoft.AspNetCore.Http.Json;
 
 namespace server;
 
+public class LoginRequest
+{
+    public LoginRequest(string username, string password)
+    {
+        Username = username;
+        Password = password;
+    }
+
+    public string Username { get; set; }
+    public string Password { get; set; }
+}
+
 public class Program // Deklarerar huvudklassen Program
 {
     public static void Main(string[] args) // Deklarerar huvudmetoden Main
@@ -51,6 +63,7 @@ public class Program // Deklarerar huvudklassen Program
         
         // Lägg till middleware för debugging (kan tas bort i produktion)
        
+        
         
         app.MapPost("/api/chat/message", async (ChatMessage message, NpgsqlDataSource db) =>
         {
@@ -649,6 +662,50 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
             }
         });
 
+        app.MapPost("/api/login", async (LoginRequest loginRequest, NpgsqlDataSource db) =>
+        {
+            try
+            {
+                Console.WriteLine($"Inloggningsförsök: {loginRequest.Username}, {loginRequest.Password}");
+        
+                // Ändra SQL-frågan för att ignorera skiftläge och trimma whitespace
+                await using var cmd = db.CreateCommand(@"
+            SELECT ""Id"", first_name, company, role_id, email
+            FROM users
+            WHERE LOWER(TRIM(first_name)) = LOWER(TRIM(@username)) 
+            AND password = @password");
+
+                cmd.Parameters.AddWithValue("username", loginRequest.Username);
+                cmd.Parameters.AddWithValue("password", loginRequest.Password);
+
+                await using var reader = await cmd.ExecuteReaderAsync();
+        
+                if (await reader.ReadAsync())
+                {
+                    var user = new
+                    {
+                        id = reader.GetInt32(0),
+                        username = reader.GetString(1),
+                        company = reader.GetString(2),
+                        role = reader.GetInt32(3) == 1 ? "staff" : 
+                            reader.GetInt32(3) == 2 ? "user" : "admin",
+                        email = reader.GetValue(4)?.ToString() ?? ""
+                    };
+            
+                    Console.WriteLine($"Inloggning lyckades för användare: {user.username}");
+                    return Results.Ok(new { success = true, user });
+                }
+        
+                Console.WriteLine("Inloggning misslyckades: Användare hittades inte");
+                return Results.Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Inloggningsfel: {ex.Message}");
+                return Results.BadRequest(new { message = "Inloggningen misslyckades", error = ex.Message });
+            }
+        });
+        
         app.Run(); // Startar webbservern
     }
 
