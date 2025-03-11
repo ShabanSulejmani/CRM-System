@@ -4,16 +4,23 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 function Layout() {
+  // State for mobile menu
   const [menuOpen, setMenuOpen] = useState(false);
+  
+  // Get auth context and navigation
   const { user, logout, isLoggedIn } = useAuth();
   const navigate = useNavigate();
 
+  // Toggle mobile menu
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
   
-  const handleLogout = () => {
-    logout();
+  // Handle logout with backend session clearing
+  const handleLogout = async () => {
+    console.log("Logout initiated");
+    await logout(); // This now calls the backend logout endpoint
+    console.log("Logout completed, redirecting to login page");
     navigate('/staff/login');
   };
 
@@ -53,8 +60,8 @@ function Layout() {
                 </NavLink>
               </div>
 
-              {/* Admin NavLinks - Visas endast när användaren är inloggad som admin */}
-              {isLoggedIn && user.role === 'admin' && (
+              {/* Admin NavLinks - Only shown when user is logged in as admin */}
+              {isLoggedIn && user && user.role === 'admin' && (
                 <div>
                   <h2>Admin</h2>
                   <NavLink 
@@ -104,9 +111,9 @@ function Layout() {
               </NavLink>
             </div>
             
-            {/* Login/Användarinfo till höger */}
+            {/* Login/User info on right */}
             <div className="navbar-right">
-              {isLoggedIn ? (
+              {isLoggedIn && user ? (
                 <div className="user-menu">
                   <span className="user-name">{user.username}</span>
                   <button onClick={handleLogout} className="logout-button">Logga ut</button>
@@ -129,7 +136,7 @@ function Layout() {
       {/* Footer */}
       <footer>
         <div>
-          <p>&copy; { new Date().getFullYear()} All rights reversed</p>
+          <p>&copy; {new Date().getFullYear()} All rights reversed</p>
         </div>
       </footer>
     </div>

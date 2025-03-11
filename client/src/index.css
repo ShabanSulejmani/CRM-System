@@ -858,7 +858,7 @@ nav a[href="chat"]:hover {
 }
 
 .chat-modal__message--received .chat-modal__message-text {
-  background-color: white;
+  background-color: rgb(255, 255, 255);
   color: #1a2937;
 }
 

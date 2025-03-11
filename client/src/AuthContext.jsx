@@ -1,48 +1,94 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+// AuthContext.jsx
+import { createContext, useContext, useState, useEffect } from 'react';
 
-// Skapa en kontext för autentisering
+// Create the context
 const AuthContext = createContext();
 
-// Skapa en provider-komponent
-export function AuthProvider({ children }) {
-  // Kontrollera om användaren redan är inloggad från föregående session
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+export const AuthProvider = ({ children }) => {
+  // State for user, login status, and loading state
+  const [user, setUser] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
   
-  // Funktion för att hantera inloggning
+  // Check for existing login on mount
+  useEffect(() => {
+    const checkExistingLogin = () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          setIsLoggedIn(true);
+        } catch (error) {
+          console.error('Failed to parse stored user:', error);
+          localStorage.removeItem('user');
+        }
+      }
+      setLoading(false);
+    };
+    
+    checkExistingLogin();
+  }, []);
+  
+  // Login function - stores user in state and localStorage
   const login = (userData) => {
     setUser(userData);
+    setIsLoggedIn(true);
     localStorage.setItem('user', JSON.stringify(userData));
   };
   
-  // Funktion för att hantera utloggning
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  // Logout function - clears backend session and local state
+  const logout = async () => {
+    try {
+      console.log("Logging out user on server...");
+      
+      // Call backend logout endpoint to clear session
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include', // Important: Include cookies for session
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to logout on server: ${errorData.message || response.statusText}`);
+      }
+      
+      console.log('Server session cleared successfully');
+    } catch (error) {
+      console.error('Error logging out from server:', error);
+    } finally {
+      // Even if server logout fails, clear local state
+      setUser(null);
+      setIsLoggedIn(false);
+      localStorage.removeItem('user');
+      console.log('Local user state cleared');
+    }
   };
   
-  // Kontextvärde som ska tillhandahållas
-  const value = {
-    user,
-    login,
-    logout,
-    isLoggedIn: !!user
-  };
-  
+  // Provide the context values to components
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoggedIn, 
+      loading, 
+      login, 
+      logout 
+    }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-// Egen hook för att använda auth-kontexten
-export function useAuth() {
+// Custom hook for using the auth context
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth måste användas inom en AuthProvider');
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}
+};
+
+export default AuthContext;
