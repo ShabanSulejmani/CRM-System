@@ -76,14 +76,7 @@ function Layout() {
               {/* Staff NavLinks */}
               <div>
                 <h2>Staff</h2>
-                {!isLoggedIn ? (
-                  <NavLink 
-                    to={"/staff/login"}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Login
-                  </NavLink>
-                ) : (
+                {isLoggedIn && (
                   <>
                     <NavLink 
                       to={"/staff/dashboard"}
