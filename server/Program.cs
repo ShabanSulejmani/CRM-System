@@ -31,7 +31,13 @@ public class Program // Deklarerar huvudklassen Program
         builder.Services.AddAuthentication(); // Lägger till autentiseringsstöd
         builder.Services.AddAuthorization(); // Lägger till auktoriseringsstöd
         builder.Services.AddSingleton <NpgsqlDataSource>(postgresdb);
-        
+        builder.Services.AddDistributedMemoryCache();
+        builder.Services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(20);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+        });
         builder.Services.AddCors(options => // Lägger till CORS-stöd
         {
             options.AddPolicy("AllowReactApp", // Definierar en CORS-policy för React-appen
@@ -50,7 +56,7 @@ public class Program // Deklarerar huvudklassen Program
         builder.Services.AddScoped<IEmailService, EmailService>(); // Registrerar EmailService som en scopad tjänst
 
         var app = builder.Build(); // Bygger WebApplication-instansen
-
+        app.UseSession();
         if (app.Environment.IsDevelopment()) // Kontrollerar om miljön är utvecklingsmiljö
         {
             app.UseSwagger(); // Aktiverar Swagger
@@ -629,13 +635,30 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
         });
               
         // Tickets endpoint
-        app.MapGet("/api/tickets", async (NpgsqlDataSource db) => // Mappar GET-begäran för att hämta ärenden
+        app.MapGet("/api/tickets",(Delegate)GetTickets); // Mappar GET-begäran för att hämta ärenden
+        async Task <IResult> GetTickets(HttpContext context, NpgsqlDataSource db)
         {
+            var userCompany = context.Session.GetString("userCompany");
+            if (userCompany == "fordon")
+            {
+                userCompany = "Fordonsservice";
+                
+            } else if (userCompany == "tele")
+            {
+                userCompany = "Tele/Bredband";
+                
+            } else if (userCompany == "forsakring")
+            {
+                userCompany = "Försäkringsärende";
+                
+            }
+            Console.WriteLine($"userCompany: {userCompany}");
             List<GetTicketsDTO> tickets = new();
             try
             {
-              var  cmd = db.CreateCommand("select chat_token, message, sender, submitted_at, issue_type, email, form_type from initial_form_messages"); // Skapar en SQL-fråga för att hämta ärenden
-
+              var  cmd = db.CreateCommand("select chat_token, message, sender, submitted_at, issue_type, email, form_type from initial_form_messages WHERE form_type = @vadfanduvill"); // Skapar en SQL-fråga för att hämta ärenden
+                cmd.Parameters.AddWithValue("vadfanduvill", userCompany);
+                
                var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
@@ -660,9 +683,11 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
                     message = "Kunde inte hämta ärenden", error = ex.Message
                 }); // Returnerar ett BadRequest-resultat vid fel
             }
-        });
+        };
+        
+        
 
-        app.MapPost("/api/login", async (LoginRequest loginRequest, NpgsqlDataSource db) =>
+        app.MapPost("/api/login", async (HttpContext context, LoginRequest loginRequest, NpgsqlDataSource db) =>
         {
             try
             {
@@ -691,7 +716,7 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
                             reader.GetInt32(3) == 2 ? "user" : "admin",
                         email = reader.GetValue(4)?.ToString() ?? ""
                     };
-            
+                    context.Session.SetString("userCompany", user.company);
                     Console.WriteLine($"Inloggning lyckades för användare: {user.username}");
                     return Results.Ok(new { success = true, user });
                 }
