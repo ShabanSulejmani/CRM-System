@@ -807,7 +807,7 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
         
         
 
-        app.MapPost("/api/login", async (HttpContext context, LoginRequest loginRequest, NpgsqlDataSource db) =>
+       /* app.MapPost("/api/login", async (HttpContext context, LoginRequest loginRequest, NpgsqlDataSource db) =>
         {
             try
             {
@@ -849,7 +849,7 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
                 Console.WriteLine($"Inloggningsfel: {ex.Message}");
                 return Results.BadRequest(new { message = "Inloggningen misslyckades", error = ex.Message });
             }
-        });
+        });*/
         
         app.Run(); // Startar webbservern
     }
