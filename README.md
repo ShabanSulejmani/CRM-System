@@ -33,8 +33,8 @@ Detta CRM-system är designat för att integrera kundformulär och effektivisera
 
 1. Klona repositoryt:
    ```
-   git clone https://github.com/[användarnamn]/crm-system.git
-   cd crm-system
+   git clone git@github.com:Hultberg80/WTP.git
+   cd WTP
    ```
 
 2. Konfigurera databasen:
