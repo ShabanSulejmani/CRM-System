@@ -144,89 +144,7 @@ public class Program // Deklarerar huvudklassen Program
         return Results.BadRequest(new { message = "Could not send message", error = ex.Message });
     }
 });
-        
-app.MapPost("/api/login", async (HttpContext context, LoginRequest loginRequest, NpgsqlDataSource db) =>
-{
-    try
-    {
-        Console.WriteLine($"Inloggningsförsök: {loginRequest.Username}, {loginRequest.Password}");
-        
-        // Query that accepts both email and first_name as login identifiers
-        await using var cmd = db.CreateCommand(@"
-            SELECT ""Id"", first_name, company, role_id, email
-            FROM users
-            WHERE (email = @login_id OR LOWER(TRIM(first_name)) = LOWER(TRIM(@login_id)))
-            AND password = @password");
-
-        cmd.Parameters.AddWithValue("login_id", loginRequest.Username);
-        cmd.Parameters.AddWithValue("password", loginRequest.Password);
-
-        await using var reader = await cmd.ExecuteReaderAsync();
-        
-        if (await reader.ReadAsync())
-        {
-            var userId = reader.GetInt32(0);
-            var firstName = reader.GetString(1);
-            var company = reader.GetString(2);
-            
-            // Handle potential NULL values for role_id
-            int roleId = reader.IsDBNull(3) ? 1 : reader.GetInt32(3); // Default to 1 (Staff) if NULL
-            var email = reader.GetString(4);
-            
-            // Map role_id to the correct role based on your database structure
-            string roleName = roleId switch
-            {
-                1 => "staff",     // ID 1 is Staff
-                2 => "admin",     // ID 2 is Admin
-                3 => "admin",     // ID 3 is Super-Admin (treated as admin in your app)
-                _ => "staff"      // Default to staff for any other value
-            };
-            
-            // Store user info in session
-            context.Session.SetString("userId", userId.ToString());
-            context.Session.SetString("userFirstName", firstName);
-            context.Session.SetString("userCompany", company);
-            context.Session.SetString("userRole", roleName);
-            context.Session.SetString("userEmail", email);
-            
-            Console.WriteLine($"Inloggning lyckades för användare: {firstName}, Roll: {roleName}, Företag: {company}");
-            
-            var user = new
-            {
-                id = userId,
-                username = firstName,
-                company = company,
-                role = roleName,
-                email = email
-            };
-            
-            return Results.Ok(new { success = true, user });
-        }
-        
-        Console.WriteLine("Inloggning misslyckades: Användare hittades inte");
-        return Results.Unauthorized();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Inloggningsfel: {ex.Message}");
-        return Results.BadRequest(new { message = "Inloggningen misslyckades", error = ex.Message });
-    }
-});
-
-app.MapGet("/api/chat/auth-status", (HttpContext context) =>
-{
-    var userId = context.Session.GetString("userId");
-    var userFirstName = context.Session.GetString("userFirstName");
-    var userRole = context.Session.GetString("userRole");
-    
-    Console.WriteLine($"Auth status check: UserId={userId}, UserFirstName={userFirstName}, UserRole={userRole}");
-    
-    return Results.Ok(new { 
-        isLoggedIn = !string.IsNullOrEmpty(userId),
-        firstName = userFirstName ?? "",
-        role = userRole ?? ""
-    });
-});
+ 
 
         app.MapGet("/api/chat/messages/{chatToken}", async (string chatToken, NpgsqlDataSource db) =>
         {
@@ -435,14 +353,7 @@ app.MapGet("/api/chat/auth-status", (HttpContext context) =>
                 });
             }
         });
-
-
         
-
-
-       
-       
-
         // Fordon Form Endpoints
 app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IEmailService emailService, IConfiguration config, ILogger<Program> logger) =>
 {
@@ -806,51 +717,113 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
         };
         
         
-
-       /* app.MapPost("/api/login", async (HttpContext context, LoginRequest loginRequest, NpgsqlDataSource db) =>
-        {
-            try
-            {
-                Console.WriteLine($"Inloggningsförsök: {loginRequest.Username}, {loginRequest.Password}");
+app.MapPost("/api/login", async (HttpContext context, LoginRequest loginRequest, NpgsqlDataSource db) =>
+{
+    try
+    {
+        Console.WriteLine($"Inloggningsförsök: {loginRequest.Username}, {loginRequest.Password}");
         
-                // Ändra SQL-frågan för att ignorera skiftläge och trimma whitespace
-                await using var cmd = db.CreateCommand(@"
+        // Query that accepts both email and first_name as login identifiers
+        await using var cmd = db.CreateCommand(@"
             SELECT ""Id"", first_name, company, role_id, email
             FROM users
-            WHERE LOWER(TRIM(first_name)) = LOWER(TRIM(@username)) 
+            WHERE (email = @login_id OR LOWER(TRIM(first_name)) = LOWER(TRIM(@login_id)))
             AND password = @password");
 
-                cmd.Parameters.AddWithValue("username", loginRequest.Username);
-                cmd.Parameters.AddWithValue("password", loginRequest.Password);
+        cmd.Parameters.AddWithValue("login_id", loginRequest.Username);
+        cmd.Parameters.AddWithValue("password", loginRequest.Password);
 
-                await using var reader = await cmd.ExecuteReaderAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
         
-                if (await reader.ReadAsync())
-                {
-                    var user = new
-                    {
-                        id = reader.GetInt32(0),
-                        username = reader.GetString(1),
-                        company = reader.GetString(2),
-                        role = reader.GetInt32(3) == 1 ? "staff" : 
-                            reader.GetInt32(3) == 2 ? "user" : "admin",
-                        email = reader.GetValue(4)?.ToString() ?? ""
-                    };
-                    context.Session.SetString("userCompany", user.company);
-                    Console.WriteLine($"Inloggning lyckades för användare: {user.username}");
-                    return Results.Ok(new { success = true, user });
-                }
-        
-                Console.WriteLine("Inloggning misslyckades: Användare hittades inte");
-                return Results.Unauthorized();
-            }
-            catch (Exception ex)
+        if (await reader.ReadAsync())
+        {
+            var userId = reader.GetInt32(0);
+            var firstName = reader.GetString(1);
+            var company = reader.GetString(2);
+            
+            // Handle potential NULL values for role_id
+            int roleId = reader.IsDBNull(3) ? 1 : reader.GetInt32(3); // Default to 1 (Staff) if NULL
+            var email = reader.GetString(4);
+            
+            // Map role_id to the correct role based on your database structure
+            string roleName = roleId switch
             {
-                Console.WriteLine($"Inloggningsfel: {ex.Message}");
-                return Results.BadRequest(new { message = "Inloggningen misslyckades", error = ex.Message });
-            }
-        });*/
+                1 => "staff",     // ID 1 is Staff
+                2 => "admin",     // ID 2 is Admin
+                3 => "admin",     // ID 3 is Super-Admin (treated as admin in your app)
+                _ => "staff"      // Default to staff for any other value
+            };
+            
+            // Store user info in session
+            context.Session.SetString("userId", userId.ToString());
+            context.Session.SetString("userFirstName", firstName);
+            context.Session.SetString("userCompany", company);
+            context.Session.SetString("userRole", roleName);
+            context.Session.SetString("userEmail", email);
+            
+            Console.WriteLine($"Inloggning lyckades för användare: {firstName}, Roll: {roleName}, Företag: {company}");
+            
+            var user = new
+            {
+                id = userId,
+                username = firstName,
+                company = company,
+                role = roleName,
+                email = email
+            };
+            
+            return Results.Ok(new { success = true, user });
+        }
         
+        Console.WriteLine("Inloggning misslyckades: Användare hittades inte");
+        return Results.Unauthorized();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Inloggningsfel: {ex.Message}");
+        return Results.BadRequest(new { message = "Inloggningen misslyckades", error = ex.Message });
+    }
+});
+
+app.MapGet("/api/chat/auth-status", (HttpContext context) =>
+{
+    var userId = context.Session.GetString("userId");
+    var userFirstName = context.Session.GetString("userFirstName");
+    var userRole = context.Session.GetString("userRole");
+    
+    Console.WriteLine($"Auth status check: UserId={userId}, UserFirstName={userFirstName}, UserRole={userRole}");
+    
+    return Results.Ok(new { 
+        isLoggedIn = !string.IsNullOrEmpty(userId),
+        firstName = userFirstName ?? "",
+        role = userRole ?? ""
+    });
+});
+
+app.MapPost("/api/logout", (HttpContext context) =>
+{
+    try
+    {
+        // Log who is logging out
+        var userId = context.Session.GetString("userId");
+        var userName = context.Session.GetString("userFirstName");
+        
+        Console.WriteLine($"Logging out user: ID={userId}, Name={userName}");
+        
+        // Clear all session data
+        context.Session.Clear();
+        
+        Console.WriteLine("Session cleared successfully");
+        
+        return Results.Ok(new { success = true, message = "Utloggad" });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Logout error: {ex.Message}");
+        return Results.BadRequest(new { success = false, message = "Kunde inte logga ut", error = ex.Message });
+    }
+});
+
         app.Run(); // Startar webbservern
     }
 
