@@ -31,7 +31,13 @@ public class Program // Deklarerar huvudklassen Program
         builder.Services.AddAuthentication(); // Lägger till autentiseringsstöd
         builder.Services.AddAuthorization(); // Lägger till auktoriseringsstöd
         builder.Services.AddSingleton <NpgsqlDataSource>(postgresdb);
-        
+        builder.Services.AddDistributedMemoryCache();
+        builder.Services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(20);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+        });
         builder.Services.AddCors(options => // Lägger till CORS-stöd
         {
             options.AddPolicy("AllowReactApp", // Definierar en CORS-policy för React-appen
@@ -50,7 +56,7 @@ public class Program // Deklarerar huvudklassen Program
         builder.Services.AddScoped<IEmailService, EmailService>(); // Registrerar EmailService som en scopad tjänst
 
         var app = builder.Build(); // Bygger WebApplication-instansen
-
+        app.UseSession();
         if (app.Environment.IsDevelopment()) // Kontrollerar om miljön är utvecklingsmiljö
         {
             app.UseSwagger(); // Aktiverar Swagger
@@ -681,7 +687,7 @@ app.MapPost("/api/forsakring", async (ForsakringsForm submission, NpgsqlDataSour
         
         
 
-        app.MapPost("/api/login", async (HttpContext context,LoginRequest loginRequest, NpgsqlDataSource db) =>
+        app.MapPost("/api/login", async (HttpContext context, LoginRequest loginRequest, NpgsqlDataSource db) =>
         {
             try
             {
