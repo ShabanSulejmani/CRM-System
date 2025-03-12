@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function UpdateUserInfo() {
   const [formData, setFormData] = useState({
@@ -6,9 +6,24 @@ function UpdateUserInfo() {
     password: '',
     confirmPassword: ''
   });
-
+  const [userId, setUserId] = useState(null);
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Get the current user's auth status
+    const checkAuthStatus = async () => {
+      const response = await fetch('/api/chat/auth-status');
+      const data = await response.json();
+      if (data.isLoggedIn) {
+        setFormData(prev => ({
+          ...prev,
+          firstName: data.firstName
+        }));
+      }
+    };
+    checkAuthStatus();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +37,11 @@ function UpdateUserInfo() {
     }
 
     try {
-      const response = await fetch('/api/users/update', {
+      // Get current user's ID from auth status
+      const authResponse = await fetch('/api/chat/auth-status');
+      const authData = await authResponse.json();
+      
+      const response = await fetch(`/api/users/${authData.userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -37,11 +56,11 @@ function UpdateUserInfo() {
 
       if (response.ok) {
         setMessage('Uppgifterna uppdaterades framgångsrikt!');
-        setFormData({
-          firstName: '',
+        setFormData(prev => ({
+          ...prev,
           password: '',
           confirmPassword: ''
-        });
+        }));
       } else {
         setMessage(result.message || 'Ett fel uppstod vid uppdateringen');
       }
@@ -51,7 +70,6 @@ function UpdateUserInfo() {
       setIsSubmitting(false);
     }
   };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
