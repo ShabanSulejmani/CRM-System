@@ -6,56 +6,90 @@ import ChatLink from "../../ChatLink"; // Import the ChatLink component
 // Definierar huvudkomponenten för applikationen
 function Main() {
     // State för alla ärenden/tasks
-    const render_again = false;
-    const [tasks, setTasks] = useState([]);
+    const [tasks, setTasks] = useState(() => {
+        // Try to get tasks from localStorage on initial render
+        const savedTasks = localStorage.getItem('tasks');
+        return savedTasks ? JSON.parse(savedTasks) : [];
+    });
+    
     // State för användarens egna ärenden
-    const [myTasks, setMyTasks] = useState([]);
+    const [myTasks, setMyTasks] = useState(() => {
+        // Try to get myTasks from localStorage on initial render
+        const savedMyTasks = localStorage.getItem('myTasks');
+        return savedMyTasks ? JSON.parse(savedMyTasks) : [];
+    });
+    
     // State för färdiga ärenden
-    const [done, setDone] = useState([]);
+    const [done, setDone] = useState(() => {
+        // Try to get done tasks from localStorage on initial render
+        const savedDone = localStorage.getItem('done');
+        return savedDone ? JSON.parse(savedDone) : [];
+    });
+    
     // State för att hålla koll på vilket ärende som dras
     const [draggedTask, setDraggedTask] = useState(null);
 
+    // Save tasks state to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+    }, [tasks]);
 
-    useEffect(fetchAllTickets, []);
-	function printFetchError(error)
-	{
-			console.error("failed to fetch tickets: "+error);
-	}
+    // Save myTasks state to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('myTasks', JSON.stringify(myTasks));
+    }, [myTasks]);
 
-    function fetchAllTickets()
-	  {
-      console.log("fetching tickets");
-		  try
-		  {
-			fetch("/api/tickets", { credentials: "include" })
-			.then(response => response.json(), printFetchError)
-			.then(data => {
-        let newData = data.map(ticket => ({
-          ...ticket,
-          issueType: `${ticket.sender} - ${ticket.formType}`,
-          wtp: ticket.formType,
-          chatToken: ticket.chatToken, // Store the token directly
-          chatLink: `http://localhost:3001/chat/${ticket.chatToken}`}));
-      
-        setTasks(newData)
-      
-      }, printFetchError)
-		}
-		catch
-		{
-			console.error("failed to fetch tickets");
-		}
+    // Save done state to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('done', JSON.stringify(done));
+    }, [done]);
 
+    useEffect(() => {
+        fetchAllTickets();
+    }, []);
+
+    function printFetchError(error) {
+        console.error("failed to fetch tickets: " + error);
     }
 
+    function fetchAllTickets() {
+        console.log("fetching tickets");
+        try {
+            fetch("/api/tickets", { credentials: "include" })
+                .then(response => response.json(), printFetchError)
+                .then(data => {
+                    // Transform the data
+                    let newData = data.map(ticket => ({
+                        ...ticket,
+                        id: ticket.id || ticket.chatToken, // Ensure each item has an id
+                        issueType: `${ticket.sender} - ${ticket.formType}`,
+                        wtp: ticket.formType,
+                        chatToken: ticket.chatToken,
+                        chatLink: `http://localhost:3001/chat/${ticket.chatToken}`
+                    }));
 
+                    // Create a set of IDs that are in myTasks or done
+                    const myTasksIds = new Set(myTasks.map(task => task.id || task.chatToken));
+                    const doneIds = new Set(done.map(task => task.id || task.chatToken));
+                    
+                    // Filter out any tickets that are already in myTasks or done
+                    const filteredTasks = newData.filter(task => {
+                        const taskId = task.id || task.chatToken;
+                        return !myTasksIds.has(taskId) && !doneIds.has(taskId);
+                    });
+                    
+                    setTasks(filteredTasks);
 
-    // Funktion för att uppdatera ärendelistan med ny data
-    
+                }, printFetchError);
+        } catch (error) {
+            console.error("failed to fetch tickets:", error);
+        }
+    }
+
     // Funktion som körs när man börjar dra ett ärende
-    function handleDragStart(task){
+    function handleDragStart(task) {
         setDraggedTask(task);
-    };
+    }
 
     // Funktion som körs när man släpper ett ärende i en ny kolumn
     const handleDrop = (setTargetColumn, targetColumn) => {
@@ -73,19 +107,19 @@ function Main() {
     };
 
     // Förhindrar standardbeteende vid drag-over
-    function handleDragOver(e){e.preventDefault()};
+    function handleDragOver(e) { e.preventDefault() };
 
     // Funktion för att hantera redigering av ärenden
-    function handleTaskEdit(taskId, newContent, setColumn){
+    function handleTaskEdit(taskId, newContent, setColumn) {
         setColumn(prev => prev.map(task =>
             task.id === taskId
                 ? { ...task, content: newContent }
                 : task
         ));
-    };
+    }
 
     // Funktion för att formatera datum enligt svenskt format
-    function formatDate (dateString){
+    function formatDate(dateString) {
         if (!dateString) return "Inget datum";
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return "Ogiltigt datum";
@@ -96,18 +130,14 @@ function Main() {
             hour: '2-digit',
             minute: '2-digit'
         });
-    };
-
-
+    }
 
     // Huvudvy för applikationen
     return (
         // Huvudcontainer
         <div className="main-container">
-            
             <Aside />
 
-            
             <div
                 className="ticket-tasks"
                 onDragOver={handleDragOver}
@@ -117,12 +147,11 @@ function Main() {
                 {tasks.map((task) => (
                     // Container för varje ärende
                     <div
-                        key={task.id}
+                        key={task.id || task.chatToken}
                         draggable
                         onDragStart={() => handleDragStart(task)}
                         className="ticket-task-item"
                     >
-                        
                         <div className="ticket-task-content"
                             contentEditable
                             suppressContentEditableWarning={true}
@@ -130,13 +159,13 @@ function Main() {
                         >
                             {task.issueType}
                         </div>
-                        
+
                         <div className="ticket-task-details">
                             <div className="ticket-wtp">{task.wtp}</div>
                             <div className="ticket-task-email">{task.email}</div>
-                        <div className="ticket-task-time">
-                            {formatDate(task.submittedAt || task.timestamp || task.createdAt)}
-                        </div>
+                            <div className="ticket-task-time">
+                                {formatDate(task.submittedAt || task.timestamp || task.createdAt)}
+                            </div>
                             <div className="ticket-task-token">
                                 {/* Replace regular link with ChatLink component */}
                                 <ChatLink chatToken={task.chatToken}>
@@ -148,7 +177,6 @@ function Main() {
                 ))}
             </div>
 
-            
             <div
                 className="ticket-my-tasks"
                 onDragOver={handleDragOver}
@@ -156,14 +184,12 @@ function Main() {
             >
                 <h2 className="ticket-my-tasks-header">Mina ärenden</h2>
                 {myTasks.map((task) => (
-                    
                     <div
-                        key={task.id}
+                        key={task.id || task.chatToken}
                         draggable
                         onDragStart={() => handleDragStart(task)}
                         className="ticket-task-item"
                     >
-                        
                         <div className="ticket-task-content"
                             contentEditable
                             suppressContentEditableWarning={true}
@@ -171,13 +197,13 @@ function Main() {
                         >
                             {task.issueType}
                         </div>
-                        
+
                         <div className="ticket-task-details">
                             <div className="ticket-wtp">{task.wtp}</div>
                             <div className="ticket-task-email">{task.email}</div>
-                        <div className="ticket-task-time">
-                            {formatDate(task.submittedAt || task.timestamp || task.createdAt)}
-                        </div>
+                            <div className="ticket-task-time">
+                                {formatDate(task.submittedAt || task.timestamp || task.createdAt)}
+                            </div>
                             <div className="ticket-task-token">
                                 {/* Replace regular link with ChatLink component */}
                                 <ChatLink chatToken={task.chatToken}>
@@ -189,7 +215,6 @@ function Main() {
                 ))}
             </div>
 
-           
             <div
                 className="ticket-done"
                 onDragOver={handleDragOver}
@@ -197,14 +222,12 @@ function Main() {
             >
                 <h2 className="ticket-done-header">Klara</h2>
                 {done.map((task) => (
-                    
                     <div
-                        key={task.id}
+                        key={task.id || task.chatToken}
                         draggable
                         onDragStart={() => handleDragStart(task)}
                         className="ticket-task-item"
                     >
-                        
                         <div className="ticket-task-content"
                             contentEditable
                             suppressContentEditableWarning={true}
@@ -212,12 +235,12 @@ function Main() {
                         >
                             {task.issueType}
                         </div>
-                        
+
                         <div className="ticket-task-details">
                             <div className="ticket-wtp">{task.wtp}</div>
-                        <div className="ticket-task-time">
-                            {formatDate(task.submittedAt  || task.timestamp || task.createdAt)}
-                        </div>
+                            <div className="ticket-task-time">
+                                {formatDate(task.submittedAt || task.timestamp || task.createdAt)}
+                            </div>
                             <div className="ticket-task-token">
                                 {/* Replace regular link with ChatLink component */}
                                 <ChatLink chatToken={task.chatToken}>
