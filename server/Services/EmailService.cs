@@ -41,7 +41,7 @@ public class EmailService : IEmailService
             }
 
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("Ditt Företag", fromEmail));
+            message.From.Add(new MailboxAddress("WTP", fromEmail));
             message.To.Add(new MailboxAddress(firstName, recipientEmail));
             message.Subject = "Din chattlänk är redo!";
 
@@ -54,7 +54,7 @@ public class EmailService : IEmailService
                     <p>Länken är: {chatLink}</p>
                     <p>Länken är personlig och ska inte delas med andra.</p>
                     <br/>
-                    <p>Med vänliga hälsningar,<br/>Ditt Företag</p>
+                    <p>Med vänliga hälsningar,<br/>WTP Kundtjänst</p>
                 "
             };
 
@@ -89,7 +89,7 @@ public class EmailService : IEmailService
     public async Task SendChangePasswordLink(string recipientEmail, string firstName, string password)
     {
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress("Ditt Företag", _configuration["Email:From"]));
+        message.From.Add(new MailboxAddress("WTP", _configuration["Email:From"]));
         message.To.Add(new MailboxAddress(firstName, recipientEmail));
         message.Subject = "Din chattlänk är redo!";
 

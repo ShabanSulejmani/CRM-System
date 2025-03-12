@@ -23,8 +23,10 @@ public class Program // Deklarerar huvudklassen Program
 {
     public static void Main(string[] args) // Deklarerar huvudmetoden Main
     {
-        NpgsqlDataSource postgresdb = NpgsqlDataSource.Create("Host=45.10.162.204;Port=5438;Database=test_db;Username=postgres;Password=_FrozenPresidentSmacks!;");
         var builder = WebApplication.CreateBuilder(args); // Skapar en WebApplicationBuilder
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        NpgsqlDataSource postgresdb = NpgsqlDataSource.Create(connectionString);
+        
         
         builder.Services.AddEndpointsApiExplorer(); // Lägger till API Explorer för Swagger
         builder.Services.AddSwaggerGen(); // Lägger till Swagger-generering
