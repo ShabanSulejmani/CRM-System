@@ -858,7 +858,7 @@ nav a[href="chat"]:hover {
 }
 
 .chat-modal__message--received .chat-modal__message-text {
-  background-color: white;
+  background-color: rgb(255, 255, 255);
   color: #1a2937;
 }
 
@@ -1524,4 +1524,61 @@ nav a[href="chat"]:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+/* User menu styles */
+.user-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.user-name {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.logout-button {
+  background: linear-gradient(45deg, #e74c3c, #c0392b);
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.logout-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Error message styles for login */
+.error-message {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .user-menu {
+    margin-top: 10px;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  .user-name {
+    margin-bottom: 0;
+    margin-right: 10px;
+  }
 }

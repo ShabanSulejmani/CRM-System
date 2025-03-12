@@ -5,7 +5,7 @@ export default function ChatModal({ isOpen, onClose, chatToken }) {
     const [message, setMessage] = useState(""); 
     const [messages, setMessages] = useState([]);
     const [chatOwner, setChatOwner] = useState(null);
-    const [userName, setUserName] = useState("You"); // Default user name
+    const [userName, setUserName] = useState(null);
     const [open, setOpen] = useState(false);
     const emojiPickerRef = useRef(null);
     const [loading, setLoading] = useState(true);
@@ -14,12 +14,39 @@ export default function ChatModal({ isOpen, onClose, chatToken }) {
     const intervalRef = useRef(null);
     const modalRef = useRef(null);
 
+    // Check authentication status and set sender name accordingly
+    useEffect(() => {
+        const checkAuthStatus = async () => {
+            try {
+                // Fetch auth status from API
+                const response = await fetch('/api/chat/auth-status', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.isLoggedIn && data.firstName) {
+                        setUserName(data.firstName);
+                        console.log(`User is logged in as: ${data.firstName}`);
+                    }
+                }
+            } catch (err) {
+                console.error('Error checking auth status:', err);
+            }
+        };
+        
+        checkAuthStatus();
+    }, []);
+
     // Simple fetch for chat messages
     const fetchMessages = async () => {
         if (!chatToken) return;
 
         try {
-            const response = await fetch(`/api/chat/messages/${chatToken}`);
+            const response = await fetch(`/api/chat/messages/${chatToken}`, {
+                credentials: 'include' // Include credentials for session
+            });
 
             if (!response.ok) {
                 throw new Error(`Kunde inte hämta chatmeddelanden: ${response.status}`);
@@ -34,9 +61,10 @@ export default function ChatModal({ isOpen, onClose, chatToken }) {
             if (data.chatOwner && !chatOwner) {
                 setChatOwner(data.chatOwner);
                 
-                // If we haven't set a user name yet, set it to something different than the chat owner
-                if (userName === "You") {
-                    setUserName(data.chatOwner === "Support" ? "You" : "Support");
+                // If we haven't set a username yet, use the chatOwner
+                if (!userName) {
+                    setUserName(data.chatOwner);
+                    console.log(`Setting username to first message sender: ${data.chatOwner}`);
                 }
             }
             
@@ -96,7 +124,7 @@ export default function ChatModal({ isOpen, onClose, chatToken }) {
 
     // Handle sending a new message
     const handleSendMessage = async () => {
-        if (message.trim() === "") return;
+        if (message.trim() === "" || !userName) return;
         
         // Store message locally before sending (for immediate UI feedback)
         const currentMessage = message.trim();
@@ -128,7 +156,8 @@ export default function ChatModal({ isOpen, onClose, chatToken }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(messageToSend)
+                body: JSON.stringify(messageToSend),
+                credentials: 'include' // Important: Include credentials for session
             });
     
             if (!response.ok) {

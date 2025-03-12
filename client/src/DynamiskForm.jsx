@@ -124,10 +124,10 @@ function DynamiskForm() {
         required
       >
         <option value="">Välj tjänst</option>
-        <option value="broadband">Bredband</option>
-        <option value="mobile">Mobiltelefoni</option>
-        <option value="landline">Fast telefoni</option>
-        <option value="tv">TV-tjänster</option>
+        <option value="Bredband">Bredband</option>
+        <option value="Mobiltelefoni">Mobiltelefoni</option>
+        <option value="Fast telefoni">Fast telefoni</option>
+        <option value="TV-tjänster">TV-tjänster</option>
       </select>
 
       <label htmlFor="issueType">Vad gäller ditt ärende?</label>
@@ -138,11 +138,11 @@ function DynamiskForm() {
         required
       >
         <option value="">Välj typ av ärende</option>
-        <option value="technical">Tekniskt problem</option>
-        <option value="billing">Fakturafrågor</option>
-        <option value="change">Ändring av tjänst</option>
-        <option value="cancel">Uppsägning</option>
-        <option value="other">Övrigt</option>
+        <option value="Tekniskt problem">Tekniskt problem</option>
+        <option value="Fakturafrågor">Fakturafrågor</option>
+        <option value="Ändring av tjänst">Ändring av tjänst</option>
+        <option value="Uppsägning">Uppsägning</option>
+        <option value="Övrigt">Övrigt</option>
       </select>
     </div>
   );
@@ -187,10 +187,10 @@ function DynamiskForm() {
         required
       >
         <option value="">Välj försäkringstyp</option>
-        <option value="home">Hemförsäkring</option>
-        <option value="car">Bilförsäkring</option>
-        <option value="life">Livförsäkring</option>
-        <option value="accident">Olycksfallsförsäkring</option>
+        <option value="Hemförsäkring">Hemförsäkring</option>
+        <option value="Bilförsäkring">Bilförsäkring</option>
+        <option value="Livförsäkring">Livförsäkring</option>
+        <option value="Olycksfallsförsäkring">Olycksfallsförsäkring</option>
       </select>
 
       <label htmlFor="issueType">Vad gäller ditt ärende?</label>
@@ -201,11 +201,11 @@ function DynamiskForm() {
         required
       >
         <option value="">Välj typ av ärende</option>
-        <option value="claim">Pågående skadeärende</option>
-        <option value="coverage">Frågor om försäkringsskydd</option>
-        <option value="billing">Fakturafrågor</option>
-        <option value="changes">Ändring av försäkring</option>
-        <option value="documents">Begäran om försäkringshandlingar</option>
+        <option value="Pågående skadeärende">Pågående skadeärende</option>
+        <option value="Frågor om försäkringsskydd">Frågor om försäkringsskydd</option>
+        <option value="Fakturafrågor">Fakturafrågor</option>
+        <option value="Ändring av försäkring">Ändring av försäkring</option>
+        <option value="Begäran om försäkringshandlingar">Begäran om försäkringshandlingar</option>
       </select>
     </div>
   );

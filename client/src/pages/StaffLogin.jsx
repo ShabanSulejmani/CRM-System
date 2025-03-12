@@ -1,22 +1,65 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './StaffLogin.css';
+import { useAuth } from '../AuthContext';
 
 function StaffLogin() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
-    // Simulate login request
-    setTimeout(() => {
-      console.log("Staff login:", { username, password, rememberMe });
+    // Enkel validering
+    if (!username || !password) {
+      setError('Vänligen fyll i både användarnamn och lösenord');
       setIsLoading(false);
-      // Add actual login logic here
-    }, 1500);
+      return;
+    }
+    
+    try {
+      // Anropa vår backend-API för inloggning
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Fel användarnamn eller lösenord');
+      }
+      
+      const data = await response.json();
+      
+      // Spara användarinformation i auth context
+      login(data.user);
+      
+      // Omdirigera till rätt dashboard baserat på användarroll
+      if (data.user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/staff/dashboard');
+      }
+      
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Inloggningen misslyckades. Kontrollera dina uppgifter.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -26,6 +69,12 @@ function StaffLogin() {
           <h1 className="staff-login-title">Staff Portal</h1>
           <p className="staff-login-subtitle">Logga in för att fortsätta</p>
         </div>
+        
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
         
         <form onSubmit={handleLogin} className="staff-login-form">
           <div className="staff-field-group">
@@ -93,6 +142,5 @@ function StaffLogin() {
     </div>
   );
 }
-      
 
 export default StaffLogin;
