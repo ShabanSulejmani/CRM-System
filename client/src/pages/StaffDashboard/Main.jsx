@@ -63,7 +63,7 @@ function Main() {
                         ...ticket,
                         id: ticket.id || ticket.chatToken, // Ensure each item has an id
                         issueType: `${ticket.sender} - ${ticket.formType}`,
-                        wtp: ticket.formType,
+                        wtp: ticket.issueType,
                         chatToken: ticket.chatToken,
                         chatLink: `http://localhost:3001/chat/${ticket.chatToken}`
                     }));
