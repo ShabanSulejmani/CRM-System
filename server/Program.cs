@@ -309,37 +309,41 @@ public class Program // Deklarerar huvudklassen Program
             }
         });
         
-        app.MapPut("/api/users/{userId}", async (int userId, UserForm user, NpgsqlDataSource db) =>
+        app.MapPut("/api/users/{userId}", async (HttpContext context, UserForm user, NpgsqlDataSource db) =>
         {
             try
             {
+                // Get current user's ID from session
+                var currentUserId = context.Session.GetString("userId");
+        
                 await using var cmd = db.CreateCommand(@"
-                UPDATE users 
-                SET first_name = @first_name, 
-                password = CASE WHEN @password = '' THEN password ELSE @password END,
-                company = @company,
-                role_id = @role_id
-                WHERE ""Id"" = @userId
-                RETURNING ""Id"", first_name, company, role_id;");
+        UPDATE users 
+        SET first_name = CASE WHEN @first_name = '' THEN first_name ELSE @first_name END,
+            password = CASE WHEN @password = '' THEN password ELSE @password END
+        WHERE ""Id"" = @userId AND ""Id"" = @currentUserId
+        RETURNING ""Id"", first_name;");
 
-                cmd.Parameters.AddWithValue("userId", userId);
+                cmd.Parameters.AddWithValue("userId", int.Parse(currentUserId));
+                cmd.Parameters.AddWithValue("currentUserId", int.Parse(currentUserId));
                 cmd.Parameters.AddWithValue("first_name", user.FirstName);
                 cmd.Parameters.AddWithValue("password", user.Password);
-                cmd.Parameters.AddWithValue("company", user.Company);
-                cmd.Parameters.AddWithValue("role_id", user.Role == "admin" ? 2 : 1);
 
                 await using var reader = await cmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
+                    // Update session with new name if changed
+                    if (!string.IsNullOrEmpty(user.FirstName))
+                    {
+                        context.Session.SetString("userFirstName", user.FirstName);
+                    }
+
                     return Results.Ok(new
                     {
-                        message = "Användare uppdaterad",
+                        message = "Uppgifterna uppdaterades framgångsrikt",
                         user = new
                         {
                             Id = reader.GetInt32(0),
-                            FirstName = reader.GetString(1),
-                            Company = reader.GetString(2),
-                            Role = reader.GetInt32(3) == 1 ? "staff" : "admin"
+                            FirstName = reader.GetString(1)
                         }
                     });
                 }
@@ -348,13 +352,10 @@ public class Program // Deklarerar huvudklassen Program
             }
             catch (Exception ex)
             {
-                return Results.BadRequest(new
-                {
-                    message = "Kunde inte uppdatera användare",
-                    error = ex.Message
-                });
+                return Results.BadRequest(new { message = ex.Message });
             }
         });
+
         
         // Fordon Form Endpoints
 app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IEmailService emailService, IConfiguration config, ILogger<Program> logger) =>
@@ -828,6 +829,8 @@ app.MapPost("/api/logout", (HttpContext context) =>
 
         app.Run(); // Startar webbservern
     }
+    
+    
 
     public record GetTicketsDTO(
         string ChatToken,
