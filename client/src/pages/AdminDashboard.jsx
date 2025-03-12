@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import ChatLink from '../ChatLink'; // Import ChatLink component
+import ChatLink from '../ChatLink';
+import { useAuth } from '../AuthContext';
 
 function UserAndTicketPage() {
+  const { user } = useAuth(); // Get current user from auth context
   const [users, setUsers] = useState([]);
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedCompany, setSelectedCompany] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [viewMode, setViewMode] = useState('users'); // 'users' or 'tickets'
 
@@ -14,7 +15,9 @@ function UserAndTicketPage() {
   async function fetchUsers() {
     try {
       setLoading(true);
-      const response = await fetch("/api/users");
+      const response = await fetch("/api/users", {
+        credentials: "include"
+      });
       
       if (!response.ok) {
         // First try to get error as text
@@ -35,7 +38,12 @@ function UserAndTicketPage() {
         email: user.email,
       })) : [];
       
-      setUsers(transformedUsers);
+      // Filter users by admin's company if not super-admin
+      const filteredByCompanyUsers = user && user.role === 'admin' && user.company 
+        ? transformedUsers.filter(u => u.company === user.company)
+        : transformedUsers;
+      
+      setUsers(filteredByCompanyUsers);
       setError(null);
     } catch (err) {
       setError(`Failed to fetch users: ${err.message}`);
@@ -44,19 +52,21 @@ function UserAndTicketPage() {
       setLoading(false);
     }
   }
-  
 
   // Funktion för att hämta alla ärenden
   async function fetchTickets() {
     try {
       setLoading(true);
-      const response = await fetch("/api/tickets");
+      const response = await fetch("/api/tickets", {
+        credentials: "include"
+      });
       
       if (!response.ok) {
         throw new Error('Failed to fetch tickets');
       }
       
       const data = await response.json();
+      
       // Transform the data to match the API response
       const transformedTickets = Array.isArray(data) ? data.map(ticket => ({
         chatToken: ticket.chatToken,
@@ -64,10 +74,35 @@ function UserAndTicketPage() {
         message: ticket.message,
         timestamp: ticket.timestamp,
         issueType: ticket.issueType,
-        formType: ticket.formType
+        formType: ticket.formType,
+        company: ticket.company || ticket.formType
       })) : [];
       
-      setTickets(transformedTickets);
+      // Filter tickets by admin's company if not super-admin
+      const filteredByCompanyTickets = user && user.role === 'admin' && user.company 
+        ? transformedTickets.filter(t => {
+            // Flexible matching for company
+            const formType = (t.formType || '').toLowerCase();
+            const userCompany = user.company.toLowerCase();
+            
+            // Map specific company names to what appears in formType
+            let searchTerms = [];
+            if (userCompany === 'tele') {
+              searchTerms = ['tele', 'bredband'];
+            } else if (userCompany === 'fordon') {
+              searchTerms = ['fordon', 'fordons'];
+            } else if (userCompany === 'forsakring') {
+              searchTerms = ['forsakring', 'försäkring'];
+            } else {
+              searchTerms = [userCompany];
+            }
+            
+            // Check if any of the search terms match
+            return searchTerms.some(term => formType.includes(term));
+          })
+        : transformedTickets;
+      
+      setTickets(filteredByCompanyTickets);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -76,7 +111,6 @@ function UserAndTicketPage() {
       setLoading(false);
     }
   }
-  
 
   // Funktion för att uppdatera en användare
   async function updateUser(userId, user) {
@@ -98,7 +132,8 @@ function UserAndTicketPage() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(updatedUserData)
+        body: JSON.stringify(updatedUserData),
+        credentials: "include"
       });
   
       if (!response.ok) {
@@ -131,7 +166,8 @@ function UserAndTicketPage() {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: "include"
       });
       
       const data = await response.json();
@@ -161,16 +197,6 @@ function UserAndTicketPage() {
     }
   }, [viewMode]);
 
-  // Filtrerar användare baserat på valt företag
-  const filteredUsers = selectedCompany 
-    ? users.filter(user => user.company === selectedCompany) 
-    : users;
-
-  // Filtrerar ärenden baserat på valt företag om ärendet har ett företagsfält
-  const filteredTickets = selectedCompany 
-    ? tickets.filter(ticket => ticket.company === selectedCompany) 
-    : tickets;
-
   return (
     <div className="page-container">
       <div className="view-toggle">
@@ -193,16 +219,6 @@ function UserAndTicketPage() {
       </h1>
       
       <div className="filter-container">
-        <select 
-          value={selectedCompany}
-          onChange={(e) => setSelectedCompany(e.target.value)}
-          className="filter-dropdown"
-        >
-          <option value="">Alla företag</option>
-          <option value="fordon">fordon</option>
-          <option value="tele">tele</option>
-          <option value="forsakring">försäkring</option>
-        </select>
         <button 
           onClick={viewMode === 'users' ? fetchUsers : fetchTickets} 
           className="refresh-button bla"
@@ -230,22 +246,21 @@ function UserAndTicketPage() {
               </tr>
             </thead>
             <tbody>
-{filteredUsers.length > 0 ? filteredUsers.map(user => (
-  <tr key={user.id}>
-    <td>{user.firstName}</td>
-    <td>{user.email}</td>
-    <td>{user.company}</td>
-    <td>{user.role}</td>
-    <td>
-      <button className="edit-button" onClick={() => updateUser(user.id, user)}>Redigera</button>
-      <button className="delete-button" onClick={() => deleteUser(user.id)} disabled={deleteLoading}>Ta bort</button>
-    </td>
-  </tr>
-)) : (
-  <tr><td colSpan="5">Inga användare hittades</td></tr>
-)}
-</tbody>
-
+              {users.length > 0 ? users.map(user => (
+                <tr key={user.id}>
+                  <td>{user.firstName}</td>
+                  <td>{user.email}</td>
+                  <td>{user.company}</td>
+                  <td>{user.role}</td>
+                  <td>
+                    <button className="edit-button" onClick={() => updateUser(user.id, user)}>Redigera</button>
+                    <button className="delete-button" onClick={() => deleteUser(user.id)} disabled={deleteLoading}>Ta bort</button>
+                  </td>
+                </tr>
+              )) : (
+                <tr><td colSpan="5">Inga användare hittades</td></tr>
+              )}
+            </tbody>
           </table>
         </div>
       ) : (
@@ -263,10 +278,9 @@ function UserAndTicketPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredTickets.length > 0 ? filteredTickets.map((ticket) => (
+              {tickets.length > 0 ? tickets.map((ticket) => (
                 <tr key={ticket.chatToken}>
                   <td>
-                    {/* Replace regular link with ChatLink component */}
                     <ChatLink chatToken={ticket.chatToken}>
                       Open Chat
                     </ChatLink>
