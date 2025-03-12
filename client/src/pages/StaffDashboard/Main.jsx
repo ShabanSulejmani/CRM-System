@@ -29,6 +29,56 @@ function Main() {
     // State för att hålla koll på vilket ärende som dras
     const [draggedTask, setDraggedTask] = useState(null);
 
+    const [issuTypeFilter, setIssueTypeFilter] = useState('');
+
+    const handleIssueFilterChange = (e) => {
+        setIssueTypeFilter(e.target.value);
+    };
+
+    const getUniqueIssueTypes = () => {
+
+        const predefinedTypes = [
+            // Fordonsservice ärendetyper
+            "Problem efter reparation",
+            "Garantiärende",
+            "Reklamation",
+            "Kostnadsförfrågan",
+            "Reservdelsfrågor",
+
+            // Telecom/Bredband ärendetyper
+            "Tekniskt problem",
+            "Fakturafrågor",
+            "Ändring av tjänst",
+            "Uppsägning",
+
+            // Försäkringsärenden ärendetyper
+            "Pågående skadeärende",
+            "Frågor om försäkringsskydd",
+            "Ändring av försäkring",
+            "Begäran om försäkringshandlingar"
+        ];
+
+        const allTasks = [tasks, myTasks, done];
+
+        const uniqueTypes = new Set(predefinedTypes);
+
+        allTasks.forEach(task => {
+            if(task.wtp){
+                uniqueTypes.add(task.wtp);
+            }
+        });
+
+        return Array.from(uniqueTypes);
+    };
+
+    const filteredTasks = issuTypeFilter
+
+    ? tasks.filter(task => task.wtp === issuTypeFilter)
+
+    : tasks;
+
+
+
     // Save tasks state to localStorage whenever it changes
     useEffect(() => {
         localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -144,7 +194,23 @@ function Main() {
                 onDrop={() => handleDrop(setTasks, tasks)}
             >
                 <h2 className="ticket-tasks-header">Ärenden</h2>
-                {tasks.map((task) => (
+
+                <div className="issue-filter-container">
+                    <select value={issuTypeFilter}
+                    onChange={handleIssueFilterChange}
+                    className="issue-type-filter"
+
+
+                    >
+                        <option value="">Alla Ärendetyper</option>
+                        {getUniqueIssueTypes().map ((type) => (
+                            <option key={type} value={type}>{type}</option>
+                        ))}
+                    </select>
+
+                </div>
+
+                {filteredTasks.map((task) => (
                     // Container för varje ärende
                     <div
                         key={task.id || task.chatToken}
