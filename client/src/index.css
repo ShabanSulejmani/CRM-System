@@ -1585,8 +1585,9 @@ nav a[href="chat"]:hover {
 
 /* Company logo styling */
 .company-logo {
-  height: 130px;
-  width: 130px;
+  height: 65px;
+  width: 65px;
+  margin-top: 12px;
   margin-left: 20px;
   object-fit: contain;
   background: linear-gradient(45deg, #3498db, #2980b9);
@@ -1597,4 +1598,11 @@ nav a[href="chat"]:hover {
 .navbar-left {
   display: flex;
   align-items: center;
+}
+
+.company-name {
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 2px;
+  text-transform: capitalize;
 }

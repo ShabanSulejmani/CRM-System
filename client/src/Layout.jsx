@@ -33,16 +33,20 @@ function Layout() {
             {/* Logo/Brand on the left */}
             <div className="navbar-left">
               <h1 className="project-name">WPT</h1>
+              
               {/* Display company logo if user is logged in and has a company */}
               {isLoggedIn && user && user.companyLogo && (
-                <img 
-                  src={user.companyLogo} 
-                  alt={`${user.company} logo`}
-                  className="company-logo" 
-                />
+                <div className="company-branding">
+                  <img 
+                    src={user.companyLogo} 
+                    alt={`${user.company} logo`}
+                    className="company-logo" 
+                  />
+                  <span className="company-name">{user.company}</span>
+                </div>
               )}
+              
             </div>
-
             {/* Navigation Links in the middle */}
             <div className="navbar-center">
               {/* Your nav links here */}
