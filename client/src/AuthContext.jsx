@@ -12,63 +12,80 @@ export const AuthProvider = ({ children }) => {
   
   // Check for existing login on mount
   useEffect(() => {
-    const checkExistingLogin = () => {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
+    const checkExistingLogin = async () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
+          
+          // Add logo path based on company
+          const enhancedUser = {
+            ...parsedUser,
+            companyLogo: getCompanyLogoPath(parsedUser.company)
+          };
+          
+          setUser(enhancedUser);
           setIsLoggedIn(true);
-        } catch (error) {
-          console.error('Failed to parse stored user:', error);
-          localStorage.removeItem('user');
         }
+      } catch (error) {
+        console.error('Failed to restore user session:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     
     checkExistingLogin();
   }, []);
   
-  // Login function - stores user in state and localStorage
-  const login = (userData) => {
-    setUser(userData);
-    setIsLoggedIn(true);
-    localStorage.setItem('user', JSON.stringify(userData));
-  };
-  
-  // Logout function - clears backend session and local state
-  const logout = async () => {
-    try {
-      console.log("Logging out user on server...");
-      
-      // Call backend logout endpoint to clear session
-      const response = await fetch('/api/logout', {
-        method: 'POST',
-        credentials: 'include', // Important: Include cookies for session
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Failed to logout on server: ${errorData.message || response.statusText}`);
-      }
-      
-      console.log('Server session cleared successfully');
-    } catch (error) {
-      console.error('Error logging out from server:', error);
-    } finally {
-      // Even if server logout fails, clear local state
-      setUser(null);
-      setIsLoggedIn(false);
-      localStorage.removeItem('user');
-      console.log('Local user state cleared');
+  // Helper function to get logo path based on company
+  const getCompanyLogoPath = (company) => {
+    switch(company) {
+      case 'fordon':
+        return '/img/company-logos/fordon.jpeg';
+      case 'tele':
+        return '/img/company-logos/tele.jpeg';
+      case 'forsakring':
+        return '/img/company-logos/forsakring.jpeg';
+      default:
+        return null;
     }
   };
   
-  // Provide the context values to components
+  // Login function
+  const login = async (userData) => {
+    try {
+      // Add the logo path to the user data
+      const enhancedUserData = {
+        ...userData,
+        companyLogo: getCompanyLogoPath(userData.company)
+      };
+      
+      setUser(enhancedUserData);
+      setIsLoggedIn(true);
+      localStorage.setItem('user', JSON.stringify(enhancedUserData));
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, message: error.message };
+    }
+  };
+  
+  // Logout function
+  const logout = async () => {
+    try {
+      // Clear user data
+      setUser(null);
+      setIsLoggedIn(false);
+      localStorage.removeItem('user');
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Logout error:', error);
+      return { success: false };
+    }
+  };
+  
   return (
     <AuthContext.Provider value={{ 
       user, 

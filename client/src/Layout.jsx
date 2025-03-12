@@ -33,6 +33,19 @@ function Layout() {
             {/* Logo/Brand on the left */}
             <div className="navbar-left">
               <h1 className="project-name">WPT</h1>
+              {/* Display company logo if user is logged in and has a company */}
+              {isLoggedIn && user && user.companyLogo && (
+                <img 
+                  src={user.companyLogo} 
+                  alt={`${user.company} logo`}
+                  className="company-logo" 
+                />
+              )}
+            </div>
+
+            {/* Navigation Links in the middle */}
+            <div className="navbar-center">
+              {/* Your nav links here */}
             </div>
 
             {/* Mobile menu button */}
@@ -102,13 +115,7 @@ function Layout() {
                 )}
               </div>
 
-              {/* Chat */}
-              <NavLink 
-                to={"chat"}
-                onClick={() => setMenuOpen(false)}
-              >
-                Chat
-              </NavLink>
+           
             </div>
             
             {/* Login/User info on right */}
