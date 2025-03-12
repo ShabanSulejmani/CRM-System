@@ -1583,7 +1583,23 @@ nav a[href="chat"]:hover {
   }
 }
 
-/* Company logo styling */
+
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+}
+
+
+.company-branding {
+  display: flex;
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center; 
+  text-align: center;
+}
+
+
 .company-logo {
   height: 65px;
   width: 65px;
@@ -1595,14 +1611,11 @@ nav a[href="chat"]:hover {
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.navbar-left {
-  display: flex;
-  align-items: center;
-}
 
 .company-name {
-  font-size: 12px;
+  color: white;
+margin-left: 20px;
+  font-size: 15px;
   font-weight: 500;
-  margin-top: 2px;
   text-transform: capitalize;
 }
