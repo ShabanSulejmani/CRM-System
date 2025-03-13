@@ -1,4 +1,5 @@
 // Importerar nödvändiga React hooks för state-hantering, sidoeffekter, callbacks och referenser
+// Importerar nödvändiga React hooks för state-hantering, sidoeffekter, callbacks och referenser
 import { useState, useEffect } from "react";
 import Aside from "./Aside";
 import ChatLink from "../../ChatLink"; // Import the ChatLink component
@@ -38,6 +39,19 @@ function Main() {
     // State för att hålla koll på vilket ärende som dras
     const [draggedTask, setDraggedTask] = useState(null);
 
+    // Define mapping objects for tasks and their setter functions
+    const listMap = {
+        tasks: tasks,
+        myTasks: myTasks,
+        done: done
+    };
+    
+    const listSetterMap = {
+        tasks: setTasks,
+        myTasks: setMyTasks,
+        done: setDone
+    };
+
     const [issuTypeFilter, setIssueTypeFilter] = useState('');
 
     const handleIssueFilterChange = (e) => {
@@ -45,7 +59,6 @@ function Main() {
     };
 
     const getUniqueIssueTypes = () => {
-
         const predefinedTypes = [
             // Fordonsservice ärendetyper
             "Problem efter reparation",
@@ -67,7 +80,7 @@ function Main() {
             "Begäran om försäkringshandlingar"
         ];
 
-        const allTasks = [tasks, myTasks, done];
+        const allTasks = [...tasks, ...myTasks, ...done];
 
         const uniqueTypes = new Set(predefinedTypes);
 
@@ -81,10 +94,8 @@ function Main() {
     };
 
     const filteredTasks = issuTypeFilter
-
-    ? tasks.filter(task => task.wtp === issuTypeFilter)
-
-    : tasks;
+        ? tasks.filter(task => task.wtp === issuTypeFilter)
+        : tasks;
 
     // Reload tasks from localStorage when user changes
     useEffect(() => {
@@ -102,18 +113,18 @@ function Main() {
 
     // Save tasks state to localStorage whenever it changes
     useEffect(() => {
-        localStorage.setItem('tasks', JSON.stringify(tasks));
-    }, [tasks]);
+        localStorage.setItem(getUserTasksKey(), JSON.stringify(tasks));
+    }, [tasks, user]);
 
     // Save myTasks state to localStorage whenever it changes
     useEffect(() => {
-        localStorage.setItem('myTasks', JSON.stringify(myTasks));
-    }, [myTasks]);
+        localStorage.setItem(getMyTasksKey(), JSON.stringify(myTasks));
+    }, [myTasks, user]);
 
     // Save done state to localStorage whenever it changes
     useEffect(() => {
-        localStorage.setItem('done', JSON.stringify(done));
-    }, [done]);
+        localStorage.setItem(getDoneTasksKey(), JSON.stringify(done));
+    }, [done, user]);
 
     useEffect(() => {
         fetchAllTickets();
@@ -159,26 +170,31 @@ function Main() {
 
     // Funktion som körs när man börjar dra ett ärende
     function handleDragStart(task, column, e) {
-        if ( column == 'done') {
-            e.preventDefault();
+        if (column === 'done') {
+            if (e && e.preventDefault) e.preventDefault();
             return false;
         }
         setDraggedTask({ task, column });
     }
 
+    // Förhindrar standardbeteende vid drag-over
+    function handleDragOver(e) { e.preventDefault(); }
+
     // Funktion som körs när man släpper ett ärende i en ny kolumn
-    const handleDrop = (setTargetColumn, targetColumn) => {
-        if (draggedTask) {
-            // Tar bort ärendet från alla kolumner
-            setTasks(prev => prev.filter(task => task.id !== draggedTask.id));
-            setMyTasks(prev => prev.filter(task => task.id !== draggedTask.id));
-            setDone(prev => prev.filter(task => task.id !== draggedTask.id));
+    const handleDrop = async (e, setList, destColumn) => {
+        if (e && e.preventDefault) e.preventDefault();
+        if (!draggedTask) return;
+
+        const sourceColumn = draggedTask.column;
+        const task = draggedTask.task;
+
+        console.log(`Moving task ${task.id} from ${sourceColumn} to ${destColumn}`);
 
         // Check if the task is being moved to the done column from another column
         if (destColumn === 'done' && sourceColumn !== 'done') {
             try {
                 // Archive the ticket in the database
-                await archiveTicket(draggedTask.task);
+                await archiveTicket(task);
                 console.log("Ticket archived successfully");
             } catch (error) {
                 console.error("Failed to archive ticket:", error);
@@ -186,12 +202,17 @@ function Main() {
             }
         }
 
-        // Continue with the existing functionality
-        const newList = [...listMap[sourceColumn]].filter(task => task.id !== draggedTask.task.id);
-        listSetterMap[sourceColumn](newList);
+        // Remove the task from the source list
+        if (sourceColumn && listSetterMap[sourceColumn]) {
+            listSetterMap[sourceColumn](prev => 
+                prev.filter(t => t.id !== task.id && t.chatToken !== task.chatToken)
+            );
+        }
+
+        // Add the task to the destination list
+        setList(prev => [...prev, {...task, column: destColumn}]);
         
-        const updatedTask = {...draggedTask.task, column: destColumn};
-        setList(prev => [...prev, updatedTask]);
+        // Clear the dragged task
         setDraggedTask(null);
     };
 
@@ -204,6 +225,9 @@ function Main() {
             const actualSourceTable = determineOriginalTable(ticket);
             console.log("Determined source table:", actualSourceTable);
             
+            // Let the server know whether this table has is_chat_active
+            const hasIsChatActive = actualSourceTable !== "initial_form_messages";
+            
             // Convert some fields if needed for the ArchivedTickets model
             const archivedTicket = {
                 // Required fields for your database schema
@@ -213,6 +237,7 @@ function Main() {
                 
                 // Tell the server which table to update
                 determineTable: actualSourceTable,
+                hasIsChatActive: hasIsChatActive,
                 
                 // Other fields
                 firstName: ticket.firstName || ticket.sender?.split(' ')[0] || "Unknown",
@@ -270,9 +295,6 @@ function Main() {
         return ticket.formType || "Unknown";
     };
 
-    // Förhindrar standardbeteende vid drag-over
-    function handleDragOver(e) { e.preventDefault() };
-
     // Funktion för att hantera redigering av ärenden
     function handleTaskEdit(taskId, newContent, setColumn) {
         setColumn(prev => prev.map(task =>
@@ -305,7 +327,7 @@ function Main() {
             <div
                 className="ticket-tasks"
                 onDragOver={handleDragOver}
-                onDrop={() => handleDrop(setTasks, tasks)}
+                onDrop={(e) => handleDrop(e, setTasks, 'tasks')}
             >
                 <h2 className="ticket-tasks-header">Ärenden</h2>
 
@@ -313,15 +335,12 @@ function Main() {
                     <select value={issuTypeFilter}
                     onChange={handleIssueFilterChange}
                     className="issue-type-filter"
-
-
                     >
                         <option value="">Alla Ärendetyper</option>
                         {getUniqueIssueTypes().map ((type) => (
                             <option key={type} value={type}>{type}</option>
                         ))}
                     </select>
-
                 </div>
 
                 {filteredTasks.map((task) => (
@@ -329,7 +348,7 @@ function Main() {
                     <div
                         key={task.id || task.chatToken}
                         draggable
-                        onDragStart={() => handleDragStart(task)}
+                        onDragStart={(e) => handleDragStart(task, 'tasks', e)}
                         className="ticket-task-item"
                     >
                         <div className="ticket-task-content"
@@ -360,14 +379,14 @@ function Main() {
             <div
                 className="ticket-my-tasks"
                 onDragOver={handleDragOver}
-                onDrop={() => handleDrop(setMyTasks, myTasks)}
+                onDrop={(e) => handleDrop(e, setMyTasks, 'myTasks')}
             >
                 <h2 className="ticket-my-tasks-header">Mina ärenden</h2>
                 {myTasks.map((task) => (
                     <div
                         key={task.id || task.chatToken}
                         draggable
-                        onDragStart={() => handleDragStart(task)}
+                        onDragStart={(e) => handleDragStart(task, 'myTasks', e)}
                         className="ticket-task-item"
                     >
                         <div className="ticket-task-content"
@@ -404,9 +423,8 @@ function Main() {
                 {done.map((task) => (
                     <div
                         key={task.id || task.chatToken}
-                        draggable= {false}
-                        
-                        className="ticket-task-item"
+                        draggable={false}
+                        className="ticket-task-item completed-task"
                     >
                         <div className="ticket-task-content"
                             contentEditable
