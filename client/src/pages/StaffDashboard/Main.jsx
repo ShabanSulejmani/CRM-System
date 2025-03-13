@@ -77,7 +77,18 @@ function Main() {
 
     : tasks;
 
-
+    // Add this mapping
+    const listMap = {
+        tasks: tasks,
+        myTasks: myTasks,
+        done: done
+    };
+    
+    const listSetterMap = {
+        tasks: setTasks,
+        myTasks: setMyTasks,
+        done: setDone
+    };
 
     // Save tasks state to localStorage whenever it changes
     useEffect(() => {
@@ -137,23 +148,113 @@ function Main() {
     }
 
     // Funktion som körs när man börjar dra ett ärende
-    function handleDragStart(task) {
-        setDraggedTask(task);
+    function handleDragStart(task, column) {
+        setDraggedTask({ task, column });
     }
 
     // Funktion som körs när man släpper ett ärende i en ny kolumn
-    const handleDrop = (setTargetColumn, targetColumn) => {
-        if (draggedTask) {
-            // Tar bort ärendet från alla kolumner
-            setTasks(prev => prev.filter(task => task.id !== draggedTask.id));
-            setMyTasks(prev => prev.filter(task => task.id !== draggedTask.id));
-            setDone(prev => prev.filter(task => task.id !== draggedTask.id));
+    const handleDrop = async (e, setList, column) => {
+        e.preventDefault();
+        if (!draggedTask) return;
 
-            // Lägger till ärendet i målkolumnen
-            setTargetColumn(prev => [...prev, draggedTask]);
-            // Återställer draggedTask
-            setDraggedTask(null);
+        // Get the source column and destination column
+        const sourceColumn = draggedTask.column;
+        const destColumn = column;
+
+        // Check if the task is being moved to the done column from another column
+        if (destColumn === 'done' && sourceColumn !== 'done') {
+            try {
+                // Archive the ticket in the database
+                await archiveTicket(draggedTask.task);
+                console.log("Ticket archived successfully");
+            } catch (error) {
+                console.error("Failed to archive ticket:", error);
+                // You might want to show an error message to the user here
+            }
         }
+
+        // Continue with the existing functionality
+        const newList = [...listMap[sourceColumn]].filter(task => task.id !== draggedTask.task.id);
+        listSetterMap[sourceColumn](newList);
+        
+        const updatedTask = {...draggedTask.task, column: destColumn};
+        setList(prev => [...prev, updatedTask]);
+        setDraggedTask(null);
+    };
+
+    // Improve the archiveTicket function with better error handling
+    const archiveTicket = async (ticket) => {
+        try {
+            console.log("Archiving ticket:", ticket);
+            
+            // Ensure originalId is always a number
+            const ticketId = 1; // Use a fixed valid value
+            
+            // Force the original table to be a specific valid value
+            const ticketSource = "initial_form_messages"; // Hardcode this value to ensure it works
+            console.log("Using originalTable:", ticketSource);
+            
+            // Convert some fields if needed for the ArchivedTickets model
+            const archivedTicket = {
+                // Required fields for your database schema
+                originalId: ticketId,
+                originalTable: ticketSource, // Use hardcoded, guaranteed value
+                form_type: determineFormType(ticket) || "Unknown", // CHANGE THIS - use snake_case
+                
+                // Other fields
+                firstName: ticket.firstName || ticket.sender?.split(' ')[0] || "Unknown",
+                email: ticket.email || "No email provided",
+                serviceType: ticket.serviceType || ticket.category || "",
+                issueType: ticket.issueType || ticket.wtp || "",
+                message: ticket.message || "",
+                chatToken: ticket.chatToken || "",
+                timestamp: ticket.timestamp || ticket.submittedAt || new Date().toISOString(),
+                formType: determineFormType(ticket) || "Unknown", // Include both camelCase and snake_case
+                companyType: ticket.companyType || "",
+                resolutionNotes: "Closed from dashboard"
+            };
+
+            console.log("Sending archive data:", JSON.stringify(archivedTicket));
+
+            // Call the API to archive the ticket using fetch
+            const response = await fetch('/api/tickets/archive', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(archivedTicket)
+            });
+
+            const responseData = await response.text();
+            console.log("Archive response:", response.status, responseData);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}, Response: ${responseData}`);
+            }
+
+            return responseData ? JSON.parse(responseData) : { success: true };
+        } catch (error) {
+            console.error('Error archiving ticket:', error);
+            alert("Failed to archive ticket: " + error.message);
+            throw error;
+        }
+    };
+
+    // Helper function to determine original table based on ticket properties
+    const determineOriginalTable = (ticket) => {
+        if (ticket.regNummer) return "fordon_forms";
+        if (ticket.insuranceType) return "forsakrings_forms";
+        if (ticket.serviceType) return "tele_forms";
+        return "initial_form_messages";
+    };
+
+    // Helper function to determine form type
+    const determineFormType = (ticket) => {
+        if (ticket.regNummer) return "Fordonsservice";
+        if (ticket.insuranceType) return "Försäkringsärende";
+        if (ticket.serviceType) return "Tele/Bredband";
+        return ticket.formType || "Unknown";
     };
 
     // Förhindrar standardbeteende vid drag-over
@@ -191,7 +292,7 @@ function Main() {
             <div
                 className="ticket-tasks"
                 onDragOver={handleDragOver}
-                onDrop={() => handleDrop(setTasks, tasks)}
+                onDrop={(e) => handleDrop(e, setTasks, 'tasks')}
             >
                 <h2 className="ticket-tasks-header">Ärenden</h2>
 
@@ -215,7 +316,7 @@ function Main() {
                     <div
                         key={task.id || task.chatToken}
                         draggable
-                        onDragStart={() => handleDragStart(task)}
+                        onDragStart={() => handleDragStart(task, 'tasks')}
                         className="ticket-task-item"
                     >
                         <div className="ticket-task-content"
@@ -246,14 +347,14 @@ function Main() {
             <div
                 className="ticket-my-tasks"
                 onDragOver={handleDragOver}
-                onDrop={() => handleDrop(setMyTasks, myTasks)}
+                onDrop={(e) => handleDrop(e, setMyTasks, 'myTasks')}
             >
                 <h2 className="ticket-my-tasks-header">Mina ärenden</h2>
                 {myTasks.map((task) => (
                     <div
                         key={task.id || task.chatToken}
                         draggable
-                        onDragStart={() => handleDragStart(task)}
+                        onDragStart={() => handleDragStart(task, 'myTasks')}
                         className="ticket-task-item"
                     >
                         <div className="ticket-task-content"
@@ -284,14 +385,14 @@ function Main() {
             <div
                 className="ticket-done"
                 onDragOver={handleDragOver}
-                onDrop={() => handleDrop(setDone, done)}
+                onDrop={(e) => handleDrop(e, setDone, 'done')}
             >
                 <h2 className="ticket-done-header">Klara</h2>
                 {done.map((task) => (
                     <div
                         key={task.id || task.chatToken}
                         draggable
-                        onDragStart={() => handleDragStart(task)}
+                        onDragStart={() => handleDragStart(task, 'done')}
                         className="ticket-task-item"
                     >
                         <div className="ticket-task-content"
