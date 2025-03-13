@@ -825,7 +825,7 @@ public class Program // Deklarerar huvudklassen Program
             }
         });
 
-        app.MapPost("/api/archive-ticket", async (HttpContext context, ArchivedTickets archivedTickets, NpgsqlDataSource db) =>
+       /* app.MapPost("/api/archive-ticket", async (HttpContext context, ArchivedTickets archivedTickets, NpgsqlDataSource db) =>
         {
             
             try
@@ -858,7 +858,54 @@ public class Program // Deklarerar huvudklassen Program
                 return Results.BadRequest(new { message = "Failed to archive ticket." });
             }
 
-        });
+        }); */
+        // Add this endpoint to your API mappings
+        // Add this endpoint to your API mappings
+app.MapPost("/api/tickets/archive", async (HttpContext httpContext, NpgsqlDataSource db) =>
+{
+    try
+    {
+        Console.WriteLine("Archiving ticket request received");
+        
+        // Get the ticket data from the request body
+        var reader = new StreamReader(httpContext.Request.Body);
+        var body = await reader.ReadToEndAsync();
+        Console.WriteLine($"Request body: {body}");
+        
+        var ticket = JsonSerializer.Deserialize<JsonElement>(body);
+
+        using var cmd = db.CreateCommand(@"
+            INSERT INTO archived_tickets 
+            (form_type, first_name, email, service_type, issue_type, 
+             message, chat_token, submitted_at, resolved_at, company_type, resolution_notes)
+            VALUES 
+            (@form_type, @first_name, @email, @service_type, @issue_type, 
+             @message, @chat_token, @submitted_at, @resolved_at, @company_type, @resolution_notes)"
+        );
+
+        cmd.Parameters.AddWithValue("form_type", ticket.TryGetProperty("formType", out var formType) && formType.ValueKind != JsonValueKind.Null ? formType.GetString() : "Unknown");
+        cmd.Parameters.AddWithValue("first_name", ticket.TryGetProperty("firstName", out var firstName) && firstName.ValueKind != JsonValueKind.Null ? firstName.GetString() : "Unknown");
+        cmd.Parameters.AddWithValue("email", ticket.TryGetProperty("email", out var email) && email.ValueKind != JsonValueKind.Null ? email.GetString() : "no-email@example.com");
+        cmd.Parameters.AddWithValue("service_type", ticket.TryGetProperty("serviceType", out var serviceType) && serviceType.ValueKind != JsonValueKind.Null ? serviceType.GetString() : "");
+        cmd.Parameters.AddWithValue("issue_type", ticket.TryGetProperty("issueType", out var issueType) && issueType.ValueKind != JsonValueKind.Null ? issueType.GetString() : "Unknown Issue");
+        cmd.Parameters.AddWithValue("message", ticket.TryGetProperty("message", out var message) && message.ValueKind != JsonValueKind.Null ? message.GetString() : "");
+        cmd.Parameters.AddWithValue("chat_token", ticket.TryGetProperty("chatToken", out var chatToken) && chatToken.ValueKind != JsonValueKind.Null ? chatToken.GetString() : Guid.NewGuid().ToString());
+        cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow.AddDays(-1));
+        cmd.Parameters.AddWithValue("resolved_at", DateTime.UtcNow);
+        cmd.Parameters.AddWithValue("company_type", ticket.TryGetProperty("companyType", out var companyType) && companyType.ValueKind != JsonValueKind.Null ? companyType.GetString() : "");
+        cmd.Parameters.AddWithValue("resolution_notes", ticket.TryGetProperty("resolutionNotes", out var resolutionNotes) && resolutionNotes.ValueKind != JsonValueKind.Null ? resolutionNotes.GetString() : "Closed from dashboard");
+
+        await cmd.ExecuteNonQueryAsync();
+        
+        Console.WriteLine("Ticket archived successfully");
+        return Results.Ok(new { message = "Ticket archived successfully" });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error archiving ticket: {ex.Message}");
+        return Results.BadRequest(new { message = "Failed to archive ticket", error = ex.Message });
+    }
+});
 
         app.Run(); // Startar webbservern
     }
