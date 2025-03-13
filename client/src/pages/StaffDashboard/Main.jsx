@@ -2,27 +2,36 @@
 import { useState, useEffect } from "react";
 import Aside from "./Aside";
 import ChatLink from "../../ChatLink"; // Import the ChatLink component
+import { useAuth } from "../../AuthContext"; // Import useAuth hook
 
 // Definierar huvudkomponenten för applikationen
 function Main() {
+    // Get current user from auth context
+    const { user } = useAuth();
+    
+    // Create user-specific storage keys
+    const getUserTasksKey = () => `tasks_${user?.username || 'guest'}`;
+    const getMyTasksKey = () => `myTasks_${user?.username || 'guest'}`;
+    const getDoneTasksKey = () => `done_${user?.username || 'guest'}`;
+    
     // State för alla ärenden/tasks
     const [tasks, setTasks] = useState(() => {
-        // Try to get tasks from localStorage on initial render
-        const savedTasks = localStorage.getItem('tasks');
+        // Try to get tasks from localStorage on initial render with user-specific key
+        const savedTasks = localStorage.getItem(getUserTasksKey());
         return savedTasks ? JSON.parse(savedTasks) : [];
     });
     
     // State för användarens egna ärenden
     const [myTasks, setMyTasks] = useState(() => {
-        // Try to get myTasks from localStorage on initial render
-        const savedMyTasks = localStorage.getItem('myTasks');
+        // Try to get myTasks from localStorage on initial render with user-specific key
+        const savedMyTasks = localStorage.getItem(getMyTasksKey());
         return savedMyTasks ? JSON.parse(savedMyTasks) : [];
     });
     
     // State för färdiga ärenden
     const [done, setDone] = useState(() => {
-        // Try to get done tasks from localStorage on initial render
-        const savedDone = localStorage.getItem('done');
+        // Try to get done tasks from localStorage on initial render with user-specific key
+        const savedDone = localStorage.getItem(getDoneTasksKey());
         return savedDone ? JSON.parse(savedDone) : [];
     });
     
@@ -77,18 +86,19 @@ function Main() {
 
     : tasks;
 
-    // Add this mapping
-    const listMap = {
-        tasks: tasks,
-        myTasks: myTasks,
-        done: done
-    };
-    
-    const listSetterMap = {
-        tasks: setTasks,
-        myTasks: setMyTasks,
-        done: setDone
-    };
+    // Reload tasks from localStorage when user changes
+    useEffect(() => {
+        const savedTasks = localStorage.getItem(getUserTasksKey());
+        const savedMyTasks = localStorage.getItem(getMyTasksKey());
+        const savedDone = localStorage.getItem(getDoneTasksKey());
+        
+        setTasks(savedTasks ? JSON.parse(savedTasks) : []);
+        setMyTasks(savedMyTasks ? JSON.parse(savedMyTasks) : []);
+        setDone(savedDone ? JSON.parse(savedDone) : []);
+        
+        // Also fetch new tickets when user changes
+        fetchAllTickets();
+    }, [user?.username]); // Re-run when username changes
 
     // Save tasks state to localStorage whenever it changes
     useEffect(() => {
@@ -157,13 +167,12 @@ function Main() {
     }
 
     // Funktion som körs när man släpper ett ärende i en ny kolumn
-    const handleDrop = async (e, setList, column) => {
-        e.preventDefault();
-        if (!draggedTask) return;
-
-        // Get the source column and destination column
-        const sourceColumn = draggedTask.column;
-        const destColumn = column;
+    const handleDrop = (setTargetColumn, targetColumn) => {
+        if (draggedTask) {
+            // Tar bort ärendet från alla kolumner
+            setTasks(prev => prev.filter(task => task.id !== draggedTask.id));
+            setMyTasks(prev => prev.filter(task => task.id !== draggedTask.id));
+            setDone(prev => prev.filter(task => task.id !== draggedTask.id));
 
         // Check if the task is being moved to the done column from another column
         if (destColumn === 'done' && sourceColumn !== 'done') {
@@ -296,7 +305,7 @@ function Main() {
             <div
                 className="ticket-tasks"
                 onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, setTasks, 'tasks')}
+                onDrop={() => handleDrop(setTasks, tasks)}
             >
                 <h2 className="ticket-tasks-header">Ärenden</h2>
 
@@ -320,7 +329,7 @@ function Main() {
                     <div
                         key={task.id || task.chatToken}
                         draggable
-                        onDragStart={() => handleDragStart(task, 'tasks')}
+                        onDragStart={() => handleDragStart(task)}
                         className="ticket-task-item"
                     >
                         <div className="ticket-task-content"
@@ -351,14 +360,14 @@ function Main() {
             <div
                 className="ticket-my-tasks"
                 onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, setMyTasks, 'myTasks')}
+                onDrop={() => handleDrop(setMyTasks, myTasks)}
             >
                 <h2 className="ticket-my-tasks-header">Mina ärenden</h2>
                 {myTasks.map((task) => (
                     <div
                         key={task.id || task.chatToken}
                         draggable
-                        onDragStart={() => handleDragStart(task, 'myTasks')}
+                        onDragStart={() => handleDragStart(task)}
                         className="ticket-task-item"
                     >
                         <div className="ticket-task-content"
