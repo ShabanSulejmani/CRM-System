@@ -148,7 +148,11 @@ function Main() {
     }
 
     // Funktion som körs när man börjar dra ett ärende
-    function handleDragStart(task, column) {
+    function handleDragStart(task, column, e) {
+        if ( column == 'done') {
+            e.preventDefault();
+            return false;
+        }
         setDraggedTask({ task, column });
     }
 
@@ -187,19 +191,19 @@ function Main() {
         try {
             console.log("Archiving ticket:", ticket);
             
-            // Ensure originalId is always a number
-            const ticketId = 1; // Use a fixed valid value
-            
-            // Force the original table to be a specific valid value
-            const ticketSource = "initial_form_messages"; // Hardcode this value to ensure it works
-            console.log("Using originalTable:", ticketSource);
+            // Get the actual source table for the form
+            const actualSourceTable = determineOriginalTable(ticket);
+            console.log("Determined source table:", actualSourceTable);
             
             // Convert some fields if needed for the ArchivedTickets model
             const archivedTicket = {
                 // Required fields for your database schema
-                originalId: ticketId,
-                originalTable: ticketSource, // Use hardcoded, guaranteed value
-                form_type: determineFormType(ticket) || "Unknown", // CHANGE THIS - use snake_case
+                originalId: 1,
+                originalTable: "initial_form_messages",
+                form_type: determineFormType(ticket) || "Unknown",
+                
+                // Tell the server which table to update
+                determineTable: actualSourceTable,
                 
                 // Other fields
                 firstName: ticket.firstName || ticket.sender?.split(' ')[0] || "Unknown",
@@ -209,14 +213,14 @@ function Main() {
                 message: ticket.message || "",
                 chatToken: ticket.chatToken || "",
                 timestamp: ticket.timestamp || ticket.submittedAt || new Date().toISOString(),
-                formType: determineFormType(ticket) || "Unknown", // Include both camelCase and snake_case
+                formType: determineFormType(ticket) || "Unknown",
                 companyType: ticket.companyType || "",
                 resolutionNotes: "Closed from dashboard"
             };
 
-            console.log("Sending archive data:", JSON.stringify(archivedTicket));
+            console.log("Sending archive data with table update info:", JSON.stringify(archivedTicket));
 
-            // Call the API to archive the ticket using fetch
+            // Single API call that both archives the ticket AND updates is_chat_active
             const response = await fetch('/api/tickets/archive', {
                 method: 'POST',
                 headers: {
@@ -391,8 +395,8 @@ function Main() {
                 {done.map((task) => (
                     <div
                         key={task.id || task.chatToken}
-                        draggable
-                        onDragStart={() => handleDragStart(task, 'done')}
+                        draggable= {false}
+                        
                         className="ticket-task-item"
                     >
                         <div className="ticket-task-content"
