@@ -265,6 +265,48 @@ main {
   border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
 
+.ticket-items-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 5px; /* Allow space for scrollbar */
+  max-height: calc(100vh - 4rem); /* Adjust height as needed */
+}
+
+.ticket-items-container::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+.new-ticket {
+  position: relative;
+}
+
+.new-ticket-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #e74c3c;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 3px 6px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: pulse 2s infinite;
+}
+
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* Container styles unified */
 .container, .login-container, .faq-container {
   background-color: white;

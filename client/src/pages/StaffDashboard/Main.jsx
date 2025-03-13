@@ -38,6 +38,12 @@ function Main() {
     
     // State för att hålla koll på vilket ärende som dras
     const [draggedTask, setDraggedTask] = useState(null);
+    
+    // State för att hålla koll på visade ärenden
+    const [viewedTickets, setViewedTickets] = useState(() => {
+        const savedViewedTickets = localStorage.getItem('viewedTickets');
+        return savedViewedTickets ? JSON.parse(savedViewedTickets) : {};
+    });
 
     // Define mapping objects for tasks and their setter functions
     const listMap = {
@@ -125,10 +131,28 @@ function Main() {
     useEffect(() => {
         localStorage.setItem(getDoneTasksKey(), JSON.stringify(done));
     }, [done, user]);
+    
+    // Save viewedTickets state to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('viewedTickets', JSON.stringify(viewedTickets));
+    }, [viewedTickets]);
 
     useEffect(() => {
         fetchAllTickets();
     }, []);
+
+    // Funktion för att markera ett ärende som visat
+    function markAsViewed(taskId) {
+        setViewedTickets(prev => ({
+            ...prev,
+            [taskId]: true
+        }));
+    }
+
+    // Funktion för att kontrollera om ett ärende är nytt/ovisat
+    function isNewTicket(taskId) {
+        return !viewedTickets[taskId];
+    }
 
     function printFetchError(error) {
         console.error("failed to fetch tickets: " + error);
@@ -330,7 +354,7 @@ function Main() {
                 onDrop={(e) => handleDrop(e, setTasks, 'tasks')}
             >
                 <h2 className="ticket-tasks-header">Ärenden</h2>
-
+            <div className="ticket-items-container">
                 <div className="issue-filter-container">
                     <select value={issuTypeFilter}
                     onChange={handleIssueFilterChange}
@@ -349,7 +373,7 @@ function Main() {
                         key={task.id || task.chatToken}
                         draggable
                         onDragStart={(e) => handleDragStart(task, 'tasks', e)}
-                        className="ticket-task-item"
+                        className={`ticket-task-item ${isNewTicket(task.id) ? 'new-ticket' : ''}`}
                     >
                         <div className="ticket-task-content"
                             contentEditable
@@ -358,6 +382,10 @@ function Main() {
                         >
                             {task.issueType}
                         </div>
+                        
+                        {isNewTicket(task.id) && (
+                            <div className="new-ticket-badge">Ny</div>
+                        )}
 
                         <div className="ticket-task-details">
                             <div className="ticket-wtp">{task.wtp}</div>
@@ -367,7 +395,10 @@ function Main() {
                             </div>
                             <div className="ticket-task-token">
                                 {/* Replace regular link with ChatLink component */}
-                                <ChatLink chatToken={task.chatToken}>
+                                <ChatLink 
+                                    chatToken={task.chatToken}
+                                    onClick={() => markAsViewed(task.id)}
+                                >
                                     Öppna chatt
                                 </ChatLink>
                             </div>
@@ -375,43 +406,52 @@ function Main() {
                     </div>
                 ))}
             </div>
-
+            </div>
             <div
                 className="ticket-my-tasks"
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, setMyTasks, 'myTasks')}
             >
                 <h2 className="ticket-my-tasks-header">Mina ärenden</h2>
-                {myTasks.map((task) => (
-                    <div
-                        key={task.id || task.chatToken}
-                        draggable
-                        onDragStart={(e) => handleDragStart(task, 'myTasks', e)}
-                        className="ticket-task-item"
-                    >
-                        <div className="ticket-task-content"
-                            contentEditable
-                            suppressContentEditableWarning={true}
-                            onBlur={(e) => handleTaskEdit(task.id, e.currentTarget.textContent, setMyTasks)}
+                <div className="ticket-items-container">
+                    {myTasks.map((task) => (
+                        <div
+                            key={task.id || task.chatToken}
+                            draggable
+                            onDragStart={(e) => handleDragStart(task, 'myTasks', e)}
+                            className={`ticket-task-item ${isNewTicket(task.id) ? 'new-ticket' : ''}`}
                         >
-                            {task.issueType}
-                        </div>
+                            <div className="ticket-task-content"
+                                contentEditable
+                                suppressContentEditableWarning={true}
+                                onBlur={(e) => handleTaskEdit(task.id, e.currentTarget.textContent, setMyTasks)}
+                            >
+                                {task.issueType}
+                            </div>
+                            
+                            {isNewTicket(task.id) && (
+                                <div className="new-ticket-badge">Ny</div>
+                            )}
 
-                        <div className="ticket-task-details">
-                            <div className="ticket-wtp">{task.wtp}</div>
-                            <div className="ticket-task-email">{task.email}</div>
-                            <div className="ticket-task-time">
-                                {formatDate(task.submittedAt || task.timestamp || task.createdAt)}
-                            </div>
-                            <div className="ticket-task-token">
-                                {/* Replace regular link with ChatLink component */}
-                                <ChatLink chatToken={task.chatToken}>
-                                    Öppna chatt
-                                </ChatLink>
+                            <div className="ticket-task-details">
+                                <div className="ticket-wtp">{task.wtp}</div>
+                                <div className="ticket-task-email">{task.email}</div>
+                                <div className="ticket-task-time">
+                                    {formatDate(task.submittedAt || task.timestamp || task.createdAt)}
+                                </div>
+                                <div className="ticket-task-token">
+                                    {/* Replace regular link with ChatLink component */}
+                                    <ChatLink 
+                                        chatToken={task.chatToken}
+                                        onClick={() => markAsViewed(task.id)}
+                                    >
+                                        Öppna chatt
+                                    </ChatLink>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
 
             <div
@@ -420,34 +460,36 @@ function Main() {
                 onDrop={(e) => handleDrop(e, setDone, 'done')}
             >
                 <h2 className="ticket-done-header">Klara</h2>
-                {done.map((task) => (
-                    <div
-                        key={task.id || task.chatToken}
-                        draggable={false}
-                        className="ticket-task-item completed-task"
-                    >
-                        <div className="ticket-task-content"
-                            contentEditable
-                            suppressContentEditableWarning={true}
-                            onBlur={(e) => handleTaskEdit(task.id, e.currentTarget.textContent, setDone)}
+                <div className="ticket-items-container">
+                    {done.map((task) => (
+                        <div
+                            key={task.id || task.chatToken}
+                            draggable={false}
+                            className="ticket-task-item completed-task"
                         >
-                            {task.issueType}
-                        </div>
+                            <div className="ticket-task-content"
+                                contentEditable
+                                suppressContentEditableWarning={true}
+                                onBlur={(e) => handleTaskEdit(task.id, e.currentTarget.textContent, setDone)}
+                            >
+                                {task.issueType}
+                            </div>
 
-                        <div className="ticket-task-details">
-                            <div className="ticket-wtp">{task.wtp}</div>
-                            <div className="ticket-task-time">
-                                {formatDate(task.submittedAt || task.timestamp || task.createdAt)}
-                            </div>
-                            <div className="ticket-task-token">
-                                {/* Replace regular link with ChatLink component */}
-                                <ChatLink chatToken={task.chatToken}>
-                                    Öppna chatt
-                                </ChatLink>
+                            <div className="ticket-task-details">
+                                <div className="ticket-wtp">{task.wtp}</div>
+                                <div className="ticket-task-time">
+                                    {formatDate(task.submittedAt || task.timestamp || task.createdAt)}
+                                </div>
+                                <div className="ticket-task-token">
+                                    {/* Replace regular link with ChatLink component */}
+                                    <ChatLink chatToken={task.chatToken}>
+                                        Öppna chatt
+                                    </ChatLink>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
     );
