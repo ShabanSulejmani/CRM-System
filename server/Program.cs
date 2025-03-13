@@ -834,8 +834,8 @@ public class Program // Deklarerar huvudklassen Program
                 
                 
                 await using var cmd = db.CreateCommand(@"
-                    INSERT INTO archived_tickets (first_name, email, service_type, issue_type, message, chat_token, submitted_at, resolved_at, form_type, company_type)
-                    VALUES (@first_name, @email, @service_type, @issue_type, @message, @chat_token, @submitted_at, @resolved_at, @form_type, @company_type)
+                    INSERT INTO archived_tickets (id, original_id, original_table, form_type, first_name, email, issue_type, message, chat_token, submitted_at, resolved_at, company_type, resolution_notes, service_type, reg_nummer, insurance_type)
+                    VALUES (@id, @original_id, @original_table, @form_type, @first_name, @email, @issue_type, @message, @chat_token, @submitted_at, @resolved_at, @company_type, @resolution_notes, @service_type, @reg_nummer, @insurance_type)
                     ");
 
                 cmd.Parameters.AddWithValue("first_name", archivedTickets.FirstName);
