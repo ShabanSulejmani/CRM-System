@@ -825,42 +825,8 @@ public class Program // Deklarerar huvudklassen Program
             }
         });
 
-       /* app.MapPost("/api/archive-ticket", async (HttpContext context, ArchivedTickets archivedTickets, NpgsqlDataSource db) =>
-        {
-            
-            try
-            {
-                Console.WriteLine($"Received archive request: {JsonSerializer.Serialize(archivedTickets)}"); // 👀 Logga datan i backend
-                
-                
-                await using var cmd = db.CreateCommand(@"
-                    INSERT INTO archived_tickets (id, original_id, original_table, form_type, first_name, email, issue_type, message, chat_token, submitted_at, resolved_at, company_type, resolution_notes, service_type, reg_nummer, insurance_type)
-                    VALUES (@id, @original_id, @original_table, @form_type, @first_name, @email, @issue_type, @message, @chat_token, @submitted_at, @resolved_at, @company_type, @resolution_notes, @service_type, @reg_nummer, @insurance_type)
-                    ");
+      
 
-                cmd.Parameters.AddWithValue("first_name", archivedTickets.FirstName);
-                cmd.Parameters.AddWithValue("email", archivedTickets.Email);
-                cmd.Parameters.AddWithValue("service_type", archivedTickets.ServiceType);
-                cmd.Parameters.AddWithValue("issue_type", archivedTickets.IssueType);
-                cmd.Parameters.AddWithValue("message", archivedTickets.Message);
-                cmd.Parameters.AddWithValue("chat_token", archivedTickets.ChatToken);
-                cmd.Parameters.AddWithValue("submitted_at", archivedTickets.SubmittedAt);
-                cmd.Parameters.AddWithValue("resolved_at", archivedTickets.ResolvedAt);
-                cmd.Parameters.AddWithValue("form_type", archivedTickets.FormType);
-                cmd.Parameters.AddWithValue("company_type", archivedTickets.CompanyType);
-
-                await cmd.ExecuteNonQueryAsync();
-                return Results.Ok(new { message = "Ticket archived successfully." });
-
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(new { message = "Failed to archive ticket." });
-            }
-
-        }); */
-        // Add this endpoint to your API mappings
-        // Add this endpoint to your API mappings
 app.MapPost("/api/tickets/archive", async (HttpContext httpContext, NpgsqlDataSource db) =>
 {
     try
@@ -874,29 +840,81 @@ app.MapPost("/api/tickets/archive", async (HttpContext httpContext, NpgsqlDataSo
         
         var ticket = JsonSerializer.Deserialize<JsonElement>(body);
 
-        using var cmd = db.CreateCommand(@"
-            INSERT INTO archived_tickets 
-            (form_type, first_name, email, service_type, issue_type, 
-             message, chat_token, submitted_at, resolved_at, company_type, resolution_notes)
-            VALUES 
-            (@form_type, @first_name, @email, @service_type, @issue_type, 
-             @message, @chat_token, @submitted_at, @resolved_at, @company_type, @resolution_notes)"
-        );
+        // 1. Archive the ticket
+        using (var cmd = db.CreateCommand())
+        {
+            cmd.CommandText = @"
+                INSERT INTO archived_tickets 
+                (original_id, original_table, form_type, first_name, email, service_type, issue_type, 
+                 message, chat_token, submitted_at, resolved_at, company_type, resolution_notes)
+                VALUES 
+                (1, 'initial_form_messages', @form_type, @first_name, @email, @service_type, @issue_type, 
+                 @message, @chat_token, @submitted_at, @resolved_at, @company_type, @resolution_notes)";
+            
+            // Set parameters...
+            cmd.Parameters.AddWithValue("@form_type", ticket.TryGetProperty("formType", out var formType) ? formType.GetString() : "Unknown");
+            cmd.Parameters.AddWithValue("@first_name", ticket.TryGetProperty("firstName", out var firstName) ? firstName.GetString() : "Unknown");
+            cmd.Parameters.AddWithValue("@email", ticket.TryGetProperty("email", out var email) ? email.GetString() : "no-email@example.com");
+            cmd.Parameters.AddWithValue("@service_type", ticket.TryGetProperty("serviceType", out var serviceType) ? serviceType.GetString() : "");
+            cmd.Parameters.AddWithValue("@issue_type", ticket.TryGetProperty("issueType", out var issueType) ? issueType.GetString() : "Unknown Issue");
+            cmd.Parameters.AddWithValue("@message", ticket.TryGetProperty("message", out var message) ? message.GetString() : "");
+            cmd.Parameters.AddWithValue("@chat_token", ticket.TryGetProperty("chatToken", out var chatToken) ? chatToken.GetString() : Guid.NewGuid().ToString());
+            cmd.Parameters.AddWithValue("@submitted_at", DateTime.UtcNow.AddDays(-1)); // Default to yesterday
+            cmd.Parameters.AddWithValue("@resolved_at", DateTime.UtcNow); // Default to now
+            cmd.Parameters.AddWithValue("@company_type", ticket.TryGetProperty("companyType", out var companyType) ? companyType.GetString() : "");
+            cmd.Parameters.AddWithValue("@resolution_notes", ticket.TryGetProperty("resolutionNotes", out var resolutionNotes) ? resolutionNotes.GetString() : "Closed from dashboard");
 
-        cmd.Parameters.AddWithValue("form_type", ticket.TryGetProperty("formType", out var formType) && formType.ValueKind != JsonValueKind.Null ? formType.GetString() : "Unknown");
-        cmd.Parameters.AddWithValue("first_name", ticket.TryGetProperty("firstName", out var firstName) && firstName.ValueKind != JsonValueKind.Null ? firstName.GetString() : "Unknown");
-        cmd.Parameters.AddWithValue("email", ticket.TryGetProperty("email", out var email) && email.ValueKind != JsonValueKind.Null ? email.GetString() : "no-email@example.com");
-        cmd.Parameters.AddWithValue("service_type", ticket.TryGetProperty("serviceType", out var serviceType) && serviceType.ValueKind != JsonValueKind.Null ? serviceType.GetString() : "");
-        cmd.Parameters.AddWithValue("issue_type", ticket.TryGetProperty("issueType", out var issueType) && issueType.ValueKind != JsonValueKind.Null ? issueType.GetString() : "Unknown Issue");
-        cmd.Parameters.AddWithValue("message", ticket.TryGetProperty("message", out var message) && message.ValueKind != JsonValueKind.Null ? message.GetString() : "");
-        cmd.Parameters.AddWithValue("chat_token", ticket.TryGetProperty("chatToken", out var chatToken) && chatToken.ValueKind != JsonValueKind.Null ? chatToken.GetString() : Guid.NewGuid().ToString());
-        cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow.AddDays(-1));
-        cmd.Parameters.AddWithValue("resolved_at", DateTime.UtcNow);
-        cmd.Parameters.AddWithValue("company_type", ticket.TryGetProperty("companyType", out var companyType) && companyType.ValueKind != JsonValueKind.Null ? companyType.GetString() : "");
-        cmd.Parameters.AddWithValue("resolution_notes", ticket.TryGetProperty("resolutionNotes", out var resolutionNotes) && resolutionNotes.ValueKind != JsonValueKind.Null ? resolutionNotes.GetString() : "Closed from dashboard");
+            await cmd.ExecuteNonQueryAsync();
+        }
+// Inside your /api/tickets/archive endpoint, modify the table update section:
 
-        await cmd.ExecuteNonQueryAsync();
-        
+// 2. Now update is_chat_active in the appropriate form table
+if (ticket.TryGetProperty("chatToken", out var tokenElement) && 
+    tokenElement.ValueKind != JsonValueKind.Null)
+{
+    string chatToken = tokenElement.GetString();
+    
+    // Determine which table to update based on form type
+    string tableToUpdate = "initial_form_messages"; // Default fallback
+    
+    if (ticket.TryGetProperty("determineTable", out var tableProperty) && 
+        tableProperty.ValueKind != JsonValueKind.Null)
+    {
+        string requestedTable = tableProperty.GetString();
+        // Only allow specific tables to prevent SQL injection
+        if (requestedTable == "fordon_forms" || 
+            requestedTable == "tele_forms" || 
+            requestedTable == "forsakrings_forms")
+        {
+            tableToUpdate = requestedTable;
+        }
+    }
+    else if (ticket.TryGetProperty("formType", out var formTypeProperty))
+    {
+        string formType = formTypeProperty.GetString();
+        // Map form type to table name
+        if (formType == "Fordonsservice") tableToUpdate = "fordon_forms";
+        else if (formType == "Tele/Bredband") tableToUpdate = "tele_forms";
+        else if (formType == "Försäkringsärende") tableToUpdate = "forsakrings_forms";
+    }
+    
+    Console.WriteLine($"Updating is_chat_active to false in table {tableToUpdate} for chat token {chatToken}");
+    
+    // Only update is_chat_active if the table has that column
+    if (tableToUpdate != "initial_form_messages") {
+        using (var cmd = db.CreateCommand())
+        {
+            cmd.CommandText = $"UPDATE {tableToUpdate} SET is_chat_active = false WHERE chat_token = @chatToken";
+            cmd.Parameters.AddWithValue("@chatToken", chatToken);
+            
+            int rowsUpdated = await cmd.ExecuteNonQueryAsync();
+            Console.WriteLine($"Updated {rowsUpdated} rows in {tableToUpdate}");
+        }
+    } else {
+        Console.WriteLine("Skipping is_chat_active update for initial_form_messages (column doesn't exist)");
+    }
+}
+
         Console.WriteLine("Ticket archived successfully");
         return Results.Ok(new { message = "Ticket archived successfully" });
     }
