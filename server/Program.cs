@@ -43,84 +43,87 @@ public class Program // Deklarerar huvudklassen Program
         var app = builder.Build(); // Bygger WebApplication-instansen
         app.UseSession(); // Required for session state
         
-        // Lägg till middleware för debugging (kan tas bort i produktion)
-       
+     
+     //  Skickar in chatt till databasen
+ app.MapPost("/api/chat/message", async (HttpContext context, ChatMessage message, NpgsqlDataSource db) =>
+{
+    try
+    {
         
-        app.MapPost("/api/chat/message", async (HttpContext context, ChatMessage message, NpgsqlDataSource db) =>
+        
+// Kontrollerar om användaren är inloggad (personal/admin)
+        
+        var isLoggedIn = context.Session.GetString("userId") != null;
+        var userFirstName = context.Session.GetString("userFirstName");
+        
+        Console.WriteLine($"Processing chat message. IsLoggedIn: {isLoggedIn}, UserFirstName: {userFirstName}");
+        Console.WriteLine($"Original message sender: {message.Sender}");
+        
+        // Om användaren är inloggad som personal/admin, skriv över avsändaren(kunden) med användarens namn från sessionen
+        if (isLoggedIn && !string.IsNullOrEmpty(userFirstName))
         {
-            try
+            // Save original sender for logging
+            var originalSender = message.Sender;
+            message.Sender = userFirstName;
+            Console.WriteLine($"Changed sender from '{originalSender}' to '{userFirstName}' (logged in user)");
+        }
+        else
+        {
+            // icke-inloggade användare, vi behöver kontrollera om de är den ursprungliga kunden
+            await using var checkCmd = db.CreateCommand(@"
+                SELECT sender FROM chat_messages 
+                WHERE chat_token = @chat_token 
+                ORDER BY submitted_at ASC LIMIT 1");
+                
+            checkCmd.Parameters.AddWithValue("chat_token", message.ChatToken);
+            
+            var originalSender = await checkCmd.ExecuteScalarAsync() as string;
+            
+            // // Om vi hittade den ursprungliga kunden, använd det namnet konsekvent för icke inloggade användare.
+            if (!string.IsNullOrEmpty(originalSender))
             {
-                // Check if user is logged in (staff/admin)
-                var isLoggedIn = context.Session.GetString("userId") != null;
-                var userFirstName = context.Session.GetString("userFirstName");
-                
-                Console.WriteLine($"Processing chat message. IsLoggedIn: {isLoggedIn}, UserFirstName: {userFirstName}");
-                Console.WriteLine($"Original message sender: {message.Sender}");
-                
-                // If user is logged in as staff/admin, override the sender with the user's name from session
-                if (isLoggedIn && !string.IsNullOrEmpty(userFirstName))
-                {
-                    // Save original sender for logging
-                    var originalSender = message.Sender;
-                    message.Sender = userFirstName;
-                    Console.WriteLine($"Changed sender from '{originalSender}' to '{userFirstName}' (logged in user)");
-                }
-                else
-                {
-                    // For non-logged in users, we need to check if they're the original form submitter
-                    await using var checkCmd = db.CreateCommand(@"
-                        SELECT sender FROM chat_messages 
-                        WHERE chat_token = @chat_token 
-                        ORDER BY submitted_at ASC LIMIT 1");
-                        
-                    checkCmd.Parameters.AddWithValue("chat_token", message.ChatToken);
-                    
-                    var originalSender = await checkCmd.ExecuteScalarAsync() as string;
-                    
-                    // If we found the original sender, use that name consistently for non-logged in users
-                    if (!string.IsNullOrEmpty(originalSender))
-                    {
-                        // Save current sender for logging
-                        var currentSender = message.Sender;
-                        message.Sender = originalSender;
-                        Console.WriteLine($"Changed sender from '{currentSender}' to '{originalSender}' (original submitter)");
-                    }
-                }
+                // Save current sender for logging
+                var currentSender = message.Sender;
+                message.Sender = originalSender;
+                Console.WriteLine($"Changed sender from '{currentSender}' to '{originalSender}' (original submitter)");
+            }
+        }
 
-                // Now insert the message with the correct sender
-                await using var cmd = db.CreateCommand(@"
-                    INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
-                    VALUES (@chat_token, @sender, @message, @submitted_at)
-                    RETURNING id, sender, message, submitted_at, chat_token");
-         
-                cmd.Parameters.AddWithValue("chat_token", message.ChatToken);
-                cmd.Parameters.AddWithValue("sender", message.Sender);
-                cmd.Parameters.AddWithValue("message", message.Message);
-                cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow);
-         
-                await using var reader = await cmd.ExecuteReaderAsync();
-                
-                if (await reader.ReadAsync())
-                {
-                    var createdMessage = new {
-                        id = reader.GetInt32(0),
-                        sender = reader.GetString(1),
-                        message = reader.GetString(2),
-                        timestamp = reader.GetDateTime(3),
-                        chatToken = reader.GetString(4)
-                    };
-                    
-                    return Results.Ok(createdMessage);
-                }
-                
-                return Results.BadRequest(new { message = "Message could not be created" });
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(new { message = "Could not send message", error = ex.Message });
-            }
-        });
+        // Lägg nu in meddelandet med rätt avsändare
+        await using var cmd = db.CreateCommand(@"
+            INSERT INTO chat_messages (chat_token, sender, message, submitted_at)
+            VALUES (@chat_token, @sender, @message, @submitted_at)
+            RETURNING id, sender, message, submitted_at, chat_token");
+ 
+        cmd.Parameters.AddWithValue("chat_token", message.ChatToken);
+        cmd.Parameters.AddWithValue("sender", message.Sender);
+        cmd.Parameters.AddWithValue("message", message.Message);
+        cmd.Parameters.AddWithValue("submitted_at", DateTime.UtcNow);
+ 
+        await using var reader = await cmd.ExecuteReaderAsync();
         
+        if (await reader.ReadAsync())
+        {
+            var createdMessage = new {
+                id = reader.GetInt32(0),
+                sender = reader.GetString(1),
+                message = reader.GetString(2),
+                timestamp = reader.GetDateTime(3),
+                chatToken = reader.GetString(4)
+            };
+            
+            return Results.Ok(createdMessage);
+        }
+        
+        return Results.BadRequest(new { message = "Message could not be created" });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { message = "Could not send message", error = ex.Message });
+    }
+});
+ 
+          // Hämtar chattmeddelanden från databasen
         app.MapGet("/api/chat/messages/{chatToken}", async (string chatToken, NpgsqlDataSource db) =>
         {
             try
@@ -149,12 +152,12 @@ public class Program // Deklarerar huvudklassen Program
                     });
                 }
         
-                // Also get the chat "owner" (first unique sender)
+                //  Chat owner är den som skickade det första meddelandet, alltså kunden
                 string chatOwner = null;
                 if (messages.Count > 0)
                 {
-                    // Assuming the first message's sender is the chat owner
-                    chatOwner = ((dynamic)messages[0]).sender;
+                    // Hämta första meddelandets avsändare som kunden skickat in
+                   chatOwner = ((dynamic)messages[0]).sender;
                 }
         
                 return Results.Ok(new { 
