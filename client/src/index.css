@@ -202,6 +202,7 @@ main {
   transition: all 0.2s;
   cursor: grab;
   border: 2px solid yellow;
+  width: 97%;
 }
 
 .ticket-tasks .ticket-task-item { border-color: #e74c3c; }
