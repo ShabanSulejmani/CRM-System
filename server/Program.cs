@@ -9,16 +9,7 @@ namespace server;
 
 public class LoginRequest
 {
-    public LoginRequest(string username, string password)
-    {
-        Username = username;
-        Password = password;
-    }
-
-    public string Username { get; set; }
-    public string Password { get; set; }
-}
-
+   
 public class Program // Deklarerar huvudklassen Program
 {
     public static void Main(string[] args) // Deklarerar huvudmetoden Main
@@ -170,8 +161,6 @@ public class Program // Deklarerar huvudklassen Program
                 return Results.BadRequest(new { message = "Could not fetch messages", error = ex.Message });
             }
         });
-        
-        
         
         // Lägger till användare i databasen
         app.MapPost("/api/users", async (UserForm user, NpgsqlDataSource db, IEmailService emailService) =>
@@ -330,8 +319,6 @@ public class Program // Deklarerar huvudklassen Program
                 return Results.BadRequest(new { message = ex.Message });
             }
         });
-
-        
         
         // Fordon Form Endpoints
         app.MapPost("/api/fordon", async (FordonForm submission, NpgsqlDataSource db, IEmailService emailService, IConfiguration config, ILogger<Program> logger) =>
@@ -633,7 +620,7 @@ public class Program // Deklarerar huvudklassen Program
             }
         };
         
-        
+        // Logga in användare
         app.MapPost("/api/login", async (HttpContext context, LoginRequest loginRequest, NpgsqlDataSource db) =>
         {
             try
@@ -701,7 +688,9 @@ public class Program // Deklarerar huvudklassen Program
                 return Results.BadRequest(new { message = "Inloggningen misslyckades", error = ex.Message });
             }
         });
-
+       
+        
+        // Kontrollera om användaren är inloggad
         app.MapGet("/api/chat/auth-status", (HttpContext context) =>
         {
             var userId = context.Session.GetString("userId");
@@ -717,6 +706,8 @@ public class Program // Deklarerar huvudklassen Program
             });
         });
 
+        
+        // logga ut användare
         app.MapPost("/api/logout", (HttpContext context) =>
         {
             try
@@ -741,8 +732,8 @@ public class Program // Deklarerar huvudklassen Program
             }
         });
 
-              
-
+        
+       // arkivera tickets
         app.MapPost("/api/tickets/archive", async (HttpContext httpContext, NpgsqlDataSource db) =>
         {
             try
@@ -853,4 +844,13 @@ public class Program // Deklarerar huvudklassen Program
         string IssueType,
         string Email,
         string FormType);
+}
+public LoginRequest(string username, string password)
+{
+    Username = username;
+    Password = password;
+}
+
+public string Username { get; set; }
+public string Password { get; set; }
 }

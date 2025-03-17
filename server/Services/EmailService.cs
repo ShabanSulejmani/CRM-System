@@ -51,7 +51,7 @@ public class EmailService : IEmailService
                     <h2>Hej {firstName}!</h2>
                     <p>Tack för ditt formulär. Du kan nu komma åt ditt chattrum genom att klicka på länken nedan:</p>
                     <p><a href='{chatLink}'>Klicka här för att gå till chatten</a></p>
-                    <p>Länken är: {chatLink}</p>
+                 
                     <p>Länken är personlig och ska inte delas med andra.</p>
                     <br/>
                     <p>Med vänliga hälsningar,<br/>WTP Kundtjänst</p>
