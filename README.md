@@ -27,47 +27,6 @@ Detta CRM-system är designat för att integrera kundformulär och effektivisera
 - PostgreSQL
 - Git
 
-## Kom igång
-
-### Installation
-
-1. Klona repositoryt:
-   ```
-   git clone git@github.com:Hultberg80/WTP.git
-   cd WTP
-   ```
-
-2. Konfigurera databasen:
-   ```
-   // Instruktioner för att konfigurera PostgreSQL-databasen
-   ```
-
-3. Installera backend-beroenden och starta API:et:
-   ```
-   cd backend
-   dotnet restore
-   dotnet run
-   ```
-
-4. Installera frontend-beroenden och starta utvecklingsservern:
-   ```
-   cd ../frontend
-   npm install
-   npm start
-   ```
-
-### Miljövariabler
-
-Skapa en `.env`-fil i backend-katalogen med följande variabler:
-```
-DATABASE_CONNECTION=
-MAIL_SERVER=
-MAIL_PORT=
-MAIL_USERNAME=
-MAIL_PASSWORD=
-MAIL_FROM=
-```
-
 ## Projektstruktur
 
 ```
