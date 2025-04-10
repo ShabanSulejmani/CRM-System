@@ -902,3 +902,4 @@ C:\Users\Shaab\repos\WTP-test\End2EndTester\obj\Debug\net8.0\refint\End2EndTeste
 C:\Users\Shaab\repos\WTP-test\End2EndTester\obj\Debug\net8.0\End2EndTester.pdb
 C:\Users\Shaab\repos\WTP-test\End2EndTester\obj\Debug\net8.0\End2EndTester.genruntimeconfig.cache
 C:\Users\Shaab\repos\WTP-test\End2EndTester\obj\Debug\net8.0\ref\End2EndTester.dll
+C:\Users\Shaab\repos\WTP-test\End2EndTester\obj\Debug\net8.0\End2EndTester.sourcelink.json

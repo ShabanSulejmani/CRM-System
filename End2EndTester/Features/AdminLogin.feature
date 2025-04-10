@@ -1,11 +1,11 @@
-Feature:Admin
-
-    Scenario: Adimin login
+Feature: Admin Login
+    
+    Scenario: Login in as a admin
+                                                      
         Given I am at the WTP homepage
-        And I see the register button
-        When I click on the register button 
-        Then I should see the register form
-        When I fill in the form with valid admin data
+        And I see the login button
+        When I click on the login button 
+        Then I should see the login form
+        When I fill in the form with valid data for a admin
         And I click on the submit button
-        Then I should see a the admin dashboard
-
+        Then I should see my user the dashboard for admin

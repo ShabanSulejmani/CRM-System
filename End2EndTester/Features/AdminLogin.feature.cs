@@ -19,7 +19,7 @@ namespace End2EndTester.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "4.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public partial class AdminFeature : object, Xunit.IClassFixture<AdminFeature.FixtureData>, Xunit.IAsyncLifetime
+    public partial class AdminLoginFeature : object, Xunit.IClassFixture<AdminLoginFeature.FixtureData>, Xunit.IAsyncLifetime
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
@@ -31,7 +31,7 @@ namespace End2EndTester.Features
 #line 1 "AdminLogin.feature"
 #line hidden
         
-        public AdminFeature(AdminFeature.FixtureData fixtureData, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public AdminLoginFeature(AdminLoginFeature.FixtureData fixtureData, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
         }
@@ -39,7 +39,7 @@ namespace End2EndTester.Features
         public static async System.Threading.Tasks.Task FeatureSetupAsync()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunnerForAssembly(null, TechTalk.SpecFlow.xUnit.SpecFlowPlugin.XUnitParallelWorkerTracker.Instance.GetWorkerId());
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Admin", null, ProgrammingLanguage.CSharp, featureTags);
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Admin Login", null, ProgrammingLanguage.CSharp, featureTags);
             await testRunner.OnFeatureStartAsync(featureInfo);
         }
         
@@ -76,24 +76,6 @@ namespace End2EndTester.Features
             await testRunner.CollectScenarioErrorsAsync();
         }
         
-        public virtual async System.Threading.Tasks.Task FeatureBackgroundAsync()
-        {
-#line 3
-#line hidden
-#line 5
-    await testRunner.GivenAsync("I am at the WTP homepage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-#line 6
-    await testRunner.AndAsync("I see the register button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 7
-    await testRunner.WhenAsync("I click on the register button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 8
-    await testRunner.ThenAsync("I should see the register form", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-        }
-        
         async System.Threading.Tasks.Task Xunit.IAsyncLifetime.InitializeAsync()
         {
             await this.TestInitializeAsync();
@@ -104,16 +86,16 @@ namespace End2EndTester.Features
             await this.TestTearDownAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Admin login")]
-        [Xunit.TraitAttribute("FeatureTitle", "Admin")]
-        [Xunit.TraitAttribute("Description", "Admin login")]
-        public async System.Threading.Tasks.Task AdminLogin()
+        [Xunit.SkippableFactAttribute(DisplayName="Login in as a admin")]
+        [Xunit.TraitAttribute("FeatureTitle", "Admin Login")]
+        [Xunit.TraitAttribute("Description", "Login in as a admin")]
+        public async System.Threading.Tasks.Task LoginInAsAAdmin()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Admin login", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 11
-this.ScenarioInitialize(scenarioInfo);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Login in as a admin", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 3
+    this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -122,17 +104,26 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 3
-await this.FeatureBackgroundAsync();
+#line 5
+        await testRunner.GivenAsync("I am at the WTP homepage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 12
-    await testRunner.WhenAsync("I fill in the form with admin valid data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line 6
+        await testRunner.AndAsync("I see the login button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 13
-    await testRunner.AndAsync("I click on the submit button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 7
+        await testRunner.WhenAsync("I click on the login button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 14
-    await testRunner.ThenAsync("I should see a success message as an admin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line 8
+        await testRunner.ThenAsync("I should see the login form", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 9
+        await testRunner.WhenAsync("I fill in the form with valid data for a admin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 10
+        await testRunner.AndAsync("I click on the submit button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 11
+        await testRunner.ThenAsync("I should see my user the dashboard for admin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -145,12 +136,12 @@ await this.FeatureBackgroundAsync();
             
             async System.Threading.Tasks.Task Xunit.IAsyncLifetime.InitializeAsync()
             {
-                await AdminFeature.FeatureSetupAsync();
+                await AdminLoginFeature.FeatureSetupAsync();
             }
             
             async System.Threading.Tasks.Task Xunit.IAsyncLifetime.DisposeAsync()
             {
-                await AdminFeature.FeatureTearDownAsync();
+                await AdminLoginFeature.FeatureTearDownAsync();
             }
         }
     }

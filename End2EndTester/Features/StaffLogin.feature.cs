@@ -28,7 +28,7 @@ namespace End2EndTester.Features
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
-#line 1 "Login.feature"
+#line 1 "StaffLogin.feature"
 #line hidden
         
         public LoginFeature(LoginFeature.FixtureData fixtureData, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
@@ -108,13 +108,13 @@ this.ScenarioInitialize(scenarioInfo);
     await testRunner.GivenAsync("I am at the WTP homepage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 6
-    await testRunner.AndAsync("I see the register button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    await testRunner.AndAsync("I see the login button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 7
-    await testRunner.WhenAsync("I click on the register button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    await testRunner.WhenAsync("I click on the login button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 8
-    await testRunner.ThenAsync("I should see the register form", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    await testRunner.ThenAsync("I should see the login form", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 9
     await testRunner.WhenAsync("I fill in the form with valid data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -123,7 +123,50 @@ this.ScenarioInitialize(scenarioInfo);
     await testRunner.AndAsync("I click on the submit button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 11
-    await testRunner.ThenAsync("I should see a success message", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    await testRunner.ThenAsync("I should see my user name at the dashboard page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Login in as a admin")]
+        [Xunit.TraitAttribute("FeatureTitle", "Login")]
+        [Xunit.TraitAttribute("Description", "Login in as a admin")]
+        public async System.Threading.Tasks.Task LoginInAsAAdmin()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Login in as a admin", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 13
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 15
+                                                         await testRunner.GivenAsync("I am at the WTP homepage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 16
+                                                         await testRunner.AndAsync("I see the login button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 17
+                                                         await testRunner.WhenAsync("I click on the login button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 18
+                                                         await testRunner.ThenAsync("I should see the login form", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 19
+                                                         await testRunner.WhenAsync("I fill in the form with valid data for a admin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 20
+                                                         await testRunner.AndAsync("I click on the submit button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 21
+                                                         await testRunner.ThenAsync("I should see my user the dashboard for admin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
