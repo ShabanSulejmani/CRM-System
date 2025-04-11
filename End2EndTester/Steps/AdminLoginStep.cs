@@ -24,19 +24,22 @@ namespace End2EndTester.Steps
                 new PageWaitForSelectorOptions
                 {
                     State = WaitForSelectorState.Visible,
-                    Timeout = 60000 // 60 sekunder
                 });
 
             await _page.FillAsync("input.staff-field-input[type='text']", "KevinAdmin");
             await _page.FillAsync("input.staff-field-input[type='password']", "abc123");
         }
-
-        [Then(@"I should see my user the dashboard for admin")]
+        [Then(@"I should see the dashboard for admin")]
         public async Task ThenIShouldSeeMyUserTheDashboardForAdmin()
         {
-            var element =
-                await _page.QuerySelectorAsync(
-                    "a.active[href='/admin/dashboard'][data-discover='true'][aria-current='page']");
+            var element = await _page.WaitForSelectorAsync(
+                "a.active[href='/admin/dashboard'][data-discover='true'][aria-current='page']",
+                new PageWaitForSelectorOptions
+                {
+                    State = WaitForSelectorState.Visible,
+                    Timeout = 500
+                });
+    
             Assert.NotNull(element);
         }
     }

@@ -108,25 +108,151 @@ namespace End2EndTester.Features
         await testRunner.GivenAsync("I am on the form page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 5
-        await testRunner.WhenAsync("I choose Tele/Bredband", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+        await testRunner.WhenAsync("I choose \"Tele/Bredband\" as the company type", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 6
-        await testRunner.AndAsync("I fill in my name,lastname and email", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+        await testRunner.AndAsync("I fill in my name and email", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 7
-        await testRunner.AndAsync("I choose Mobiltelefoni as the service type", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+        await testRunner.AndAsync("I choose \"Mobiltelefoni\" as the service type", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 8
-        await testRunner.AndAsync("I Faktura frågor as the issue type", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+        await testRunner.AndAsync("I take \"Fakturafrågor\" as the issue type", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 9
-        await testRunner.AndAsync("I write a message to the customer service", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+        await testRunner.AndAsync("I write a message to customer service", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 10
-        await testRunner.AndAsync("I submit the form", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+        await testRunner.AndAsync("I press Submit", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 11
-        await testRunner.ThenAsync("I should see a success message", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+        await testRunner.ThenAsync("A success message Will be displayed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Car service contact form")]
+        [Xunit.TraitAttribute("FeatureTitle", "Fill the form as a customer")]
+        [Xunit.TraitAttribute("Description", "Car service contact form")]
+        public async System.Threading.Tasks.Task CarServiceContactForm()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Car service contact form", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 13
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 14
+        await testRunner.GivenAsync("I am on the form page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 15
+        await testRunner.WhenAsync("I choose \"Fordonsservice\" as the company type", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 16
+        await testRunner.AndAsync("I fill in my name and email", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 17
+        await testRunner.AndAsync("I write \"UND755\" as the registration number", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 18
+        await testRunner.AndAsync("I choose \"Kostnadsförfrågan\" as the issue type", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 19
+        await testRunner.AndAsync("I write a message to customer service", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 20
+        await testRunner.AndAsync("I press Submit", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 21
+        await testRunner.ThenAsync("A success message Will be displayed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Insurance contact form")]
+        [Xunit.TraitAttribute("FeatureTitle", "Fill the form as a customer")]
+        [Xunit.TraitAttribute("Description", "Insurance contact form")]
+        public async System.Threading.Tasks.Task InsuranceContactForm()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Insurance contact form", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 23
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 24
+        await testRunner.GivenAsync("I am on the form page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 25
+        await testRunner.WhenAsync("I choose \"Försäkringsärenden\" as the company type", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 26
+        await testRunner.AndAsync("I fill in my name and email", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 27
+        await testRunner.AndAsync("I choose \"Olycksfallsförsäkring\" as the insurance type", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 28
+        await testRunner.AndAsync("I choose \"Fakturafrågor\" as the issue type", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 29
+        await testRunner.AndAsync("I write a message to customer service", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 30
+        await testRunner.AndAsync("I press Submit", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 31
+        await testRunner.ThenAsync("A success message Will be displayed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Fill in the form without required fields")]
+        [Xunit.TraitAttribute("FeatureTitle", "Fill the form as a customer")]
+        [Xunit.TraitAttribute("Description", "Fill in the form without required fields")]
+        public async System.Threading.Tasks.Task FillInTheFormWithoutRequiredFields()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Fill in the form without required fields", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 33
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 34
+        await testRunner.GivenAsync("I am on the form page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 35
+        await testRunner.WhenAsync("I choose \"Tele/Bredband\" as the company type", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 36
+        await testRunner.AndAsync("I submit the form without filling required fields", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 37
+        await testRunner.ThenAsync("Validation errors will appear", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

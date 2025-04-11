@@ -18,4 +18,4 @@ Scenario: Login in as a user
         Then I should see the login form
         When I fill in the form with valid data for a admin
         And I click on the submit button
-        Then I should see my user the dashboard for admin
+        Then I should see the dashboard for admin

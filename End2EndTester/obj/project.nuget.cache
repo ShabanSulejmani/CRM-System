@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "MV4nMp2Ta5s=",
+  "dgSpecHash": "GazG/3hUd4c=",
   "success": true,
   "projectFilePath": "C:\\Users\\Shaab\\repos\\WTP-test\\End2EndTester\\End2EndTester.csproj",
   "expectedPackageFiles": [
@@ -114,10 +114,7 @@
     "C:\\Users\\Shaab\\.nuget\\packages\\xunit.extensibility.core\\2.9.3\\xunit.extensibility.core.2.9.3.nupkg.sha512",
     "C:\\Users\\Shaab\\.nuget\\packages\\xunit.extensibility.execution\\2.5.3\\xunit.extensibility.execution.2.5.3.nupkg.sha512",
     "C:\\Users\\Shaab\\.nuget\\packages\\xunit.runner.visualstudio\\2.5.3\\xunit.runner.visualstudio.2.5.3.nupkg.sha512",
-    "C:\\Users\\Shaab\\.nuget\\packages\\xunit.skippablefact\\1.4.13\\xunit.skippablefact.1.4.13.nupkg.sha512",
-    "C:\\Users\\Shaab\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.13\\microsoft.netcore.app.ref.8.0.13.nupkg.sha512",
-    "C:\\Users\\Shaab\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.13\\microsoft.windowsdesktop.app.ref.8.0.13.nupkg.sha512",
-    "C:\\Users\\Shaab\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.13\\microsoft.aspnetcore.app.ref.8.0.13.nupkg.sha512"
+    "C:\\Users\\Shaab\\.nuget\\packages\\xunit.skippablefact\\1.4.13\\xunit.skippablefact.1.4.13.nupkg.sha512"
   ],
   "logs": [
     {

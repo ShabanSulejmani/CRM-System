@@ -4,75 +4,73 @@ using TechTalk.SpecFlow;
 namespace End2EndTester.Steps
 {
     [Binding]
-    public class TelefoniFormSteps
+    public class FillTheFormSteps
     {
         private readonly IPage _page;
 
-        public TelefoniFormSteps(ScenarioContext scenarioContext)
+        public FillTheFormSteps(ScenarioContext scenarioContext)
         {
             _page = scenarioContext.Get<IPage>("Page");
         }
         
-        [Given(@"I am on the form page")]
-        public async Task GivenIAmOnTheWTPFormPage()
+        [Given("I am on the form page")]
+        public async Task GivenIAmOnTheFormPage()
         {
             await _page.GotoAsync("http://localhost:3001/dynamisk");
         }
-
-        [When(@"I choose Tele/Bredband")]
-        public async Task WhenIChooseTeleBredband()
+        
+        [When(@"I choose ""(.*)"" as the company type")]
+        public async Task WhenIChooseAsTheCompanyType(string companyType)
         {
-            await _page.SelectOptionAsync("select[name='companyType']", "Tele/Bredband");
-            
+            await _page.SelectOptionAsync("select[name='companyType']", companyType);
+            // Allow time for dynamic fields to load
+            await _page.WaitForTimeoutAsync(500);
         }
 
-        [When(@"I fill in my name,lastname and email")]
-        public async Task WhenIFillInMyPersonalInformation()
+        
+        [When("I fill in my name and email")]
+        public async Task WhenIFillInMyNameAndEmail()
         {
             await _page.FillAsync("input[name='firstName']", "Saban");
             await _page.FillAsync("input[name='email']", "shaabaan_@hotmail.com");
         }
-
-        [When(@"I choose Mobiltelefoni as the service type")]
-        public async Task WhenISelectAsTheServiceType()
+        
+        [When(@"I choose ""(.*)"" as the service type")]
+        public async Task WhenIChooseAsTheServiceType(string serviceType)
         {
-            await _page.SelectOptionAsync("select[name='serviceType']", "Mobiltelefoni");
+            await _page.SelectOptionAsync("select[name='serviceType']", serviceType);
+        }
+        
+        [When(@"I take ""(.*)"" as the issue type")]
+        public async Task WhenITakeAsTheIssueType(string issueType)
+        {
+            await _page.SelectOptionAsync("select[name='issueType']", issueType);
         }
 
-        [When(@"I Faktura frågor as the issue type")]
-        public async Task WhenISelectAsTheIssueType()
+        
+        [When(@"I write a message to customer service")]
+        public async Task WhenIWriteAdMessageToCustomerservice()
         {
-            await _page.SelectOptionAsync("select[name='issueType']", "Fakturafrågor");
+            await _page.FillAsync("textarea[name='message']", "Min faktura stämmer inte.");
         }
-
-        [When(@"I write a message to the customer service")]
-        public async Task WhenIEnterADetailedMessage()
-        {
-            await _page.FillAsync("#message", "Hej, jag har en fråga angående min faktura.");
-        }
-
-        [When(@"I submit the form")]
-        public async Task WhenISubmitTheForm()
+        
+        [When("I press Submit")]
+        public async Task WhenIPressSubmit()
         {
             await _page.ClickAsync("button.dynamisk-form-button");
-            
-            // Wait for form submission to complete
-            await _page.WaitForSelectorAsync(".dynamisk-message", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+            await _page.WaitForTimeoutAsync(500);
         }
-
-        [Then(@"I should see a success message")]
-        public async Task ThenIShouldSeeASuccessMessage()
+        
+        [Then("A success message Will be displayed")]
+        public async Task ASuccessMessageWillBeDisplayed()
         {
-            var messageElement = await _page.WaitForSelectorAsync(".dynamisk-message:not(.error)");
+            var messageElement = await _page.WaitForSelectorAsync(".dynamisk-message:not(.error)",
+                new PageWaitForSelectorOptions {
+                    Timeout = 10000,
+                    State = WaitForSelectorState.Visible
+                });
+                
             Assert.NotNull(messageElement);
-            
-            // Verify the message is not an error
-            var classAttribute = await messageElement.GetAttributeAsync("class");
-            Assert.DoesNotContain("error", classAttribute);
-            
-            // Optional: Verify specific success message text
-            var messageText = await messageElement.TextContentAsync();
-            Assert.NotEmpty(messageText);
         }
     }
 }

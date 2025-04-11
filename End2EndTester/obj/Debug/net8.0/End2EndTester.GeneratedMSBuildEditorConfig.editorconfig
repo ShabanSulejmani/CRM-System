@@ -11,5 +11,3 @@ build_property.RootNamespace = End2EndTester
 build_property.ProjectDir = C:\Users\Shaab\repos\WTP-test\End2EndTester\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
-build_property.EffectiveAnalysisLevelStyle = 8.0
-build_property.EnableCodeStyleSeverity = 
