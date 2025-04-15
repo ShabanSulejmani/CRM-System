@@ -1,7 +1,11 @@
 Feature: Fill the form as a customer
 
+      Background:  
+        Given I am at the WTP homepage
+        
+    @Telecom
     Scenario: Telecom customer service contact form
-        Given I am on the form page
+        
         When I choose "Tele/Bredband" as the company type
         And I fill in my name and email
         And I choose "Mobiltelefoni" as the service type
@@ -10,8 +14,9 @@ Feature: Fill the form as a customer
         And I press Submit
         Then A success message Will be displayed
 
+    @CarService
     Scenario: Car service contact form
-        Given I am on the form page
+      
         When I choose "Fordonsservice" as the company type
         And I fill in my name and email
         And I write "UND755" as the registration number
@@ -19,9 +24,9 @@ Feature: Fill the form as a customer
         And I write a message to customer service
         And I press Submit
         Then A success message Will be displayed
-
+    @Insurance
     Scenario: Insurance contact form
-        Given I am on the form page
+       
         When I choose "Försäkringsärenden" as the company type
         And I fill in my name and email
         And I choose "Olycksfallsförsäkring" as the insurance type
@@ -30,8 +35,9 @@ Feature: Fill the form as a customer
         And I press Submit
         Then A success message Will be displayed
 
+    @MissingFields
     Scenario: Fill in the form without required fields
-        Given I am on the form page
+     
         When I choose "Tele/Bredband" as the company type
         And I send the form without filling required fields
         Then Validation errors will appear
