@@ -110,16 +110,16 @@ namespace End2EndTester.Features
             await this.TestTearDownAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Login in as a admin")]
+        [Xunit.SkippableFactAttribute(DisplayName="Login in as a admin and see authenticated page")]
         [Xunit.TraitAttribute("FeatureTitle", "Logged In Admin")]
-        [Xunit.TraitAttribute("Description", "Login in as a admin")]
+        [Xunit.TraitAttribute("Description", "Login in as a admin and see authenticated page")]
         [Xunit.TraitAttribute("Category", "Admin")]
-        public async System.Threading.Tasks.Task LoginInAsAAdmin()
+        public async System.Threading.Tasks.Task LoginInAsAAdminAndSeeAuthenticatedPage()
         {
             string[] tagsOfScenario = new string[] {
                     "Admin"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Login in as a admin", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Login in as a admin and see authenticated page", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 14
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
