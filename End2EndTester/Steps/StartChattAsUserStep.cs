@@ -17,7 +17,7 @@ namespace End2EndTester.Steps
         [When(@"I click on the chat button")]
         public async Task WhenIClickOnTheChatButton()
         {
-            await _page.ClickAsync("a[href='/chat/764c78db-de5f-40c9-8e62-53a472e5373a']");
+            await _page.ClickAsync("a[href='/chat/6d7ad93c-2f62-480e-a115-f8aedca32343']");
         }
 
         [Then(@"I should see the chat window")]

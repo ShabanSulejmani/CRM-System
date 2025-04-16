@@ -114,7 +114,7 @@ namespace End2EndTester.Features
                     "UnauthorizedStaff"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Try to log in with invalid credentials", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 10
+#line 11
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -127,13 +127,13 @@ namespace End2EndTester.Features
 #line 3
     await this.FeatureBackgroundAsync();
 #line hidden
-#line 11
+#line 13
         await testRunner.WhenAsync("I fill in the form with invalid data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 12
+#line 14
         await testRunner.AndAsync("I click on the submit button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 13
+#line 15
         await testRunner.ThenAsync("I should see an error message", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }

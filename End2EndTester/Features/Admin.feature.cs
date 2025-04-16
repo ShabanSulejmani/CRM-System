@@ -140,6 +140,86 @@ namespace End2EndTester.Features
             await this.ScenarioCleanupAsync();
         }
         
+        [Xunit.SkippableFactAttribute(DisplayName="Create a new staff member as admin")]
+        [Xunit.TraitAttribute("FeatureTitle", "Logged In Admin")]
+        [Xunit.TraitAttribute("Description", "Create a new staff member as admin")]
+        public async System.Threading.Tasks.Task CreateANewStaffMemberAsAdmin()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new staff member as admin", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 18
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 3
+    await this.FeatureBackgroundAsync();
+#line hidden
+#line 20
+            await testRunner.WhenAsync("I click on the create staff button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 21
+            await testRunner.ThenAsync("I should see the create staff form", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 22
+            await testRunner.AndAsync("I fill in the create staff form with valid data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 23
+            await testRunner.AndAsync("I click on the submit button to create the staff member", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 24
+            await testRunner.ThenAsync("I should see a success message", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Create a new staff member but the staff already  exists")]
+        [Xunit.TraitAttribute("FeatureTitle", "Logged In Admin")]
+        [Xunit.TraitAttribute("Description", "Create a new staff member but the staff already  exists")]
+        public async System.Threading.Tasks.Task CreateANewStaffMemberButTheStaffAlreadyExists()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new staff member but the staff already  exists", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 26
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 3
+    await this.FeatureBackgroundAsync();
+#line hidden
+#line 28
+            await testRunner.WhenAsync("I click on the create staff button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 29
+            await testRunner.ThenAsync("I should see the create staff form", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 30
+            await testRunner.AndAsync("I fill in the create staff form with existing data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 31
+            await testRunner.AndAsync("I click on the submit button to create the staff member", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 32
+            await testRunner.ThenAsync("I should see an error message for existing staff", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
         [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "4.0.0.0")]
         [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
         public class FixtureData : object, Xunit.IAsyncLifetime

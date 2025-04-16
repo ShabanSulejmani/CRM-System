@@ -68,7 +68,7 @@ namespace End2EndTester.Steps
                 new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
                 
             await _page.FillAsync("input.staff-field-input[type='text']", "Saban");
-            await _page.FillAsync("input.staff-field-input[type='password']", "12345");
+            await _page.FillAsync("input.staff-field-input[type='password']", "123");
         }
         
         [When(@"I click on the submit button")]

@@ -26,8 +26,8 @@ namespace End2EndTester.Steps
                     State = WaitForSelectorState.Visible,
                 });
 
-            await _page.FillAsync("input.staff-field-input[type='text']", "KevinAdmin");
-            await _page.FillAsync("input.staff-field-input[type='password']", "abc123");
+            await _page.FillAsync("input.staff-field-input[type='text']", "Admin");
+            await _page.FillAsync("input.staff-field-input[type='password']", "123");
         }
         [Then(@"I should see the dashboard for admin")]
         public async Task ThenIShouldSeeMyUserTheDashboardForAdmin()

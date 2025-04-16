@@ -186,14 +186,14 @@ namespace End2EndTester.Features
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Logout as a user")]
+        [Xunit.SkippableFactAttribute(DisplayName="Logout")]
         [Xunit.TraitAttribute("FeatureTitle", "Logged In Staff")]
-        [Xunit.TraitAttribute("Description", "Logout as a user")]
-        public async System.Threading.Tasks.Task LogoutAsAUser()
+        [Xunit.TraitAttribute("Description", "Logout")]
+        public async System.Threading.Tasks.Task Logout()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Logout as a user", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Logout", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 28
    this.ScenarioInitialize(scenarioInfo);
 #line hidden

@@ -25,7 +25,7 @@ Feature: Logged In Staff
     And I press the end chat button
     Then I should see the dashboard again 
 
-   Scenario: Logout as a user
+   Scenario: Logout 
 
     When I click on the logout button 
     Then I should see the login form again
