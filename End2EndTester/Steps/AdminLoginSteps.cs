@@ -1,45 +1,46 @@
 using Microsoft.Playwright;
+
 using TechTalk.SpecFlow;
-using Xunit;
 
-namespace End2EndTester.Steps;
-
-[Binding]
-public class AdminLoginSteps
+namespace End2EndTester.Steps
 {
-    private IPlaywright _playwright;
-    private IBrowser _browser;
-    private IBrowserContext _context;
-    private IPage _page;
+    [Binding]
+    public class AdminLoginStep
+    {
+        private readonly IPage _page;
 
-    [BeforeScenario]
-    public async Task Setup()
-    {
-        _playwright = await Playwright.CreateAsync();
-        _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-            { Headless = false, SlowMo = 2000 });
-        _context = await _browser.NewContextAsync();
-        _page = await _context.NewPageAsync();
-    }
+        public AdminLoginStep(ScenarioContext scenarioContext)
+        {
+            _page = scenarioContext.Get<IPage>("Page");
+        }
 
-    [AfterScenario]
-    public async Task Teardown()
-    {
-        await _browser.CloseAsync();
-        _playwright.Dispose();
-    }
-    [When(@"I fill in the form with valid admin data")]
-    public async Task WhenIFillInTheFormWithAdminValidData()
-    {
-        await _page.FillAsync("input.staff-field-input[type='text']", "KevinAdmin");
-        await _page.FillAsync("input.staff-field-input[type='password']", "abc123");
-    }
+        [When(@"I fill in the form with valid data for a admin")]
+        public async Task WhenIFillInTheFormWithValidDataForAdmin()
+        {
 
 
-    [Then(@"I should see a the admin dashboard")]
-    public async Task ThenIShouldSeeASuccessMessageAsAdmin()
-    {
-        var element = await _page.QuerySelectorAsync("[href='/admin/dashboard']");
-        Assert.NotNull(element);
+            // Vänta längre på elementet för att undvika timeout
+            await _page.WaitForSelectorAsync("input.staff-field-input[type='text']",
+                new PageWaitForSelectorOptions
+                {
+                    State = WaitForSelectorState.Visible,
+                });
+
+            await _page.FillAsync("input.staff-field-input[type='text']", "Admin");
+            await _page.FillAsync("input.staff-field-input[type='password']", "123");
+        }
+        [Then(@"I should see the dashboard for admin")]
+        public async Task ThenIShouldSeeMyUserTheDashboardForAdmin()
+        {
+            var element = await _page.WaitForSelectorAsync(
+                "a.active[href='/admin/dashboard'][data-discover='true'][aria-current='page']",
+                new PageWaitForSelectorOptions
+                {
+                    State = WaitForSelectorState.Visible,
+                    Timeout = 500
+                });
+    
+            Assert.NotNull(element);
+        }
     }
 }

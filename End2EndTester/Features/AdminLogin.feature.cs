@@ -19,7 +19,7 @@ namespace End2EndTester.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "4.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public partial class AdminFeature : object, Xunit.IClassFixture<AdminFeature.FixtureData>, Xunit.IAsyncLifetime
+    public partial class LoggedInAdminFeature : object, Xunit.IClassFixture<LoggedInAdminFeature.FixtureData>, Xunit.IAsyncLifetime
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
@@ -31,7 +31,7 @@ namespace End2EndTester.Features
 #line 1 "AdminLogin.feature"
 #line hidden
         
-        public AdminFeature(AdminFeature.FixtureData fixtureData, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public LoggedInAdminFeature(LoggedInAdminFeature.FixtureData fixtureData, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
         }
@@ -39,7 +39,7 @@ namespace End2EndTester.Features
         public static async System.Threading.Tasks.Task FeatureSetupAsync()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunnerForAssembly(null, TechTalk.SpecFlow.xUnit.SpecFlowPlugin.XUnitParallelWorkerTracker.Instance.GetWorkerId());
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Admin", null, ProgrammingLanguage.CSharp, featureTags);
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Logged In Admin", null, ProgrammingLanguage.CSharp, featureTags);
             await testRunner.OnFeatureStartAsync(featureInfo);
         }
         
@@ -79,18 +79,24 @@ namespace End2EndTester.Features
         public virtual async System.Threading.Tasks.Task FeatureBackgroundAsync()
         {
 #line 3
-#line hidden
+    #line hidden
 #line 5
-    await testRunner.GivenAsync("I am at the WTP homepage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+        await testRunner.GivenAsync("I am at the WTP homepage", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 6
-    await testRunner.AndAsync("I see the register button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+        await testRunner.AndAsync("I see the login button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 7
-    await testRunner.WhenAsync("I click on the register button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+        await testRunner.WhenAsync("I click on the login button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 8
-    await testRunner.ThenAsync("I should see the register form", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+        await testRunner.ThenAsync("I should see the login form", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 9
+        await testRunner.WhenAsync("I fill in the form with valid data for a admin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 10
+        await testRunner.WhenAsync("I click on the submit button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
         }
         
@@ -104,16 +110,18 @@ namespace End2EndTester.Features
             await this.TestTearDownAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Admin login")]
-        [Xunit.TraitAttribute("FeatureTitle", "Admin")]
-        [Xunit.TraitAttribute("Description", "Admin login")]
-        public async System.Threading.Tasks.Task AdminLogin()
+        [Xunit.SkippableFactAttribute(DisplayName="Login in as a admin and see authenticated page")]
+        [Xunit.TraitAttribute("FeatureTitle", "Logged In Admin")]
+        [Xunit.TraitAttribute("Description", "Login in as a admin and see authenticated page")]
+        [Xunit.TraitAttribute("Category", "Admin")]
+        public async System.Threading.Tasks.Task LoginInAsAAdminAndSeeAuthenticatedPage()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "Admin"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Admin login", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 11
-this.ScenarioInitialize(scenarioInfo);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Login in as a admin and see authenticated page", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 14
+    this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -123,16 +131,90 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 await this.ScenarioStartAsync();
 #line 3
-await this.FeatureBackgroundAsync();
+    await this.FeatureBackgroundAsync();
 #line hidden
-#line 12
-    await testRunner.WhenAsync("I fill in the form with admin valid data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line 16
+        await testRunner.ThenAsync("I should see the dashboard for admin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 13
-    await testRunner.AndAsync("I click on the submit button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Create a new staff member as admin")]
+        [Xunit.TraitAttribute("FeatureTitle", "Logged In Admin")]
+        [Xunit.TraitAttribute("Description", "Create a new staff member as admin")]
+        public async System.Threading.Tasks.Task CreateANewStaffMemberAsAdmin()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new staff member as admin", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 18
+    this.ScenarioInitialize(scenarioInfo);
 #line hidden
-#line 14
-    await testRunner.ThenAsync("I should see a success message as an admin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 3
+    await this.FeatureBackgroundAsync();
+#line hidden
+#line 20
+        await testRunner.WhenAsync("I click on the create staff button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 21
+        await testRunner.ThenAsync("I should see the create staff form", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 22
+        await testRunner.AndAsync("I fill in the create staff form with valid data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 23
+        await testRunner.AndAsync("I click on the submit button to create the staff member", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 24
+        await testRunner.ThenAsync("I should see a success message", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Create a new staff member but the staff already  exists")]
+        [Xunit.TraitAttribute("FeatureTitle", "Logged In Admin")]
+        [Xunit.TraitAttribute("Description", "Create a new staff member but the staff already  exists")]
+        public async System.Threading.Tasks.Task CreateANewStaffMemberButTheStaffAlreadyExists()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Create a new staff member but the staff already  exists", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 26
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 3
+    await this.FeatureBackgroundAsync();
+#line hidden
+#line 28
+        await testRunner.WhenAsync("I click on the create staff button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 29
+        await testRunner.ThenAsync("I should see the create staff form", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 30
+        await testRunner.AndAsync("I fill in the create staff form with existing data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 31
+        await testRunner.AndAsync("I click on the submit button to create the staff member", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 32
+        await testRunner.ThenAsync("I should see an error message for existing staff", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -145,12 +227,12 @@ await this.FeatureBackgroundAsync();
             
             async System.Threading.Tasks.Task Xunit.IAsyncLifetime.InitializeAsync()
             {
-                await AdminFeature.FeatureSetupAsync();
+                await LoggedInAdminFeature.FeatureSetupAsync();
             }
             
             async System.Threading.Tasks.Task Xunit.IAsyncLifetime.DisposeAsync()
             {
-                await AdminFeature.FeatureTearDownAsync();
+                await LoggedInAdminFeature.FeatureTearDownAsync();
             }
         }
     }
