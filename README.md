@@ -12,9 +12,9 @@ Databasinställning
 Skapa databastabeller enligt den tillhandahållna databasstrukturen
 Konfigurera Role-tabellen:
 
-Infoga id = 1, name = 'Staff'
-Infoga id = 2, name = 'Admin'
-Infoga id = 3, name = 'Super-Admin'
+id = 1, company_role = 'Staff'
+id = 2, company_role = 'Admin'
+id = 3, company_role = 'Super-Admin'
 
 
 Skapa initiala användare i User-tabellen:
