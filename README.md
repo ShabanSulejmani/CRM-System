@@ -21,16 +21,21 @@ Skapa initiala användare i User-tabellen:
 
 Admin-användare:
 
-Användarnamn: Admin
-Företag: tele
-Lösenord: 123
+first_name: Admin
+password: 123
+company: tele
+role_id:2
+email:Admin@test.se
 
 
 Vanlig personalanvändare:
 
-Användarnamn: Saban
-Företag: tele
-Lösenord: 123
+first_name: Saban
+password: 123
+company: tele
+role_id:1
+email:Saban@test.se
+
 
 
 E-postadresser kan vara i vilket giltigt format som helst
